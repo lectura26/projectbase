@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+
+<html class="light" lang="da"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed": "#ffdea5",
+                    "tertiary-container": "#453000",
+                    "surface-container-high": "#f6e5e1",
+                    "secondary-fixed": "#cbe7f3",
+                    "surface-container-highest": "#f0dfdb",
+                    "inverse-surface": "#382e2c",
+                    "inverse-primary": "#b2c5ff",
+                    "tertiary-fixed-dim": "#e9c176",
+                    "surface-tint": "#485c95",
+                    "on-tertiary-fixed": "#261900",
+                    "primary-fixed": "#dae2ff",
+                    "on-surface-variant": "#44464f",
+                    "primary-container": "#1a3167",
+                    "on-error": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-fixed-variant": "#2f447b",
+                    "background": "#fff8f6",
+                    "on-secondary-fixed": "#021f27",
+                    "primary": "#001b4f",
+                    "on-error-container": "#93000a",
+                    "outline": "#757781",
+                    "surface": "#fff8f6",
+                    "on-tertiary-container": "#bb9751",
+                    "on-surface": "#221a17",
+                    "error": "#ba1a1a",
+                    "primary-fixed-dim": "#b2c5ff",
+                    "error-container": "#ffdad6",
+                    "tertiary": "#2a1c00",
+                    "secondary-container": "#cbe7f3",
+                    "secondary-fixed-dim": "#afcbd7",
+                    "surface-container-low": "#fff1ed",
+                    "surface-dim": "#e7d6d3",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "on-background": "#221a17",
+                    "inverse-on-surface": "#feede9",
+                    "on-primary-container": "#869bd7",
+                    "on-tertiary-fixed-variant": "#5d4201",
+                    "outline-variant": "#c5c6d1",
+                    "surface-bright": "#fff8f6",
+                    "surface-variant": "#f0dfdb",
+                    "surface-container": "#fbeae6",
+                    "secondary": "#48626c",
+                    "on-secondary-container": "#4e6873",
+                    "on-secondary-fixed-variant": "#304a54",
+                    "on-secondary": "#ffffff",
+                    "on-primary-fixed": "#001849"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #fff8f6; }
+        .font-manrope { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="text-on-surface antialiased overflow-hidden">
+<!-- SideNavBar Anchor -->
+<aside class="flex flex-col fixed left-0 top-0 h-full overflow-y-auto bg-[#1A3167] dark:bg-slate-950 h-screen w-64 border-r-0 z-50">
+<div class="px-6 py-8">
+<div class="flex items-center gap-3 mb-10">
+<div class="w-10 h-10 rounded-lg bg-white flex items-center justify-center">
+<span class="material-symbols-outlined text-[#1A3167]" style="font-variation-settings: 'FILL' 1;">account_balance</span>
+</div>
+<div>
+<div class="text-white font-extrabold text-lg tracking-tight leading-none">Söderberg &amp; Partners</div>
+<div class="text-white/60 font-manrope font-bold text-[10px] uppercase tracking-widest mt-1">Projekt hub</div>
+</div>
+</div>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 text-[#D4AF37] border-l-4 border-[#D4AF37] bg-white/5 font-bold px-4 py-3 font-manrope text-sm tracking-tight transition-transform active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                    Oversigt
+                </a>
+<a class="flex items-center gap-3 text-white/70 hover:text-white hover:bg-white/10 px-4 py-3 font-manrope font-bold text-sm tracking-tight transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="folder_shared">folder_shared</span>
+                    Projekter
+                </a>
+<a class="flex items-center gap-3 text-white/70 hover:text-white hover:bg-white/10 px-4 py-3 font-manrope font-bold text-sm tracking-tight transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+                    Kalender
+                </a>
+<a class="flex items-center gap-3 text-white/70 hover:text-white hover:bg-white/10 px-4 py-3 font-manrope font-bold text-sm tracking-tight transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+                    Mit team
+                </a>
+<a class="flex items-center gap-3 text-white/70 hover:text-white hover:bg-white/10 px-4 py-3 font-manrope font-bold text-sm tracking-tight transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+                    Indstillinger
+                </a>
+</nav>
+</div>
+</aside>
+<!-- Main Content Shell -->
+<main class="ml-64 min-h-screen relative">
+<!-- TopNavBar Anchor -->
+<header class="flex justify-between items-center w-full px-8 py-4 sticky top-0 z-40 bg-[#fff8f6] dark:bg-slate-900 text-[#1A3167] font-manrope font-semibold">
+<div class="flex items-center gap-8">
+<h1 class="text-[#1A3167] dark:text-white font-black text-xl tracking-tight">S&amp;P Projekter</h1>
+<div class="relative group">
+<div class="flex items-center bg-[#cce8f4] dark:bg-slate-800 px-4 py-2 rounded-full transition-colors w-72">
+<span class="material-symbols-outlined text-[#1A3167]/60 mr-2">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder-[#1A3167]/40" placeholder="Søg i projekter..." type="text"/>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<!-- Notifications Trigger (Bell) -->
+<button class="relative p-2 text-[#1A3167] hover:text-[#1A3167] cursor-pointer transition-opacity opacity-80 active:opacity-100">
+<span class="material-symbols-outlined" data-icon="notifications" style="font-variation-settings: 'FILL' 1;">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full ring-2 ring-[#fff8f6]"></span>
+</button>
+<button class="p-2 text-[#1A3167] opacity-80 hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+<!-- Notifications Dropdown Overlay (The Specific Task) -->
+<div class="absolute top-full right-8 mt-2 w-[420px] bg-surface-container-lowest rounded-xl shadow-2xl overflow-hidden z-50 border border-outline-variant/15 backdrop-blur-xl">
+<div class="p-5 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low/30">
+<h2 class="text-on-primary-fixed font-headline font-extrabold text-lg tracking-tight">Notifikationer</h2>
+<span class="text-[11px] font-bold text-on-surface-variant/60 uppercase tracking-widest bg-secondary-container px-2 py-1 rounded">4 nye</span>
+</div>
+<div class="max-h-[520px] overflow-y-auto">
+<!-- Overdue Task -->
+<div class="p-4 hover:bg-surface-container-low transition-colors group">
+<div class="flex gap-4">
+<div class="flex-shrink-0 w-10 h-10 rounded-lg bg-error-container flex items-center justify-center text-error">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">priority_high</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-sm font-bold text-on-surface tracking-tight">Overskredet deadline: Projekt Nordhavn</h3>
+<span class="text-[10px] text-on-surface-variant/60 font-medium">2 timer siden</span>
+</div>
+<p class="text-xs text-on-surface-variant leading-relaxed mb-3">Budgetrevision for fase 2 er nu 24 timer forsinket. Kræver øjeblikkelig handling.</p>
+<button class="text-xs font-bold px-4 py-2 bg-primary text-on-primary rounded-md hover:bg-primary-container transition-colors active:scale-95">Se opgave</button>
+</div>
+</div>
+</div>
+<!-- AI Match -->
+<div class="p-4 hover:bg-surface-container-low transition-colors group">
+<div class="flex gap-4">
+<div class="flex-shrink-0 w-10 h-10 rounded-lg bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed-variant">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-sm font-bold text-on-surface tracking-tight">Nyt AI Ressource Match</h3>
+<span class="text-[10px] text-on-surface-variant/60 font-medium">4 timer siden</span>
+</div>
+<p class="text-xs text-on-surface-variant leading-relaxed mb-3">En ny konsulent profil matcher kravene til "Bæredygtigheds-analyse" 94%.</p>
+<button class="text-xs font-bold px-4 py-2 bg-secondary text-on-secondary rounded-md hover:bg-on-secondary-container transition-colors active:scale-95">Gennemse match</button>
+</div>
+</div>
+</div>
+<!-- Assignment -->
+<div class="p-4 hover:bg-surface-container-low transition-colors group">
+<div class="flex gap-4">
+<div class="flex-shrink-0 w-10 h-10 rounded-lg bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed-variant">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">assignment_ind</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-sm font-bold text-on-surface tracking-tight">Tildelt nyt projekt</h3>
+<span class="text-[10px] text-on-surface-variant/60 font-medium">I går</span>
+</div>
+<p class="text-xs text-on-surface-variant leading-relaxed mb-3">Du er blevet tilføjet som Lead Advisor på "København Sky-line 2030".</p>
+<button class="text-xs font-bold px-4 py-2 bg-primary text-on-primary rounded-md hover:bg-primary-container transition-colors active:scale-95">Accepter rolle</button>
+</div>
+</div>
+</div>
+<!-- Routine Restart -->
+<div class="p-4 hover:bg-surface-container-low transition-colors group">
+<div class="flex gap-4">
+<div class="flex-shrink-0 w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-on-primary-fixed-variant">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">replay</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-sm font-bold text-on-surface tracking-tight">Ugentlig rutine genstartet</h3>
+<span class="text-[10px] text-on-surface-variant/60 font-medium">I går</span>
+</div>
+<p class="text-xs text-on-surface-variant leading-relaxed mb-3">Tid til ugentlig status-opdatering for din portefølje. 12 emner klar.</p>
+<button class="text-xs font-bold px-4 py-2 bg-secondary text-on-secondary rounded-md hover:bg-on-secondary-container transition-colors active:scale-95">Start status</button>
+</div>
+</div>
+</div>
+</div>
+<div class="p-3 bg-surface-container-low/50 border-t border-outline-variant/10 text-center">
+<button class="text-xs font-extrabold text-primary hover:underline transition-all">Vis alle aktiviteter</button>
+</div>
+</div>
+</header>
+<!-- Main Dashboard Content (Background) -->
+<div class="p-8">
+<div class="mb-10">
+<h2 class="text-4xl font-headline font-extrabold text-on-primary-fixed tracking-tight mb-2">Godmorgen, Thomas</h2>
+<p class="text-on-surface-variant/80 font-body text-lg">Her er et overblik over dine projekter og teamets fremdrift i dag.</p>
+</div>
+<!-- Bento Grid Dashboard -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Large Featured Card -->
+<div class="col-span-8 bg-surface-container-lowest rounded-xl p-8 border border-outline-variant/5 shadow-sm relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-64 h-64 bg-secondary-container/20 rounded-full -mr-20 -mt-20 blur-3xl group-hover:bg-secondary-container/40 transition-colors duration-700"></div>
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-12">
+<div>
+<span class="text-[11px] font-bold text-primary/60 uppercase tracking-widest block mb-1">Aktivt Fokus</span>
+<h3 class="text-2xl font-headline font-bold text-on-surface tracking-tight">Infrastruktur Plan 2025</h3>
+</div>
+<div class="text-right">
+<span class="text-3xl font-headline font-black text-primary">82%</span>
+<span class="text-[10px] font-bold text-on-surface-variant/60 block uppercase tracking-tighter">Færdiggjort</span>
+</div>
+</div>
+<div class="h-2 w-full bg-secondary-fixed rounded-full mb-8">
+<div class="h-full bg-primary rounded-full" style="width: 82%"></div>
+</div>
+<div class="grid grid-cols-3 gap-8">
+<div class="bg-surface-container-low p-4 rounded-lg">
+<span class="block text-[10px] font-bold text-on-surface-variant/60 uppercase mb-1">Næste Milepæl</span>
+<span class="text-sm font-bold text-on-surface">Godkendelse fase 4</span>
+</div>
+<div class="bg-surface-container-low p-4 rounded-lg">
+<span class="block text-[10px] font-bold text-on-surface-variant/60 uppercase mb-1">Dage tilbage</span>
+<span class="text-sm font-bold text-on-surface">14 hverdage</span>
+</div>
+<div class="bg-surface-container-low p-4 rounded-lg">
+<span class="block text-[10px] font-bold text-on-surface-variant/60 uppercase mb-1">Budgetstatus</span>
+<span class="text-sm font-bold text-on-tertiary-container">On track</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Secondary Metric -->
+<div class="col-span-4 bg-primary text-on-primary rounded-xl p-8 relative overflow-hidden flex flex-col justify-between">
+<div class="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black/20 to-transparent"></div>
+<div class="relative z-10">
+<span class="material-symbols-outlined text-tertiary-fixed-dim text-4xl mb-4" style="font-variation-settings: 'FILL' 1;">trending_up</span>
+<h3 class="text-xl font-headline font-bold mb-2">Team Effektivitet</h3>
+<p class="text-primary-fixed/70 text-sm leading-relaxed">+12% stigning i leveringshastighed denne måned.</p>
+</div>
+<div class="relative z-10 mt-8">
+<img alt="Team members collaborating" class="w-full h-32 object-cover rounded-lg" data-alt="professional multi-ethnic office team collaborating around a white table in a bright modern scandinavian office space with soft daylight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnYNa6wU6u7QKyuOVp4liITTi76wW2W3PqHPExKvSDlXUe2YzfF79y0odEUV1p7SX5lFwPEeAabBvtmalCUsDCX8XZUIufIT_nJuRnv757g4AEyGmEwq-E_T8rPXDLEJ08Kdg3sRyaE104737Wp1DjVM9qd9vBEPYoJFK_0-utI7xi7zZj0idWBx0An1vt0qg1tWC16SjEP8whCpMM2WLrZ9-sQYoDU_A716_8xPE9igppV3szfhOKuZEg8BVIhJkHcdb4hv9QG_Y"/>
+</div>
+</div>
+<!-- AI Insights Row -->
+<div class="col-span-4 bg-surface-container-lowest rounded-xl p-6 border border-outline-variant/5 shadow-sm">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-8 h-8 rounded-full bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed-variant">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</div>
+<h4 class="font-headline font-bold text-on-surface tracking-tight">AI Optimering</h4>
+</div>
+<p class="text-sm text-on-surface-variant mb-6 leading-relaxed">Vi har fundet 3 overlap i kalendere, der kan konsolideres til ét møde.</p>
+<button class="w-full py-3 bg-secondary-container text-on-secondary-container font-bold text-xs rounded-lg hover:bg-secondary-fixed transition-colors">Se anbefaling</button>
+</div>
+<div class="col-span-4 bg-surface-container-lowest rounded-xl p-6 border border-outline-variant/5 shadow-sm">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">calendar_month</span>
+</div>
+<h4 class="font-headline font-bold text-on-surface tracking-tight">Kommende uge</h4>
+</div>
+<ul class="space-y-4">
+<li class="flex items-center justify-between">
+<span class="text-xs font-medium text-on-surface">Styregruppemøde</span>
+<span class="text-[10px] font-bold text-on-surface-variant/40">MAN 09:00</span>
+</li>
+<li class="flex items-center justify-between">
+<span class="text-xs font-medium text-on-surface">Budgetgennemgang</span>
+<span class="text-[10px] font-bold text-on-surface-variant/40">TIR 14:30</span>
+</li>
+<li class="flex items-center justify-between">
+<span class="text-xs font-medium text-on-surface">Client Pitch</span>
+<span class="text-[10px] font-bold text-on-surface-variant/40">ONS 11:00</span>
+</li>
+</ul>
+</div>
+<div class="col-span-4 bg-[#cce8f4] rounded-xl p-6 flex flex-col justify-center items-center text-center">
+<div class="mb-4">
+<span class="material-symbols-outlined text-4xl text-[#1A3167]" style="font-variation-settings: 'FILL' 0;">support_agent</span>
+</div>
+<h4 class="font-headline font-bold text-[#1A3167] mb-2">Brug for hjælp?</h4>
+<p class="text-xs text-[#1A3167]/70 mb-4 px-4">Din personlige S&amp;P rådgiver er tilgængelig for support.</p>
+<button class="px-6 py-2 bg-white text-[#1A3167] font-bold text-xs rounded-full shadow-sm hover:shadow-md transition-shadow">Kontakt nu</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Overlay logic simulation: Notification bell focus effect -->
+<div class="fixed inset-0 bg-primary/5 pointer-events-none z-30"></div>
+</body></html>

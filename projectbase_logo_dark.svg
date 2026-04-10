@@ -1,0 +1,8 @@
+<svg width="160" height="40" viewBox="0 0 160 40" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="40" height="40" rx="7" fill="#ffffff" fill-opacity="0.15"/>
+  <rect x="8" y="8" width="10" height="10" rx="2" fill="#ffffff"/>
+  <rect x="22" y="8" width="10" height="10" rx="2" fill="#ffffff" opacity="0.5"/>
+  <rect x="8" y="22" width="10" height="10" rx="2" fill="#ffffff" opacity="0.5"/>
+  <rect x="22" y="22" width="10" height="10" rx="2" fill="#ffffff"/>
+  <text x="50" y="20" font-family="system-ui,-apple-system,sans-serif" font-size="18" fill="#ffffff" dominant-baseline="central" letter-spacing="-0.3"><tspan font-weight="600">project</tspan><tspan font-weight="300">base</tspan></text>
+</svg>

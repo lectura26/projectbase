@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html class="light" lang="da"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>S&amp;P Projekter - Opret projekt</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed": "#ffdea5",
+                        "tertiary-container": "#453000",
+                        "surface-container-high": "#f6e5e1",
+                        "secondary-fixed": "#cbe7f3",
+                        "surface-container-highest": "#f0dfdb",
+                        "inverse-surface": "#382e2c",
+                        "inverse-primary": "#b2c5ff",
+                        "tertiary-fixed-dim": "#e9c176",
+                        "surface-tint": "#485c95",
+                        "on-tertiary-fixed": "#261900",
+                        "primary-fixed": "#dae2ff",
+                        "on-surface-variant": "#44464f",
+                        "primary-container": "#1a3167",
+                        "on-error": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#2f447b",
+                        "background": "#fff8f6",
+                        "on-secondary-fixed": "#021f27",
+                        "primary": "#001b4f",
+                        "on-error-container": "#93000a",
+                        "outline": "#757781",
+                        "surface": "#fff8f6",
+                        "on-tertiary-container": "#bb9751",
+                        "on-surface": "#221a17",
+                        "error": "#ba1a1a",
+                        "primary-fixed-dim": "#b2c5ff",
+                        "error-container": "#ffdad6",
+                        "tertiary": "#2a1c00",
+                        "secondary-container": "#cbe7f3",
+                        "secondary-fixed-dim": "#afcbd7",
+                        "surface-container-low": "#fff1ed",
+                        "surface-dim": "#e7d6d3",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "on-background": "#221a17",
+                        "inverse-on-surface": "#feede9",
+                        "on-primary-container": "#869bd7",
+                        "on-tertiary-fixed-variant": "#5d4201",
+                        "outline-variant": "#c5c6d1",
+                        "surface-bright": "#fff8f6",
+                        "surface-variant": "#f0dfdb",
+                        "surface-container": "#fbeae6",
+                        "secondary": "#48626c",
+                        "on-secondary-container": "#4e6873",
+                        "on-secondary-fixed-variant": "#304a54",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed": "#001849"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen">
+<aside class="flex flex-col fixed left-0 top-0 h-full overflow-y-auto h-screen w-64 border-r-0 bg-[#1A3167] dark:bg-slate-950 font-manrope font-bold text-sm tracking-tight z-50">
+<div class="p-8 flex items-center gap-3">
+<div class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-white" data-icon="folder_shared">folder_shared</span>
+</div>
+<div>
+<div class="text-white font-extrabold text-lg tracking-tight">Söderberg &amp; Partners</div>
+<div class="text-white/60 text-[10px] uppercase tracking-widest font-medium">Projekt hub</div>
+</div>
+</div>
+<nav class="flex-1 mt-4">
+<div class="flex flex-col">
+<a class="text-white/70 hover:text-white px-8 py-3 flex items-center gap-3 hover:bg-white/10 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Oversigt</span>
+</a>
+<a class="text-[#D4AF37] border-l-4 border-[#D4AF37] bg-white/5 font-bold px-8 py-3 flex items-center gap-3 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="folder_shared">folder_shared</span>
+<span>Projekter</span>
+</a>
+<a class="text-white/70 hover:text-white px-8 py-3 flex items-center gap-3 hover:bg-white/10 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span>Kalender</span>
+</a>
+<a class="text-white/70 hover:text-white px-8 py-3 flex items-center gap-3 hover:bg-white/10 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span>Mit team</span>
+</a>
+</div>
+</nav>
+<div class="mt-auto p-8 border-t border-white/10">
+<a class="text-white/70 hover:text-white py-3 flex items-center gap-3 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Indstillinger</span>
+</a>
+<div class="mt-6 flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-[#D4AF37] flex items-center justify-center text-[#1A3167] text-xs font-bold">
+                    JD
+                </div>
+<div class="flex flex-col">
+<span class="text-white text-xs">Jesper Dahl</span>
+<span class="text-white/40 text-[10px]">Partner</span>
+</div>
+</div>
+</div>
+</aside>
+<header class="flex justify-between items-center w-full px-12 py-6 ml-64 max-w-[calc(100%-16rem)] sticky top-0 bg-[#fff8f6]/80 backdrop-blur-md z-40">
+<div class="flex items-center gap-4">
+<div class="text-[#1A3167] dark:text-white font-black text-xl font-manrope">S&amp;P Projekter</div>
+<div class="h-4 w-px bg-outline-variant/30"></div>
+<div class="text-on-surface-variant text-sm font-medium">Opret nyt projekt</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center bg-secondary-container rounded-full px-4 py-2 w-64 group focus-within:ring-2 ring-primary/20 transition-all">
+<span class="material-symbols-outlined text-primary/40 mr-2 text-xl" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm placeholder:text-primary/40 w-full" placeholder="Søg i hub..." type="text"/>
+</div>
+<div class="flex gap-4">
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-[#1A3167]/60 hover:text-[#1A3167] transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-[#1A3167]/60 hover:text-[#1A3167] transition-colors">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<main class="ml-64 p-12 bg-secondary-container min-h-[calc(100vh-80px)] rounded-tl-[40px]">
+<div class="max-w-4xl mx-auto">
+<div class="mb-12">
+<h1 class="text-4xl font-extrabold text-primary tracking-tight mb-2">Opret projekt</h1>
+<p class="text-on-surface-variant/80 font-medium italic">Konfigurer rammerne for jeres næste succesfulde initiativ.</p>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-10 space-y-12">
+<section class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+<div class="col-span-2">
+<label class="block text-[10px] font-bold uppercase tracking-widest text-primary/50 mb-3 ml-1">Projektnavn</label>
+<input class="w-full bg-transparent border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 text-xl font-semibold py-3 transition-colors placeholder:text-outline-variant/50" placeholder="Indtast projektets fulde navn..." type="text"/>
+</div>
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-primary/50 mb-3 ml-1">Ansvarlig</label>
+<div class="relative group">
+<select class="w-full appearance-none bg-secondary-container/30 border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 py-3 px-1 text-sm font-medium transition-colors">
+<option>Vælg ansvarlig konsulent</option>
+<option>Jesper Dahl</option>
+<option>Mette Frederiksen</option>
+<option>Christian Jensen</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-3 text-primary/40 pointer-events-none" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-primary/50 mb-3 ml-1">Frist</label>
+<div class="relative">
+<input class="w-full bg-secondary-container/30 border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 py-3 px-1 text-sm font-medium transition-colors" type="date"/>
+<span class="material-symbols-outlined absolute right-2 top-3 text-primary/40 pointer-events-none" data-icon="calendar_today">calendar_today</span>
+</div>
+</div>
+</section>
+<div class="h-px bg-outline-variant/10"></div>
+<section class="space-y-10">
+<div class="flex items-center justify-between">
+<h3 class="text-sm font-bold uppercase tracking-widest text-primary">Flere indstillinger</h3>
+<span class="material-symbols-outlined text-primary/40" data-icon="keyboard_arrow_down">keyboard_arrow_down</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+<div class="col-span-2">
+<label class="block text-[10px] font-bold uppercase tracking-widest text-primary/50 mb-3 ml-1">Beskrivelse</label>
+<textarea class="w-full bg-secondary-container/20 border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 text-sm py-3 transition-colors resize-none placeholder:text-outline-variant/50" placeholder="Beskriv projektets formål og succeskriterier..." rows="3"></textarea>
+</div>
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-primary/50 mb-3 ml-1">Prioritet</label>
+<div class="flex gap-2">
+<button class="flex-1 py-3 px-4 rounded-lg bg-surface-container-low text-on-surface-variant font-bold text-xs hover:bg-secondary-container transition-colors uppercase tracking-tight">Lav</button>
+<button class="flex-1 py-3 px-4 rounded-lg bg-primary text-white font-bold text-xs uppercase tracking-tight">Medium</button>
+<button class="flex-1 py-3 px-4 rounded-lg bg-surface-container-low text-on-surface-variant font-bold text-xs hover:bg-secondary-container transition-colors uppercase tracking-tight">Høj</button>
+</div>
+</div>
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-primary/50 mb-3 ml-1">Synlighed</label>
+<div class="flex items-center gap-4 bg-secondary-container/20 rounded-lg p-3">
+<span class="material-symbols-outlined text-primary/60" data-icon="lock_open">lock_open</span>
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-primary">Offentlig i hubben</span>
+<span class="text-[10px] text-on-surface-variant/60">Alle i teamet kan se dette projekt</span>
+</div>
+<div class="ml-auto">
+<div class="w-10 h-5 bg-primary rounded-full relative cursor-pointer">
+<div class="absolute right-1 top-1 w-3 h-3 bg-white rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-primary/50 mb-4 ml-1">Tags</label>
+<div class="flex flex-wrap gap-2">
+<span class="bg-secondary-container/50 text-primary px-3 py-1.5 rounded-full text-[11px] font-bold flex items-center gap-2">
+                                    Finansiering <span class="material-symbols-outlined text-[14px] cursor-pointer" data-icon="close">close</span>
+</span>
+<span class="bg-secondary-container/50 text-primary px-3 py-1.5 rounded-full text-[11px] font-bold flex items-center gap-2">
+                                    Infrastruktur <span class="material-symbols-outlined text-[14px] cursor-pointer" data-icon="close">close</span>
+</span>
+<button class="border-2 border-dashed border-outline-variant text-outline px-3 py-1.5 rounded-full text-[11px] font-bold flex items-center gap-1 hover:border-primary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[14px]" data-icon="add">add</span> Tilføj tag
+                                </button>
+</div>
+</div>
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-primary/50 mb-4 ml-1">Kontaktpersoner</label>
+<div class="flex -space-x-2">
+<div class="w-9 h-9 rounded-full border-2 border-white bg-[#D4AF37] flex items-center justify-center text-[10px] font-bold text-primary">MK</div>
+<div class="w-9 h-9 rounded-full border-2 border-white bg-secondary-fixed flex items-center justify-center text-[10px] font-bold text-primary">SL</div>
+<div class="w-9 h-9 rounded-full border-2 border-white bg-primary-fixed flex items-center justify-center text-[10px] font-bold text-primary">PB</div>
+<button class="w-9 h-9 rounded-full border-2 border-white bg-surface-container-high flex items-center justify-center text-primary/40 hover:bg-secondary-container transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+</button>
+</div>
+</div>
+<div class="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-8 pt-4">
+<div class="flex items-start gap-4 p-4 border border-outline-variant/10 rounded-xl bg-surface-bright">
+<div class="mt-1">
+<div class="w-10 h-6 bg-outline-variant/20 rounded-full relative cursor-pointer">
+<div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
+</div>
+</div>
+<div>
+<span class="block text-xs font-bold text-primary mb-1">Rutineprojekt</span>
+<span class="text-[10px] text-on-surface-variant/70 leading-relaxed italic">Gentag opgaven automatisk med faste intervaller</span>
+</div>
+</div>
+<div class="flex items-start gap-4 p-4 border border-outline-variant/10 rounded-xl bg-surface-bright">
+<div class="mt-1">
+<div class="w-10 h-6 bg-primary rounded-full relative cursor-pointer">
+<div class="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
+</div>
+</div>
+<div>
+<span class="block text-xs font-bold text-primary mb-1">Microsoft-integration</span>
+<span class="text-[10px] text-on-surface-variant/70 leading-relaxed italic">Synkroniser direkte med Teams og SharePoint-filer</span>
+</div>
+</div>
+<div class="flex items-start gap-4 p-4 border border-outline-variant/10 rounded-xl bg-surface-bright">
+<div class="mt-1">
+<span class="material-symbols-outlined text-primary/40" data-icon="description">description</span>
+</div>
+<div>
+<span class="block text-xs font-bold text-primary mb-1">Vælg skabelon</span>
+<span class="text-[10px] text-on-surface-variant/70 leading-relaxed italic underline cursor-pointer">Standard S&amp;P Rapportage</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<div class="pt-10 flex items-center justify-end gap-6">
+<button class="text-primary/60 font-bold text-xs uppercase tracking-widest hover:text-primary transition-colors">Annuller</button>
+<button class="bg-primary text-white px-10 py-4 rounded-lg font-extrabold text-sm uppercase tracking-widest flex items-center gap-3 shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">
+                        Opret Projekt <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+<div class="mt-12 grid grid-cols-3 gap-6 opacity-60">
+<div class="bg-white/40 backdrop-blur-sm p-6 rounded-xl border border-white/20">
+<span class="material-symbols-outlined text-primary mb-3" data-icon="verified_user">verified_user</span>
+<h4 class="text-xs font-bold text-primary mb-1">Standardiseret</h4>
+<p class="text-[10px] text-on-surface-variant">Overholder alle S&amp;P compliance krav til projektstyring.</p>
+</div>
+<div class="bg-white/40 backdrop-blur-sm p-6 rounded-xl border border-white/20">
+<span class="material-symbols-outlined text-primary mb-3" data-icon="auto_awesome">auto_awesome</span>
+<h4 class="text-xs font-bold text-primary mb-1">Intelligent</h4>
+<p class="text-[10px] text-on-surface-variant">Forslår automatisk ressourcer baseret på projektets tags.</p>
+</div>
+<div class="bg-white/40 backdrop-blur-sm p-6 rounded-xl border border-white/20">
+<span class="material-symbols-outlined text-primary mb-3" data-icon="query_stats">query_stats</span>
+<h4 class="text-xs font-bold text-primary mb-1">Sporbart</h4>
+<p class="text-[10px] text-on-surface-variant">Fuldt audit trail for alle ændringer i projektets levetid.</p>
+</div>
+</div>
+</div>
+</main>
+</body></html>

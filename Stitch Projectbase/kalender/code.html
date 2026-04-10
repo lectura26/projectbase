@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+
+<html lang="da"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kalender | S&amp;P Projekter</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "tertiary-fixed": "#ffdea5",
+                "tertiary-container": "#453000",
+                "surface-container-high": "#f6e5e1",
+                "secondary-fixed": "#cbe7f3",
+                "surface-container-highest": "#f0dfdb",
+                "inverse-surface": "#382e2c",
+                "inverse-primary": "#b2c5ff",
+                "tertiary-fixed-dim": "#e9c176",
+                "surface-tint": "#485c95",
+                "on-tertiary-fixed": "#261900",
+                "primary-fixed": "#dae2ff",
+                "on-surface-variant": "#44464f",
+                "primary-container": "#1a3167",
+                "on-error": "#ffffff",
+                "on-tertiary": "#ffffff",
+                "on-primary-fixed-variant": "#2f447b",
+                "background": "#fff8f6",
+                "on-secondary-fixed": "#021f27",
+                "primary": "#001b4f",
+                "on-error-container": "#93000a",
+                "outline": "#757781",
+                "surface": "#fff8f6",
+                "on-tertiary-container": "#bb9751",
+                "on-surface": "#221a17",
+                "error": "#ba1a1a",
+                "primary-fixed-dim": "#b2c5ff",
+                "error-container": "#ffdad6",
+                "tertiary": "#2a1c00",
+                "secondary-container": "#cbe7f3",
+                "secondary-fixed-dim": "#afcbd7",
+                "surface-container-low": "#fff1ed",
+                "surface-dim": "#e7d6d3",
+                "surface-container-lowest": "#ffffff",
+                "on-primary": "#ffffff",
+                "on-background": "#221a17",
+                "inverse-on-surface": "#feede9",
+                "on-primary-container": "#869bd7",
+                "on-tertiary-fixed-variant": "#5d4201",
+                "outline-variant": "#c5c6d1",
+                "surface-bright": "#fff8f6",
+                "surface-variant": "#f0dfdb",
+                "surface-container": "#fbeae6",
+                "secondary": "#48626c",
+                "on-secondary-container": "#4e6873",
+                "on-secondary-fixed-variant": "#304a54",
+                "on-secondary": "#ffffff",
+                "on-primary-fixed": "#001849"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+            },
+            "fontFamily": {
+                "headline": ["Manrope"],
+                "body": ["Inter"],
+                "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #c5c6d1; border-radius: 10px; }
+        .glass-panel {
+            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.7);
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: 80px repeat(5, 1fr);
+        }
+    </style>
+</head>
+<body class="bg-background font-body text-on-surface antialiased overflow-hidden">
+<!-- SideNavBar -->
+<aside class="flex flex-col fixed left-0 top-0 h-full overflow-y-auto bg-[#1A3167] dark:bg-slate-950 h-screen w-64 border-r-0 z-50">
+<div class="p-8">
+<h1 class="text-white font-extrabold text-lg tracking-tight">Söderberg &amp; Partners</h1>
+<p class="text-white/60 font-manrope font-bold text-sm tracking-tight">Projekt hub</p>
+</div>
+<nav class="flex-1 mt-4">
+<div class="flex items-center space-x-3 text-white/70 hover:text-white px-8 py-3 hover:bg-white/10 transition-colors duration-200 cursor-pointer font-manrope font-bold text-sm tracking-tight">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Oversigt</span>
+</div>
+<div class="flex items-center space-x-3 text-white/70 hover:text-white px-8 py-3 hover:bg-white/10 transition-colors duration-200 cursor-pointer font-manrope font-bold text-sm tracking-tight">
+<span class="material-symbols-outlined" data-icon="folder_shared">folder_shared</span>
+<span>Projekter</span>
+</div>
+<!-- Active Tab: Kalender -->
+<div class="flex items-center space-x-3 text-[#D4AF37] border-l-4 border-[#D4AF37] bg-white/5 font-bold px-8 py-3 transition-colors duration-200 cursor-pointer font-manrope text-sm tracking-tight">
+<span class="material-symbols-outlined" data-icon="calendar_today" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+<span>Kalender</span>
+</div>
+<div class="flex items-center space-x-3 text-white/70 hover:text-white px-8 py-3 hover:bg-white/10 transition-colors duration-200 cursor-pointer font-manrope font-bold text-sm tracking-tight">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span>Mit team</span>
+</div>
+<div class="flex items-center space-x-3 text-white/70 hover:text-white px-8 py-3 hover:bg-white/10 transition-colors duration-200 cursor-pointer font-manrope font-bold text-sm tracking-tight">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Indstillinger</span>
+</div>
+</nav>
+<div class="p-8 mt-auto">
+<div class="flex items-center space-x-3">
+<img alt="S&amp;P Logo" class="w-10 h-10 rounded-full border-2 border-white/20" data-alt="portrait of a professional financial advisor in a light blue shirt with a confident smile, neutral office background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBln1rxXL9o6P8ENGM4J6kcWoy2hInHv2TyJeJA0stcjSZurf8aEFiOfbbvjJ9s1avj9mMSXe0JAD-9RogaBpHRYW8IxKjarid7CK_ueYj9jXmaOL1k8C9ZRmhRb7Us5rm3NY7hLEgY19ARd3XgUBc9FhnR3eF4jprV0Q11FNRFjugrh6LYbwW6GRdrwjCtYXQt6njD66jXYJGBNXkmNnukm4Elcf2am3vDvQHo3-87lDQvSLdOYxp0mtZN5fuDS5XCE22nBD1EtPs"/>
+<div>
+<p class="text-white font-bold text-sm">Erik Jensen</p>
+<p class="text-white/50 text-xs uppercase tracking-widest">Partner</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center w-full px-8 py-4 sticky top-0 z-40 bg-[#fff8f6] dark:bg-slate-900 transition-colors">
+<div class="flex items-center gap-8">
+<h2 class="text-[#1A3167] dark:text-white font-black text-xl font-manrope">S&amp;P Projekter</h2>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+<input class="pl-10 pr-4 py-2 bg-secondary-container/30 border-none rounded-lg focus:ring-2 focus:ring-primary-container text-sm w-80 font-body" placeholder="Søg i projekter eller opgaver..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 px-3 py-1 bg-white rounded-full shadow-sm">
+<span class="w-2 h-2 rounded-full bg-green-500"></span>
+<span class="text-xs font-bold text-primary">System Status: Optimal</span>
+</div>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-[#1A3167] hover:text-[#1A3167] cursor-pointer transition-opacity opacity-80 active:opacity-100" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined text-[#1A3167] hover:text-[#1A3167] cursor-pointer transition-opacity opacity-80 active:opacity-100" data-icon="account_circle">account_circle</span>
+</div>
+</div>
+</header>
+<!-- Calendar Dashboard -->
+<section class="p-8 flex-1 flex flex-col">
+<!-- Filter Bar / Controls -->
+<div class="flex justify-between items-end mb-10">
+<div>
+<p class="text-on-surface-variant text-sm font-semibold uppercase tracking-widest mb-1">Tidsplan</p>
+<h3 class="text-4xl font-extrabold text-primary font-headline tracking-tight">Ugeoversigt</h3>
+</div>
+<div class="flex items-center gap-4">
+<!-- Project Filter Chips -->
+<div class="flex bg-secondary-container/40 p-1.5 rounded-xl gap-1">
+<button class="px-4 py-2 bg-white text-primary text-xs font-bold rounded-lg shadow-sm">Alle Projekter</button>
+<button class="px-4 py-2 text-primary/60 text-xs font-bold rounded-lg hover:bg-white/50 transition-colors">Solcellepark Thy</button>
+<button class="px-4 py-2 text-primary/60 text-xs font-bold rounded-lg hover:bg-white/50 transition-colors">Havneudvidelse Esbjerg</button>
+</div>
+<button class="flex items-center gap-2 bg-primary text-on-primary px-5 py-2.5 rounded-lg text-sm font-bold shadow-md hover:bg-primary-container transition-all active:scale-95">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                        Ny Aktivitet
+                    </button>
+</div>
+</div>
+<!-- Calendar Container -->
+<div class="flex-1 bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col">
+<!-- Header Days -->
+<div class="calendar-grid border-b border-outline-variant/15">
+<div class="p-6"></div> <!-- Time Column Spacer -->
+<div class="p-6 border-l border-outline-variant/15">
+<p class="text-xs font-bold text-on-surface-variant/60 uppercase">Man</p>
+<p class="text-2xl font-black text-primary">12</p>
+</div>
+<div class="p-6 border-l border-outline-variant/15 bg-secondary-container/10">
+<p class="text-xs font-bold text-primary uppercase">Tir</p>
+<p class="text-2xl font-black text-primary">13</p>
+<span class="block w-1.5 h-1.5 bg-primary rounded-full mt-1"></span>
+</div>
+<div class="p-6 border-l border-outline-variant/15">
+<p class="text-xs font-bold text-on-surface-variant/60 uppercase">Ons</p>
+<p class="text-2xl font-black text-primary">14</p>
+</div>
+<div class="p-6 border-l border-outline-variant/15">
+<p class="text-xs font-bold text-on-surface-variant/60 uppercase">Tor</p>
+<p class="text-2xl font-black text-primary">15</p>
+</div>
+<div class="p-6 border-l border-outline-variant/15">
+<p class="text-xs font-bold text-on-surface-variant/60 uppercase">Fre</p>
+<p class="text-2xl font-black text-primary">16</p>
+</div>
+</div>
+<!-- Scrollable Body -->
+<div class="flex-1 overflow-y-auto relative bg-[#fafafa]">
+<!-- Time Labels & Grid Overlay (Simplified - no heavy lines) -->
+<div class="absolute inset-0 calendar-grid pointer-events-none">
+<div class="h-24 border-b border-outline-variant/5"></div>
+<div class="h-24 border-l border-b border-outline-variant/5"></div>
+<div class="h-24 border-l border-b border-outline-variant/5"></div>
+<div class="h-24 border-l border-b border-outline-variant/5"></div>
+<div class="h-24 border-l border-b border-outline-variant/5"></div>
+<div class="h-24 border-l border-b border-outline-variant/5"></div>
+</div>
+<div class="calendar-grid relative">
+<!-- Time Markers Column -->
+<div class="text-[10px] font-bold text-on-surface-variant/40 flex flex-col items-center">
+<div class="h-24 flex items-start pt-4">08:00</div>
+<div class="h-24 flex items-start pt-4">09:00</div>
+<div class="h-24 flex items-start pt-4">10:00</div>
+<div class="h-24 flex items-start pt-4">11:00</div>
+<div class="h-24 flex items-start pt-4">12:00</div>
+<div class="h-24 flex items-start pt-4">13:00</div>
+<div class="h-24 flex items-start pt-4">14:00</div>
+<div class="h-24 flex items-start pt-4">15:00</div>
+</div>
+<!-- Mon (Empty state style) -->
+<div class="relative border-l border-outline-variant/10"></div>
+<!-- Tue (Busy day) -->
+<div class="relative border-l border-outline-variant/10 bg-secondary-container/5">
+<!-- Meeting -->
+<div class="absolute top-24 left-2 right-2 h-20 bg-primary-container text-white p-3 rounded-lg shadow-sm group cursor-pointer hover:scale-[1.02] transition-transform">
+<p class="text-[10px] font-bold opacity-60 uppercase">Møde • 09:00</p>
+<p class="text-xs font-bold leading-tight">Teams: Status Thy</p>
+<div class="mt-2 flex -space-x-1.5">
+<img class="w-5 h-5 rounded-full border border-primary-container" data-alt="close up headshot of a technical specialist with glasses and a friendly expression" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbVIce8cpniNXm2rt5c-G1X8qOSs9O7UZPq-MZVttID-w-xBWQn-B5AAXOlIcBrFhp9idIn-SLSgUlxakYBecAJxi_PQrrdU2sCdshFXw85xo2W19SvAD-6-PdvBKi0k1j13Uw4T4iAtnchNplQkyAZ0pu_zz4TPfzcpk3qUC1uIfhZez25NC40ve2Ic9JrdGTyOENjhzE_FVg8HoOHIIJMYPVrHhhKhE3tYfG1GBGw6Pq9wfnVE_Dj9jobul8oRhDjA0Y4yaF9W8"/>
+<img class="w-5 h-5 rounded-full border border-primary-container" data-alt="headshot of a female project manager with a warm professional smile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvbntAuKvRfFgPE3z-zdlswUlKlcbQubBSwAQPli-iLz90eqRKpdrelepBDaTQ-RMm-XyG-LjnmxAfgdbiYPcYVO-u0_xaJ6Z9iiHqDf_ocLEadycU1rNf-mSLlljEyX_4HfpglTjnXl-27EteWOiGVP1g2hlw4RRVQFKyvRsctApnwjcP4mO4z9TuaT8aJMVUtyJudklG9md96M0UabIbHPFDsrKLGBoTYiqzhrqkWC8XDYsDQvefur4jECnbwvgnXcU2CXkm7B0"/>
+</div>
+</div>
+<!-- Task Deadline -->
+<div class="absolute top-[288px] left-2 right-2 h-12 border-l-4 border-tertiary-fixed-dim bg-white p-2 rounded-r-lg shadow-sm cursor-pointer group">
+<p class="text-[9px] font-bold text-on-tertiary-fixed-variant uppercase">Deadline • 11:00</p>
+<p class="text-xs font-semibold text-primary truncate">Godkendelse af fundament</p>
+</div>
+</div>
+<!-- Wed -->
+<div class="relative border-l border-outline-variant/10">
+<!-- All-day Project Milestone -->
+<div class="absolute top-8 left-2 right-2 h-32 border-l-4 border-indigo-400 bg-white p-3 rounded-r-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+<p class="text-[10px] font-bold text-indigo-600 uppercase">Projekt Deadline</p>
+<p class="text-sm font-bold text-primary mb-1">Havneudvidelse Fase 1</p>
+<div class="w-full bg-slate-100 h-1 rounded-full overflow-hidden mt-3">
+<div class="w-[85%] bg-indigo-400 h-full"></div>
+</div>
+<p class="text-[9px] mt-1 text-on-surface-variant">85% færdiggjort</p>
+</div>
+</div>
+<!-- Thu -->
+<div class="relative border-l border-outline-variant/10">
+<!-- Team Meeting -->
+<div class="absolute top-48 left-2 right-2 h-20 bg-secondary-container text-on-secondary-container p-3 rounded-lg border border-secondary-fixed shadow-sm cursor-pointer hover:bg-secondary-fixed transition-colors">
+<p class="text-[10px] font-bold opacity-70 uppercase">Team • 10:00</p>
+<p class="text-xs font-bold">Ugentlig Synkronisering</p>
+<span class="material-symbols-outlined text-sm mt-1" data-icon="videocam">videocam</span>
+</div>
+</div>
+<!-- Fri -->
+<div class="relative border-l border-outline-variant/10">
+<!-- Task Deadline -->
+<div class="absolute top-24 left-2 right-2 h-12 border-l-4 border-emerald-400 bg-white p-2 rounded-r-lg shadow-sm cursor-pointer">
+<p class="text-[9px] font-bold text-emerald-600 uppercase">Task • 09:00</p>
+<p class="text-xs font-semibold text-primary truncate">Miljørapport færdig</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Insight Panel: Asymmetric Layout -->
+<div class="mt-8 grid grid-cols-12 gap-8">
+<!-- Upcoming Deadlines Glass Card -->
+<div class="col-span-8 glass-panel p-6 rounded-2xl shadow-sm border border-white/40">
+<div class="flex items-center justify-between mb-6">
+<h4 class="font-manrope font-extrabold text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="event_note">event_note</span>
+                            Næste vigtige deadlines
+                        </h4>
+<button class="text-xs font-bold text-primary/60 hover:text-primary transition-colors">Se alle</button>
+</div>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-4 bg-white/60 rounded-xl">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center">
+<span class="material-symbols-outlined text-indigo-600" data-icon="water_drop">water_drop</span>
+</div>
+<div>
+<p class="text-sm font-bold text-primary">Vandstands-analyse</p>
+<p class="text-xs text-on-surface-variant">Havneudvidelse Esbjerg</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-sm font-bold text-error">I morgen</p>
+<p class="text-[10px] text-on-surface-variant uppercase font-bold">Kl. 12:00</p>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 bg-white/60 rounded-xl">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
+<span class="material-symbols-outlined text-amber-600" data-icon="sunny">sunny</span>
+</div>
+<div>
+<p class="text-sm font-bold text-primary">Solcelle Montage</p>
+<p class="text-xs text-on-surface-variant">Solcellepark Thy</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-sm font-bold text-primary">Torsdag</p>
+<p class="text-[10px] text-on-surface-variant uppercase font-bold">Kl. 08:30</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Team Workload Distribution -->
+<div class="col-span-4 bg-primary text-white p-6 rounded-2xl shadow-xl flex flex-col justify-between">
+<div>
+<h4 class="font-manrope font-bold text-lg mb-2">Team Belastning</h4>
+<p class="text-white/60 text-xs mb-6">Uge 11 - Aktuel fordeling</p>
+<div class="space-y-4">
+<div>
+<div class="flex justify-between text-[10px] font-bold uppercase mb-1">
+<span>Erik Jensen</span>
+<span>92%</span>
+</div>
+<div class="h-1.5 w-full bg-white/10 rounded-full">
+<div class="h-full bg-tertiary-fixed-dim w-[92%] rounded-full"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-[10px] font-bold uppercase mb-1">
+<span>Mette Schmidt</span>
+<span>65%</span>
+</div>
+<div class="h-1.5 w-full bg-white/10 rounded-full">
+<div class="h-full bg-secondary-fixed w-[65%] rounded-full"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-[10px] font-bold uppercase mb-1">
+<span>Anders Holm</span>
+<span>45%</span>
+</div>
+<div class="h-1.5 w-full bg-white/10 rounded-full">
+<div class="h-full bg-secondary-fixed w-[45%] rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+<button class="w-full mt-6 py-3 bg-white/5 border border-white/20 rounded-lg text-xs font-bold hover:bg-white/10 transition-colors uppercase tracking-widest">
+                        Omfordel opgaver
+                    </button>
+</div>
+</div>
+</section>
+</main>
+</body></html>

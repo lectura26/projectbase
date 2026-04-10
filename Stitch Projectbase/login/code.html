@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+
+<html lang="da"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Log ind | S&amp;P Projekter</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary-fixed": "#ffdea5",
+                      "tertiary-container": "#453000",
+                      "surface-container-high": "#f6e5e1",
+                      "secondary-fixed": "#cbe7f3",
+                      "surface-container-highest": "#f0dfdb",
+                      "inverse-surface": "#382e2c",
+                      "inverse-primary": "#b2c5ff",
+                      "tertiary-fixed-dim": "#e9c176",
+                      "surface-tint": "#485c95",
+                      "on-tertiary-fixed": "#261900",
+                      "primary-fixed": "#dae2ff",
+                      "on-surface-variant": "#44464f",
+                      "primary-container": "#1a3167",
+                      "on-error": "#ffffff",
+                      "on-tertiary": "#ffffff",
+                      "on-primary-fixed-variant": "#2f447b",
+                      "background": "#fff8f6",
+                      "on-secondary-fixed": "#021f27",
+                      "primary": "#001b4f",
+                      "on-error-container": "#93000a",
+                      "outline": "#757781",
+                      "surface": "#fff8f6",
+                      "on-tertiary-container": "#bb9751",
+                      "on-surface": "#221a17",
+                      "error": "#ba1a1a",
+                      "primary-fixed-dim": "#b2c5ff",
+                      "error-container": "#ffdad6",
+                      "tertiary": "#2a1c00",
+                      "secondary-container": "#cbe7f3",
+                      "secondary-fixed-dim": "#afcbd7",
+                      "surface-container-low": "#fff1ed",
+                      "surface-dim": "#e7d6d3",
+                      "surface-container-lowest": "#ffffff",
+                      "on-primary": "#ffffff",
+                      "on-background": "#221a17",
+                      "inverse-on-surface": "#feede9",
+                      "on-primary-container": "#869bd7",
+                      "on-tertiary-fixed-variant": "#5d4201",
+                      "outline-variant": "#c5c6d1",
+                      "surface-bright": "#fff8f6",
+                      "surface-variant": "#f0dfdb",
+                      "surface-container": "#fbeae6",
+                      "secondary": "#48626c",
+                      "on-secondary-container": "#4e6873",
+                      "on-secondary-fixed-variant": "#304a54",
+                      "on-secondary": "#ffffff",
+                      "on-primary-fixed": "#001849"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "fontFamily": {
+                      "headline": ["Manrope"],
+                      "body": ["Inter"],
+                      "label": ["Inter"]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-secondary-container font-body text-on-surface antialiased min-h-screen flex items-center justify-center">
+<main class="w-full max-w-md px-6 py-12 flex flex-col items-center">
+<div class="mb-12 text-center">
+<div class="flex items-center justify-center mb-4">
+<span class="bg-primary p-3 rounded-xl">
+<span class="material-symbols-outlined text-white text-4xl" data-icon="account_balance">account_balance</span>
+</span>
+</div>
+<h1 class="font-headline font-extrabold text-3xl tracking-tight text-primary mb-1">
+                Söderberg &amp; Partners
+            </h1>
+<p class="font-headline font-semibold text-primary/60 tracking-wide">
+                Projekt hub
+            </p>
+</div>
+<div class="w-full bg-surface-container-lowest rounded-xl p-8 shadow-[0_32px_64px_-15px_rgba(0,27,79,0.08)]">
+<div class="text-center mb-8">
+<h2 class="font-headline font-bold text-xl text-primary">Velkommen tilbage</h2>
+<p class="text-on-surface-variant text-sm mt-2 opacity-80">Log ind på din projektkonto for at fortsætte</p>
+</div>
+<button class="group w-full flex items-center justify-center gap-3 bg-primary text-on-primary font-headline font-bold py-4 px-6 rounded-lg transition-all duration-200 hover:bg-primary-container active:scale-[0.98]">
+<svg class="w-5 h-5" viewbox="0 0 23 23" xmlns="http://www.w3.org/2000/svg">
+<path d="M0 0h11v11H0z" fill="#f3f3f3"></path>
+<path d="M12 0h11v11H12z" fill="#f3f3f3"></path>
+<path d="M0 12h11v11H0z" fill="#f3f3f3"></path>
+<path d="M12 12h11v11H12z" fill="#f3f3f3"></path>
+</svg>
+<span>Log ind med Microsoft</span>
+</button>
+<div class="mt-8 flex items-center justify-center gap-4">
+<div class="h-[1px] flex-1 bg-outline-variant/30"></div>
+<span class="text-xs font-medium text-on-surface-variant/50 uppercase tracking-widest">Sikker adgang</span>
+<div class="h-[1px] flex-1 bg-outline-variant/30"></div>
+</div>
+</div>
+<footer class="mt-12 text-center">
+<p class="text-sm text-on-surface-variant/60 font-medium">
+                © 2024 Söderberg &amp; Partners. Alle rettigheder forbeholdes.
+            </p>
+<div class="flex gap-6 mt-4 justify-center">
+<a class="text-xs text-primary/40 font-semibold hover:text-primary transition-colors" href="#">Privatlivspolitik</a>
+<a class="text-xs text-primary/40 font-semibold hover:text-primary transition-colors" href="#">Support</a>
+</div>
+</footer>
+</main>
+<div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+<div class="absolute -top-[10%] -right-[5%] w-[40%] h-[40%] rounded-full bg-primary/5 blur-[120px]"></div>
+<div class="absolute -bottom-[5%] -left-[10%] w-[30%] h-[30%] rounded-full bg-on-tertiary-container/5 blur-[100px]"></div>
+</div>
+</body></html>

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+
+<html lang="da"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed": "#ffdea5",
+                    "tertiary-container": "#453000",
+                    "surface-container-high": "#f6e5e1",
+                    "secondary-fixed": "#cbe7f3",
+                    "surface-container-highest": "#f0dfdb",
+                    "inverse-surface": "#382e2c",
+                    "inverse-primary": "#b2c5ff",
+                    "tertiary-fixed-dim": "#e9c176",
+                    "surface-tint": "#485c95",
+                    "on-tertiary-fixed": "#261900",
+                    "primary-fixed": "#dae2ff",
+                    "on-surface-variant": "#44464f",
+                    "primary-container": "#1a3167",
+                    "on-error": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-fixed-variant": "#2f447b",
+                    "background": "#fff8f6",
+                    "on-secondary-fixed": "#021f27",
+                    "primary": "#001b4f",
+                    "on-error-container": "#93000a",
+                    "outline": "#757781",
+                    "surface": "#fff8f6",
+                    "on-tertiary-container": "#bb9751",
+                    "on-surface": "#221a17",
+                    "error": "#ba1a1a",
+                    "primary-fixed-dim": "#b2c5ff",
+                    "error-container": "#ffdad6",
+                    "tertiary": "#2a1c00",
+                    "secondary-container": "#cbe7f3",
+                    "secondary-fixed-dim": "#afcbd7",
+                    "surface-container-low": "#fff1ed",
+                    "surface-dim": "#e7d6d3",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "on-background": "#221a17",
+                    "inverse-on-surface": "#feede9",
+                    "on-primary-container": "#869bd7",
+                    "on-tertiary-fixed-variant": "#5d4201",
+                    "outline-variant": "#c5c6d1",
+                    "surface-bright": "#fff8f6",
+                    "surface-variant": "#f0dfdb",
+                    "surface-container": "#fbeae6",
+                    "secondary": "#48626c",
+                    "on-secondary-container": "#4e6873",
+                    "on-secondary-fixed-variant": "#304a54",
+                    "on-secondary": "#ffffff",
+                    "on-primary-fixed": "#001849"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-secondary-container text-on-surface min-h-screen flex overflow-hidden">
+<aside class="flex flex-col fixed left-0 top-0 h-full overflow-y-auto h-screen w-64 border-r-0 bg-[#1A3167] dark:bg-slate-950 text-white font-manrope font-bold text-sm tracking-tight z-50">
+<div class="px-6 py-8">
+<div class="flex items-center gap-3 mb-10">
+<div class="w-8 h-8 bg-tertiary-fixed-dim rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">architecture</span>
+</div>
+<div>
+<div class="text-white font-extrabold text-lg tracking-tight">Söderberg &amp; Partners</div>
+<div class="text-white/50 text-[10px] uppercase tracking-widest">Projekt hub</div>
+</div>
+</div>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 text-[#D4AF37] border-l-4 border-[#D4AF37] bg-white/5 font-bold px-4 py-3 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Oversigt</span>
+</a>
+<a class="flex items-center gap-3 text-white/70 hover:text-white px-4 py-3 hover:bg-white/10 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="folder_shared">folder_shared</span>
+<span>Projekter</span>
+</a>
+<a class="flex items-center gap-3 text-white/70 hover:text-white px-4 py-3 hover:bg-white/10 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span>Kalender</span>
+</a>
+<a class="flex items-center gap-3 text-white/70 hover:text-white px-4 py-3 hover:bg-white/10 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span>Mit team</span>
+</a>
+<a class="flex items-center gap-3 text-white/70 hover:text-white px-4 py-3 hover:bg-white/10 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Indstillinger</span>
+</a>
+</nav>
+</div>
+<div class="mt-auto px-6 py-8 border-t border-white/10">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-full border-2 border-white/10" data-alt="professional portrait of a senior financial architect in a modern office setting with neutral lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDhtA2dmPCPOPCtKlQXHWocu_PKp-XD9lppDcuOXZnQSlZoYv6jKQOo72gl32R4mG6qnu88JsFyKwQ-1KyGMX7yvZZoTPpto2TxdgEAHtbx0rRBoDumBBPrhPqMKxk8GWHbNp6vV_tmS92_uqlHKGgsFIAyndFGZcU8m-N5NureqmRD8MeWiW-nB9x1QwKBXbBFRK573I6IJk52WNCqFXHfwL_jOJHBvK2R4DQwnUvkVgBc6p7OerZX_KJ--vx3wcmQxOy5_A03Rqc"/>
+<div>
+<p class="text-xs font-bold">Erik Sørensen</p>
+<p class="text-[10px] text-white/50">Seniorkonsulent</p>
+</div>
+</div>
+</div>
+</aside>
+<main class="ml-64 flex-1 flex flex-col h-screen overflow-y-auto">
+<header class="flex justify-between items-center w-full px-8 py-6 sticky top-0 z-40 bg-secondary-container/80 backdrop-blur-md">
+<div class="flex items-center gap-8">
+<h1 class="text-[#1A3167] font-black text-2xl font-headline tracking-tight">Oversigt</h1>
+<div class="relative hidden lg:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#1A3167]/40 text-sm" data-icon="search">search</span>
+<input class="bg-surface-container-lowest border-none rounded-xl pl-10 pr-4 py-2 text-sm w-64 focus:ring-2 focus:ring-[#1A3167]/20 placeholder:text-[#1A3167]/30" placeholder="Søg i projekter..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#1A3167]/5 transition-colors text-[#1A3167]">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="h-8 w-[1px] bg-[#1A3167]/10 mx-2"></div>
+<button class="bg-primary px-5 py-2.5 rounded-xl text-white font-headline font-bold text-sm hover:bg-primary-container transition-transform active:scale-95 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                    Nyt projekt
+                </button>
+</div>
+</header>
+<div class="p-8 grid grid-cols-12 gap-8 items-start">
+<section class="col-span-12 lg:col-span-7 space-y-6">
+<div>
+<label class="text-[10px] font-bold tracking-widest text-[#1A3167]/50 uppercase mb-4 block">MINE OPGAVER I DAG</label>
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden p-2">
+<div class="space-y-1">
+<div class="flex items-center gap-4 p-4 hover:bg-secondary-container/20 rounded-lg group transition-colors cursor-pointer">
+<input class="w-5 h-5 rounded border-[#1A3167]/20 text-primary focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+<div class="flex-1">
+<h4 class="text-sm font-semibold text-on-surface">Review af budgetestimat</h4>
+<p class="text-xs text-on-surface-variant/70">Københavns Havnebyggeri</p>
+</div>
+<span class="px-2.5 py-1 rounded text-[10px] font-bold bg-error-container text-on-error-container uppercase">Høj</span>
+</div>
+<div class="flex items-center gap-4 p-4 hover:bg-secondary-container/20 rounded-lg group transition-colors cursor-pointer">
+<input class="w-5 h-5 rounded border-[#1A3167]/20 text-primary focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+<div class="flex-1">
+<h4 class="text-sm font-semibold text-on-surface">Opdatering af tidsplan</h4>
+<p class="text-xs text-on-surface-variant/70">Odense Letbane Fase 2</p>
+</div>
+<span class="px-2.5 py-1 rounded text-[10px] font-bold bg-secondary-fixed text-on-secondary-fixed-variant uppercase">Mellem</span>
+</div>
+<div class="flex items-center gap-4 p-4 hover:bg-secondary-container/20 rounded-lg group transition-colors cursor-pointer">
+<input checked="" class="w-5 h-5 rounded border-[#1A3167]/20 text-primary focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+<div class="flex-1">
+<h4 class="text-sm font-semibold text-on-surface/40 line-through">Mødeforberedelse: Styregruppe</h4>
+<p class="text-xs text-on-surface-variant/40">Infrastruktur Aarhus</p>
+</div>
+<span class="px-2.5 py-1 rounded text-[10px] font-bold bg-surface-container text-on-surface-variant/40 uppercase">Lav</span>
+</div>
+<div class="flex items-center gap-4 p-4 hover:bg-secondary-container/20 rounded-lg group transition-colors cursor-pointer">
+<input class="w-5 h-5 rounded border-[#1A3167]/20 text-primary focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+<div class="flex-1">
+<h4 class="text-sm font-semibold text-on-surface">Godkendelse af leverandørfaktura</h4>
+<p class="text-xs text-on-surface-variant/70">Solpark Lolland</p>
+</div>
+<span class="px-2.5 py-1 rounded text-[10px] font-bold bg-error-container text-on-error-container uppercase">Høj</span>
+</div>
+</div>
+</div>
+</div>
+<div>
+<label class="text-[10px] font-bold tracking-widest text-[#1A3167]/50 uppercase mb-4 block">PROJEKTPULS</label>
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+<div class="divide-y divide-[#1A3167]/5">
+<div class="p-5 flex items-center gap-6">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-white text-xs font-bold shrink-0">ML</div>
+<div class="flex-1 min-w-0">
+<h4 class="text-sm font-bold text-[#1A3167] truncate">Københavns Havnebyggeri</h4>
+<div class="flex items-center gap-3 mt-1.5">
+<div class="flex-1 h-1.5 bg-[#1A3167]/5 rounded-full overflow-hidden">
+<div class="h-full bg-tertiary-fixed-dim" style="width: 72%"></div>
+</div>
+<span class="text-[10px] font-bold text-[#1A3167]/60 whitespace-nowrap">72%</span>
+</div>
+</div>
+<div class="text-right shrink-0 pl-4">
+<p class="text-lg font-black text-[#1A3167]">12</p>
+<p class="text-[9px] font-bold text-[#1A3167]/40 uppercase">Dage til deadline</p>
+</div>
+</div>
+<div class="p-5 flex items-center gap-6">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed-dim flex items-center justify-center text-primary text-xs font-bold shrink-0">JS</div>
+<div class="flex-1 min-w-0">
+<h4 class="text-sm font-bold text-[#1A3167] truncate">Odense Letbane Fase 2</h4>
+<div class="flex items-center gap-3 mt-1.5">
+<div class="flex-1 h-1.5 bg-[#1A3167]/5 rounded-full overflow-hidden">
+<div class="h-full bg-tertiary-fixed-dim" style="width: 45%"></div>
+</div>
+<span class="text-[10px] font-bold text-[#1A3167]/60 whitespace-nowrap">45%</span>
+</div>
+</div>
+<div class="text-right shrink-0 pl-4">
+<p class="text-lg font-black text-[#1A3167]">4</p>
+<p class="text-[9px] font-bold text-[#1A3167]/40 uppercase">Dage til deadline</p>
+</div>
+</div>
+<div class="p-5 flex items-center gap-6">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center text-primary text-xs font-bold shrink-0">KB</div>
+<div class="flex-1 min-w-0">
+<h4 class="text-sm font-bold text-[#1A3167] truncate">Infrastruktur Aarhus</h4>
+<div class="flex items-center gap-3 mt-1.5">
+<div class="flex-1 h-1.5 bg-[#1A3167]/5 rounded-full overflow-hidden">
+<div class="h-full bg-tertiary-fixed-dim" style="width: 90%"></div>
+</div>
+<span class="text-[10px] font-bold text-[#1A3167]/60 whitespace-nowrap">90%</span>
+</div>
+</div>
+<div class="text-right shrink-0 pl-4">
+<p class="text-lg font-black text-[#1A3167]">28</p>
+<p class="text-[9px] font-bold text-[#1A3167]/40 uppercase">Dage til deadline</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="col-span-12 lg:col-span-5 space-y-6">
+<div>
+<label class="text-[10px] font-bold tracking-widest text-[#1A3167]/50 uppercase mb-4 block">KOMMENDE MØDER</label>
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden divide-y divide-[#1A3167]/5">
+<div class="p-5 flex gap-4 hover:bg-secondary-container/10 transition-colors">
+<div class="flex flex-col items-center justify-center shrink-0 w-12 text-[#1A3167]">
+<span class="text-xs font-black">10:30</span>
+<span class="text-[9px] font-bold opacity-40 uppercase">IDAG</span>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-bold text-[#1A3167]">Gennemgang af miljørapport</h4>
+<p class="text-xs text-on-surface-variant/70 mt-0.5">Projekt: <span class="text-primary font-semibold">Solpark Lolland</span></p>
+</div>
+<span class="material-symbols-outlined text-[#1A3167]/20" data-icon="arrow_forward_ios" style="font-size: 14px;">arrow_forward_ios</span>
+</div>
+<div class="p-5 flex gap-4 hover:bg-secondary-container/10 transition-colors">
+<div class="flex flex-col items-center justify-center shrink-0 w-12 text-[#1A3167]">
+<span class="text-xs font-black">13:00</span>
+<span class="text-[9px] font-bold opacity-40 uppercase">IDAG</span>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-bold text-[#1A3167]">Statusmøde: Underleverandører</h4>
+<p class="text-xs text-on-surface-variant/70 mt-0.5">Projekt: <span class="text-primary font-semibold">Københavns Havnebyggeri</span></p>
+</div>
+<span class="material-symbols-outlined text-[#1A3167]/20" data-icon="arrow_forward_ios" style="font-size: 14px;">arrow_forward_ios</span>
+</div>
+<div class="p-5 flex gap-4 hover:bg-secondary-container/10 transition-colors">
+<div class="flex flex-col items-center justify-center shrink-0 w-12 text-[#1A3167]">
+<span class="text-xs font-black">09:15</span>
+<span class="text-[9px] font-bold opacity-40 uppercase">IMORGEN</span>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-bold text-[#1A3167]">Budgetrevidering Q3</h4>
+<p class="text-xs text-on-surface-variant/70 mt-0.5">Projekt: <span class="text-primary font-semibold">Infrastruktur Aarhus</span></p>
+</div>
+<span class="material-symbols-outlined text-[#1A3167]/20" data-icon="arrow_forward_ios" style="font-size: 14px;">arrow_forward_ios</span>
+</div>
+<div class="p-5 flex gap-4 hover:bg-secondary-container/10 transition-colors">
+<div class="flex flex-col items-center justify-center shrink-0 w-12 text-[#1A3167]">
+<span class="text-xs font-black">15:00</span>
+<span class="text-[9px] font-bold opacity-40 uppercase">IMORGEN</span>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-bold text-[#1A3167]">Design Approval Workshop</h4>
+<p class="text-xs text-on-surface-variant/70 mt-0.5">Projekt: <span class="text-primary font-semibold">Odense Letbane Fase 2</span></p>
+</div>
+<span class="material-symbols-outlined text-[#1A3167]/20" data-icon="arrow_forward_ios" style="font-size: 14px;">arrow_forward_ios</span>
+</div>
+</div>
+</div>
+<div class="bg-primary p-6 rounded-xl relative overflow-hidden group">
+<div class="relative z-10">
+<h3 class="text-white font-headline font-extrabold text-lg leading-tight">Mangler du overblik over dit team?</h3>
+<p class="text-white/60 text-xs mt-2 mb-4">Gå til ressourceplanlægning for at se ledig kapacitet i næste uge.</p>
+<button class="bg-[#D4AF37] text-primary px-4 py-2 rounded-lg text-xs font-bold hover:scale-105 transition-transform active:scale-95">Se Mit Team</button>
+</div>
+<span class="material-symbols-outlined absolute -right-4 -bottom-4 text-white/5 text-[120px] rotate-12" data-icon="groups">groups</span>
+</div>
+</section>
+</div>
+</main>
+</body></html>

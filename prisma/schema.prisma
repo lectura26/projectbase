@@ -1,0 +1,196 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ProjectStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  WAITING
+  COMPLETED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum ProjectVisibility {
+  ONLY_ME
+  TEAM
+  ALL
+}
+
+enum RoutineInterval {
+  DAILY
+  WEEKLY
+  MONTHLY
+  CUSTOM
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum ActivityType {
+  MAIL
+  MEETING
+  NOTE
+  FILE
+}
+
+/// Application user; `id` matches `auth.users.id` (UUID) from Supabase Auth.
+model User {
+  id        String    @id
+  email     String    @unique
+  name      String?
+  image     String?
+  createdAt DateTime  @default(now())
+
+  ownedProjects  Project[]       @relation("ProjectOwnedBy")
+  projectMembers ProjectMember[]
+  assignedTasks Task[]           @relation("TaskAssignee")
+  comments      Comment[]
+  uploadedFiles File[]
+}
+
+model Project {
+  id              String            @id @default(cuid())
+  name            String
+  description     String?
+  status          ProjectStatus     @default(NOT_STARTED)
+  priority        Priority          @default(MEDIUM)
+  visibility      ProjectVisibility @default(TEAM)
+  deadline        DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  userId          String
+  isRoutine       Boolean           @default(false)
+  routineInterval RoutineInterval?
+  tags            String[]          @default([])
+
+  user           User             @relation("ProjectOwnedBy", fields: [userId], references: [id], onDelete: Restrict)
+  members        ProjectMember[]
+  contacts       Contact[]
+  tasks          Task[]
+  comments       Comment[]
+  activities     Activity[]
+  files          File[]
+  calendarEvents CalendarEvent[]
+
+  @@index([userId])
+}
+
+model ProjectMember {
+  id        String @id @default(cuid())
+  projectId String
+  userId    String
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([userId])
+}
+
+model Contact {
+  id        String @id @default(cuid())
+  name      String
+  email     String
+  projectId String
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  status      TaskStatus @default(TODO)
+  priority    Priority   @default(MEDIUM)
+  deadline    DateTime?
+  userId      String?
+  projectId   String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  user    User?   @relation("TaskAssignee", fields: [userId], references: [id], onDelete: SetNull)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  comments Comment[]
+
+  @@index([projectId])
+  @@index([userId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  authorId  String
+  projectId String?
+  taskId    String?
+  createdAt DateTime @default(now())
+
+  author  User    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task    Task?    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([authorId])
+  @@index([projectId])
+  @@index([taskId])
+}
+
+model Activity {
+  id          String       @id @default(cuid())
+  type        ActivityType
+  title       String
+  source      String
+  externalId  String
+  date        DateTime
+  projectId   String
+  autoMatched Boolean      @default(false)
+  confirmed   Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([externalId])
+}
+
+model File {
+  id           String   @id @default(cuid())
+  name         String
+  fileType     String
+  url          String
+  projectId    String
+  uploadedById String
+  createdAt    DateTime @default(now())
+
+  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploadedBy User    @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+
+  @@index([projectId])
+  @@index([uploadedById])
+}
+
+model CalendarEvent {
+  id          String    @id @default(cuid())
+  title       String
+  projectId   String
+  date        DateTime
+  externalId  String?
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([externalId])
+}
