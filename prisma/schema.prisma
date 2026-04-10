@@ -149,16 +149,17 @@ model Comment {
 }
 
 model Activity {
-  id          String       @id @default(cuid())
-  type        ActivityType
-  title       String
-  source      String
-  externalId  String
-  date        DateTime
-  projectId   String
-  autoMatched Boolean      @default(false)
-  confirmed   Boolean      @default(false)
-  createdAt   DateTime     @default(now())
+  id            String       @id @default(cuid())
+  type          ActivityType
+  title         String
+  source        String
+  externalId    String
+  date          DateTime
+  projectId     String
+  organizerName String?
+  autoMatched   Boolean      @default(false)
+  confirmed     Boolean      @default(false)
+  createdAt     DateTime     @default(now())
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
@@ -171,6 +172,7 @@ model File {
   name         String
   fileType     String
   url          String
+  storagePath  String?
   projectId    String
   uploadedById String
   createdAt    DateTime @default(now())
@@ -187,6 +189,7 @@ model CalendarEvent {
   title       String
   projectId   String
   date        DateTime
+  eventTime   String?
   externalId  String?
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)

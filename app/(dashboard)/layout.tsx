@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
+import { AppToaster } from "@/components/Toaster";
 import { AppShell } from "@/components/layout/AppShell";
 import { ensureAppUser } from "@/lib/auth/ensure-app-user";
 import { createClient } from "@/lib/supabase/server";
@@ -25,5 +26,10 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     userLabel = row?.name ?? row?.email ?? user.email;
   }
 
-  return <AppShell userLabel={userLabel}>{children}</AppShell>;
+  return (
+    <AppShell userLabel={userLabel}>
+      <AppToaster />
+      {children}
+    </AppShell>
+  );
 }

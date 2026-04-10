@@ -1,10 +1,14 @@
 "use client";
 
-import type { Priority, ProjectVisibility } from "@prisma/client";
+import type { Priority, ProjectVisibility, RoutineInterval } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { createProject } from "@/app/(dashboard)/projekter/actions";
+import {
+  createProject,
+  updateProject,
+  type EditProjectInitial,
+} from "@/app/(dashboard)/projekter/actions";
 
 type UserOption = { id: string; name: string; email: string };
 
@@ -12,6 +16,9 @@ type NytProjektModalProps = {
   open: boolean;
   onClose: () => void;
   users: UserOption[];
+  mode?: "create" | "edit";
+  projectId?: string;
+  initialEdit?: EditProjectInitial | null;
 };
 
 const labelClass =
@@ -20,7 +27,14 @@ const labelClass =
 const inputUnderlineClass =
   "w-full bg-transparent border-0 border-b-2 border-outline-variant/70 py-3 text-sm font-medium text-on-surface shadow-none transition-colors placeholder:text-outline-variant/50 focus:border-primary focus:outline-none focus:ring-0";
 
-export function NytProjektModal({ open, onClose, users }: NytProjektModalProps) {
+export function NytProjektModal({
+  open,
+  onClose,
+  users,
+  mode = "create",
+  projectId,
+  initialEdit = null,
+}: NytProjektModalProps) {
   const router = useRouter();
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -38,6 +52,7 @@ export function NytProjektModal({ open, onClose, users }: NytProjektModalProps) 
   const [tags, setTags] = useState<string[]>([]);
   const [tagDraft, setTagDraft] = useState("");
   const [isRoutine, setIsRoutine] = useState(false);
+  const [routineInterval, setRoutineInterval] = useState<RoutineInterval>("MONTHLY");
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
 
@@ -50,6 +65,7 @@ export function NytProjektModal({ open, onClose, users }: NytProjektModalProps) 
     setTags([]);
     setTagDraft("");
     setIsRoutine(false);
+    setRoutineInterval("MONTHLY");
     setContactName("");
     setContactEmail("");
     setError(null);
@@ -58,19 +74,36 @@ export function NytProjektModal({ open, onClose, users }: NytProjektModalProps) 
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    if (open) {
-      resetForm();
-      setMoreOpen(true);
-      document.body.style.overflow = "hidden";
-      const t = window.setTimeout(() => nameInputRef.current?.focus(), 50);
-      return () => {
-        clearTimeout(t);
-        document.body.style.overflow = "";
-      };
+    if (!open) {
+      document.body.style.overflow = "";
+      return undefined;
     }
-    document.body.style.overflow = "";
-    return undefined;
-  }, [open, resetForm]);
+    setMoreOpen(true);
+    document.body.style.overflow = "hidden";
+    if (mode === "edit" && initialEdit) {
+      setName(initialEdit.name);
+      setDeadline(initialEdit.deadline);
+      setDescription(initialEdit.description);
+      setPriority(initialEdit.priority);
+      setTeamVisible(
+        initialEdit.visibility === "TEAM" || initialEdit.visibility === "ALL",
+      );
+      setTags(initialEdit.tags);
+      setTagDraft("");
+      setIsRoutine(initialEdit.isRoutine);
+      setRoutineInterval(initialEdit.routineInterval ?? "MONTHLY");
+      setContactName(initialEdit.contactName);
+      setContactEmail(initialEdit.contactEmail);
+      setError(null);
+    } else {
+      resetForm();
+    }
+    const t = window.setTimeout(() => nameInputRef.current?.focus(), 50);
+    return () => {
+      clearTimeout(t);
+      document.body.style.overflow = "";
+    };
+  }, [open, mode, initialEdit, resetForm]);
 
   useEffect(() => {
     if (!open) return;
@@ -99,18 +132,39 @@ export function NytProjektModal({ open, onClose, users }: NytProjektModalProps) 
     }
     setSubmitting(true);
     try {
-      const visibility: ProjectVisibility = teamVisible ? "TEAM" : "ONLY_ME";
-      await createProject({
-        name,
-        description: description || undefined,
-        deadline: deadline || null,
-        priority,
-        visibility,
-        tags,
-        isRoutine,
-        contactName: contactName || undefined,
-        contactEmail: contactEmail || undefined,
-      });
+      const visibility: ProjectVisibility = (() => {
+        if (!teamVisible) return "ONLY_ME";
+        if (mode === "edit" && initialEdit?.visibility === "ALL") return "ALL";
+        return "TEAM";
+      })();
+      if (mode === "edit" && projectId) {
+        await updateProject({
+          projectId,
+          name,
+          description: description || undefined,
+          deadline: deadline || null,
+          priority,
+          visibility,
+          tags,
+          isRoutine,
+          routineInterval: isRoutine ? routineInterval : null,
+          contactName: contactName || undefined,
+          contactEmail: contactEmail || undefined,
+        });
+      } else {
+        await createProject({
+          name,
+          description: description || undefined,
+          deadline: deadline || null,
+          priority,
+          visibility,
+          tags,
+          isRoutine,
+          routineInterval: isRoutine ? routineInterval : null,
+          contactName: contactName || undefined,
+          contactEmail: contactEmail || undefined,
+        });
+      }
       onClose();
       router.refresh();
     } catch (err) {
@@ -163,10 +217,12 @@ export function NytProjektModal({ open, onClose, users }: NytProjektModalProps) 
               id={titleId}
               className="font-headline text-2xl font-extrabold tracking-tight text-primary sm:text-3xl"
             >
-              Opret projekt
+              {mode === "edit" ? "Rediger projekt" : "Opret projekt"}
             </h2>
             <p className="mt-1 font-body text-sm font-medium italic text-on-surface-variant/80">
-              Konfigurer rammerne for jeres næste succesfulde initiativ.
+              {mode === "edit"
+                ? "Opdater projektets rammer og metadata."
+                : "Konfigurer rammerne for jeres næste succesfulde initiativ."}
             </p>
           </div>
           <button
@@ -410,10 +466,36 @@ export function NytProjektModal({ open, onClose, users }: NytProjektModalProps) 
                     <div>
                       <span className="block text-xs font-bold text-primary">Rutineprojekt</span>
                       <span className="text-[10px] leading-relaxed text-on-surface-variant/70">
-                        Gentag opgaven automatisk med faste intervaller (konfigureres senere).
+                        Ved fuldførelse oprettes et nyt identisk projekt med næste frist.
                       </span>
                     </div>
                   </div>
+
+                  {isRoutine ? (
+                    <div className="md:col-span-2">
+                      <label htmlFor="np-routine" className={labelClass}>
+                        Rutineinterval
+                      </label>
+                      <div className="relative">
+                        <select
+                          id="np-routine"
+                          value={routineInterval}
+                          onChange={(e) =>
+                            setRoutineInterval(e.target.value as RoutineInterval)
+                          }
+                          className={`${inputUnderlineClass} appearance-none bg-secondary-container/30 pr-8`}
+                        >
+                          <option value="DAILY">Daglig</option>
+                          <option value="WEEKLY">Ugentlig</option>
+                          <option value="MONTHLY">Månedlig</option>
+                          <option value="CUSTOM">Tilpasset (månedlig frist)</option>
+                        </select>
+                        <span className="pointer-events-none absolute right-1 top-3 text-primary/40 material-symbols-outlined text-xl">
+                          expand_more
+                        </span>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
             </section>
@@ -438,7 +520,13 @@ export function NytProjektModal({ open, onClose, users }: NytProjektModalProps) 
               disabled={submitting || !users.length}
               className="flex items-center gap-3 rounded-md bg-primary px-8 py-3 text-sm font-extrabold uppercase tracking-widest text-on-primary shadow-lg shadow-primary/20 transition-colors hover:bg-primary-container disabled:opacity-50"
             >
-              {submitting ? "Opretter…" : "Opret projekt"}
+              {submitting
+                ? mode === "edit"
+                  ? "Gemmer…"
+                  : "Opretter…"
+                : mode === "edit"
+                  ? "Gem ændringer"
+                  : "Opret projekt"}
               <span className="material-symbols-outlined text-sm">arrow_forward</span>
             </button>
           </div>
