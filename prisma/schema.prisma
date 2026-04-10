@@ -53,9 +53,9 @@ enum AppRole {
 
 enum NotificationType {
   OVERDUE_TASK
-  AI_MATCH
-  TASK_ASSIGNED
   ROUTINE_RESTARTED
+  TASK_ASSIGNED
+  AI_MATCH
 }
 
 /// Application user; `id` matches `auth.users.id` (UUID) from Supabase Auth.
