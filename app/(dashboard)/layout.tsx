@@ -1,4 +1,3 @@
-import type { NotificationType } from "@prisma/client";
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { AppToaster } from "@/components/Toaster";
@@ -14,7 +13,7 @@ import type { NotificationDTO } from "@/types/notifications";
 
 type AppNotification = {
   id: string;
-  type: string;
+  type: import("@prisma/client").NotificationType;
   message: string;
   read: boolean;
   relatedProjectId: string | null;
@@ -47,7 +46,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     const notifRows = await getNotificationsForUser(user.id);
     initialNotifications = notifRows.map((n: AppNotification) => ({
       id: n.id,
-      type: n.type as NotificationType,
+      type: n.type,
       message: n.message,
       read: n.read,
       relatedProjectId: n.relatedProjectId,
