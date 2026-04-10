@@ -1,3 +1,4 @@
+import type { Notification } from "@prisma/client";
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { AppToaster } from "@/components/Toaster";
@@ -34,7 +35,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
     await syncOverdueTaskNotifications(user.id);
     const notifRows = await getNotificationsForUser(user.id);
-    initialNotifications = notifRows.map((n) => ({
+    initialNotifications = notifRows.map((n: Notification) => ({
       id: n.id,
       type: n.type,
       message: n.message,
