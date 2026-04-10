@@ -13,7 +13,7 @@ import type { NotificationDTO } from "@/types/notifications";
 
 type AppNotification = {
   id: string;
-  type: import("@prisma/client").NotificationType;
+  type: string;
   message: string;
   read: boolean;
   relatedProjectId: string | null;
@@ -52,7 +52,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       relatedProjectId: n.relatedProjectId,
       relatedTaskId: n.relatedTaskId,
       createdAt: n.createdAt.toISOString(),
-    }));
+    })) as NotificationDTO[];
   }
 
   return (
