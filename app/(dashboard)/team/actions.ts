@@ -24,6 +24,7 @@ export async function getTeamMemberDetail(memberId: string) {
     where: {
       userId: memberId,
       status: { not: "DONE" },
+      project: { isTemplate: false },
     },
     include: {
       project: { select: { id: true, name: true } },

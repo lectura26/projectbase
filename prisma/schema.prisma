@@ -51,6 +51,18 @@ enum AppRole {
   MEMBER
 }
 
+enum NotifyPreference {
+  EMAIL_DAILY
+  PUSH
+  NONE
+}
+
+enum AiMatchSensitivity {
+  LOW
+  MEDIUM
+  HIGH
+}
+
 enum NotificationType {
   OVERDUE_TASK
   ROUTINE_RESTARTED
@@ -65,6 +77,8 @@ model User {
   name           String?
   image          String?
   appRole        AppRole          @default(MEMBER)
+  notifyPreference   NotifyPreference   @default(EMAIL_DAILY)
+  aiMatchSensitivity AiMatchSensitivity @default(MEDIUM)
   createdAt      DateTime         @default(now())
 
   ownedProjects  Project[]       @relation("ProjectOwnedBy")
@@ -73,6 +87,7 @@ model User {
   comments       Comment[]
   uploadedFiles  File[]
   notifications  Notification[]
+  teamInvitesSent PendingTeamMember[] @relation("TeamInviteInviter")
 }
 
 model Project {
@@ -89,6 +104,7 @@ model Project {
   isRoutine       Boolean           @default(false)
   routineInterval RoutineInterval?
   tags            String[]          @default([])
+  isTemplate      Boolean           @default(false)
 
   user           User             @relation("ProjectOwnedBy", fields: [userId], references: [id], onDelete: Restrict)
   members        ProjectMember[]
@@ -226,4 +242,19 @@ model Notification {
 
   @@index([userId, createdAt])
   @@index([relatedTaskId])
+}
+
+/// Pending team add until user signs in with matching email (see ensureAppUser).
+model PendingTeamMember {
+  id          String   @id @default(cuid())
+  email       String
+  name        String?
+  appRole     AppRole  @default(MEMBER)
+  invitedById String
+  createdAt   DateTime @default(now())
+
+  invitedBy User @relation("TeamInviteInviter", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@unique([email])
+  @@index([invitedById])
 }

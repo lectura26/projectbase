@@ -21,7 +21,7 @@ export default async function ProjekterPage() {
   await ensureAppUser(user);
 
   const rows = await prisma.project.findMany({
-    where: { userId: user.id },
+    where: { userId: user.id, isTemplate: false },
     orderBy: { createdAt: "desc" },
     include: {
       user: { select: { id: true, name: true, email: true } },

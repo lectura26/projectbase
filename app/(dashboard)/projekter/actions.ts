@@ -113,6 +113,8 @@ export type CreateProjectInput = {
   routineInterval?: RoutineInterval | null;
   contactName?: string;
   contactEmail?: string;
+  /** Opretter en ekstra skabelon-række (vises under Indstillinger). */
+  saveAsTemplate?: boolean;
 };
 
 export type UpdateProjectInput = CreateProjectInput & {
@@ -214,6 +216,31 @@ export async function createProject(input: CreateProjectInput) {
         : {}),
     },
   });
+
+  if (input.saveAsTemplate) {
+    await prisma.project.create({
+      data: {
+        name: `${name} (skabelon)`,
+        userId: user.id,
+        description,
+        deadline: null,
+        priority: input.priority,
+        visibility: input.visibility,
+        tags: input.tags.filter(Boolean),
+        isRoutine: false,
+        routineInterval: null,
+        isTemplate: true,
+        ...(contactName && contactEmail
+          ? {
+              contacts: {
+                create: [{ name: contactName, email: contactEmail }],
+              },
+            }
+          : {}),
+      },
+    });
+    revalidatePath("/indstillinger");
+  }
 
   revalidatePath("/projekter");
 }

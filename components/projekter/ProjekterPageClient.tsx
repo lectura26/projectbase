@@ -212,8 +212,10 @@ export default function ProjekterPageClient({
 
       <div className="px-8 py-8">
         {filtered.length === 0 ? (
-          <p className="rounded-xl bg-surface-container-lowest p-8 text-center font-body text-sm text-on-surface-variant shadow-sm ring-1 ring-black/5">
-            Ingen projekter matcher filtrene — eller du har ingen projekter endnu.
+          <p className="py-6 text-center text-sm text-on-surface-variant/90">
+            {projects.length === 0
+              ? "Ingen projekter endnu."
+              : "Ingen projekter matcher filtrene."}
           </p>
         ) : view === "liste" ? (
           <div className="grid grid-cols-2 gap-3">

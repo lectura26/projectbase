@@ -381,10 +381,13 @@ function OpgaverTab({
   setNewTaskTitle: (s: string) => void;
   routerRefresh: () => void;
 }) {
+  const [newTaskError, setNewTaskError] = useState("");
+
   const cycle = async (taskId: string, e?: React.SyntheticEvent) => {
     e?.stopPropagation();
     try {
-      await cycleTaskStatus(taskId);
+      const r = await cycleTaskStatus(taskId);
+      if (r.newStatus === "DONE") toast.success("Opgave fuldført");
       routerRefresh();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Fejl");
@@ -397,7 +400,11 @@ function OpgaverTab({
 
   const addTask = async () => {
     const t = newTaskTitle.trim();
-    if (!t) return;
+    if (!t) {
+      setNewTaskError("Titel er påkrævet.");
+      return;
+    }
+    setNewTaskError("");
     try {
       await createTask(projectId, t);
       setNewTaskTitle("");
@@ -409,6 +416,9 @@ function OpgaverTab({
 
   return (
     <div className="space-y-1">
+      {tasks.length === 0 ? (
+        <p className="py-2 text-sm text-on-surface-variant/90">Ingen opgaver endnu.</p>
+      ) : null}
       {tasks.map((task) => {
         const done = task.status === "DONE";
         const expanded = expandedTaskId === task.id;
@@ -477,7 +487,10 @@ function OpgaverTab({
         <input
           type="text"
           value={newTaskTitle}
-          onChange={(e) => setNewTaskTitle(e.target.value)}
+          onChange={(e) => {
+            setNewTaskTitle(e.target.value);
+            setNewTaskError("");
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
@@ -485,8 +498,12 @@ function OpgaverTab({
             }
           }}
           placeholder="Tilføj opgave..."
+          aria-invalid={Boolean(newTaskError)}
           className="w-full rounded-lg border border-dashed border-outline-variant/20 bg-transparent px-3 py-2 font-body text-sm placeholder:text-on-surface-variant focus:border-primary focus:outline-none"
         />
+        {newTaskError ? (
+          <p className="mt-1.5 text-xs text-error">{newTaskError}</p>
+        ) : null}
       </div>
     </div>
   );
@@ -560,6 +577,7 @@ function TaskExpanded({
     try {
       await addTaskComment(task.id, t);
       setComment("");
+      toast.success("Kommentar tilføjet");
       onRefresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Fejl");
@@ -629,6 +647,9 @@ function TaskExpanded({
           Kommentarer
         </p>
         <div className="mt-3 max-h-48 space-y-2 overflow-y-auto">
+          {task.comments.length === 0 ? (
+            <p className="text-[11px] text-on-surface-variant/90">Ingen kommentarer endnu.</p>
+          ) : null}
           {task.comments.map((c) => (
             <div key={c.id} className="flex gap-2 text-sm">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-container text-[10px] font-bold text-white">
@@ -687,6 +708,7 @@ function KommentarerTab({
     try {
       await addProjectComment(initial.id, t);
       setDraft("");
+      toast.success("Kommentar tilføjet");
       onRefresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Fejl");
@@ -696,6 +718,9 @@ function KommentarerTab({
   return (
     <div className="flex max-h-[min(70vh,640px)] flex-col">
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pb-4 pr-1">
+        {initial.projectComments.length === 0 ? (
+          <p className="text-sm text-on-surface-variant/90">Ingen kommentarer endnu.</p>
+        ) : null}
         {initial.projectComments.map((c) => (
           <div key={c.id} className="flex gap-3">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white">
@@ -860,12 +885,23 @@ function KalenderTab({
   projectId: string;
   onRefresh: () => void;
 }) {
+  const [titleError, setTitleError] = useState("");
+  const [dateError, setDateError] = useState("");
+
   const save = async () => {
     const title = eventTitle.trim();
-    if (!title || !eventDate) {
-      toast.error("Titel og dato påkrævet.");
-      return;
+    setTitleError("");
+    setDateError("");
+    let ok = true;
+    if (!title) {
+      setTitleError("Titel er påkrævet.");
+      ok = false;
     }
+    if (!eventDate) {
+      setDateError("Dato er påkrævet.");
+      ok = false;
+    }
+    if (!ok) return;
     try {
       await createCalendarEvent({
         projectId,
@@ -888,7 +924,11 @@ function KalenderTab({
       <div className="mb-4 flex justify-end">
         <button
           type="button"
-          onClick={() => setEventFormOpen(!eventFormOpen)}
+          onClick={() => {
+            setEventFormOpen(!eventFormOpen);
+            setTitleError("");
+            setDateError("");
+          }}
           className="rounded-lg border border-outline-variant/20 px-3 py-1.5 font-body text-sm font-medium text-primary"
         >
           Tilføj begivenhed
@@ -896,19 +936,37 @@ function KalenderTab({
       </div>
       {eventFormOpen ? (
         <div className="mb-6 grid max-w-md gap-3 rounded-lg border border-outline-variant/20 p-4 md:grid-cols-2">
-          <input
-            type="text"
-            value={eventTitle}
-            onChange={(e) => setEventTitle(e.target.value)}
-            placeholder="Titel"
-            className="md:col-span-2 rounded border px-3 py-2 text-sm"
-          />
-          <input
-            type="date"
-            value={eventDate}
-            onChange={(e) => setEventDate(e.target.value)}
-            className="rounded border px-3 py-2 text-sm"
-          />
+          <div className="md:col-span-2">
+            <input
+              type="text"
+              value={eventTitle}
+              onChange={(e) => {
+                setEventTitle(e.target.value);
+                setTitleError("");
+              }}
+              placeholder="Titel"
+              aria-invalid={Boolean(titleError)}
+              className="w-full rounded border px-3 py-2 text-sm"
+            />
+            {titleError ? (
+              <p className="mt-1 text-xs text-error">{titleError}</p>
+            ) : null}
+          </div>
+          <div>
+            <input
+              type="date"
+              value={eventDate}
+              onChange={(e) => {
+                setEventDate(e.target.value);
+                setDateError("");
+              }}
+              aria-invalid={Boolean(dateError)}
+              className="w-full rounded border px-3 py-2 text-sm"
+            />
+            {dateError ? (
+              <p className="mt-1 text-xs text-error">{dateError}</p>
+            ) : null}
+          </div>
           <input
             type="time"
             value={eventTime}
@@ -934,6 +992,9 @@ function KalenderTab({
         </div>
       ) : null}
       <div className="space-y-6">
+        {calendarGroups.length === 0 ? (
+          <p className="text-sm text-on-surface-variant/90">Ingen begivenheder i kalenderen endnu.</p>
+        ) : null}
         {calendarGroups.map(([day, events]) => (
           <div key={day}>
             <p className="mb-2 text-xs font-bold uppercase tracking-widest text-on-surface-variant">
@@ -1039,6 +1100,9 @@ function FilerTab({
           Upload
         </button>
       </div>
+      {initial.files.length === 0 ? (
+        <p className="text-sm text-on-surface-variant/90">Ingen filer uploadet endnu.</p>
+      ) : null}
       <ul className="divide-y divide-outline-variant/10">
         {initial.files.map((f) => (
           <li

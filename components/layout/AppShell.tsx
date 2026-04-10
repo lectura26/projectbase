@@ -13,7 +13,7 @@ export function AppShell({
   initialNotifications: NotificationDTO[];
 }) {
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen min-w-[1024px]">
       <Sidebar userLabel={userLabel} />
       <MainColumn initialNotifications={initialNotifications}>
         {children}

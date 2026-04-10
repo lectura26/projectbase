@@ -9,6 +9,7 @@ import {
 import type { ProjectStatus } from "@prisma/client";
 import Link from "next/link";
 import { useCallback, useMemo } from "react";
+import { toast } from "sonner";
 import { updateProjectStatus } from "@/app/(dashboard)/projekter/actions";
 import type { ProjectListItem } from "@/types/projekter";
 import { ProjectCardBody } from "./ProjectCard";
@@ -67,7 +68,10 @@ export function ProjekterKanban({
       });
 
       try {
-        await updateProjectStatus(draggableId, newStatus);
+        const r = await updateProjectStatus(draggableId, newStatus);
+        if (r.routineRestarted) {
+          toast.success(`Rutineprojekt genstartet: ${r.routineRestarted.name}`);
+        }
       } catch {
         onProjectsUpdate(() => snapshot);
       }
@@ -92,6 +96,11 @@ export function ProjekterKanban({
                     snapshot.isDraggingOver ? "bg-surface-container-low" : "bg-surface-container-low/50"
                   }`}
                 >
+                  {grouped[columnId].length === 0 ? (
+                    <p className="py-6 text-center text-[11px] text-on-surface-variant/90">
+                      Ingen projekter her.
+                    </p>
+                  ) : null}
                   {grouped[columnId].map((project, index) => (
                     <Draggable
                       key={project.id}

@@ -37,6 +37,7 @@ export default async function TeamPage() {
         prisma.project.count({
           where: {
             status: { not: "COMPLETED" },
+            isTemplate: false,
             OR: [{ userId: u.id }, { members: { some: { userId: u.id } } }],
           },
         }),

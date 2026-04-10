@@ -274,6 +274,10 @@ export default function KalenderPageClient({
         </div>
       </div>
 
+      {projects.length === 0 ? (
+        <p className="text-sm text-on-surface-variant/90">Ingen projekter med kalenderdata endnu.</p>
+      ) : null}
+
       <div className="rounded-xl border border-outline-variant/20 bg-white p-4">
         {view === "week" ? (
           <div className="grid min-h-[320px] grid-cols-7 gap-2">
@@ -360,6 +364,11 @@ export default function KalenderPageClient({
             </div>
           </div>
         )}
+        {filteredEvents.length === 0 && filteredTasks.length === 0 && projects.length > 0 ? (
+          <p className="mt-4 text-center text-sm text-on-surface-variant/90">
+            Ingen begivenheder eller deadlines i denne periode.
+          </p>
+        ) : null}
       </div>
 
       {popover ? (

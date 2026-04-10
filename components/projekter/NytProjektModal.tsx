@@ -4,6 +4,7 @@ import type { Priority, ProjectVisibility, RoutineInterval } from "@prisma/clien
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { toast } from "sonner";
 import {
   createProject,
   updateProject,
@@ -55,6 +56,8 @@ export function NytProjektModal({
   const [routineInterval, setRoutineInterval] = useState<RoutineInterval>("MONTHLY");
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
+  const [saveAsTemplate, setSaveAsTemplate] = useState(false);
+  const [nameError, setNameError] = useState("");
 
   const resetForm = useCallback(() => {
     setName("");
@@ -68,6 +71,8 @@ export function NytProjektModal({
     setRoutineInterval("MONTHLY");
     setContactName("");
     setContactEmail("");
+    setSaveAsTemplate(false);
+    setNameError("");
     setError(null);
   }, []);
 
@@ -82,6 +87,7 @@ export function NytProjektModal({
     document.body.style.overflow = "hidden";
     if (mode === "edit" && initialEdit) {
       setName(initialEdit.name);
+      setNameError("");
       setDeadline(initialEdit.deadline);
       setDescription(initialEdit.description);
       setPriority(initialEdit.priority);
@@ -126,6 +132,12 @@ export function NytProjektModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setNameError("");
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      setNameError("Projektnavn er påkrævet.");
+      return;
+    }
     if (!users.length) {
       setError("Der er ingen brugere i systemet — tilføj en bruger først.");
       return;
@@ -140,7 +152,7 @@ export function NytProjektModal({
       if (mode === "edit" && projectId) {
         await updateProject({
           projectId,
-          name,
+          name: trimmedName,
           description: description || undefined,
           deadline: deadline || null,
           priority,
@@ -153,7 +165,7 @@ export function NytProjektModal({
         });
       } else {
         await createProject({
-          name,
+          name: trimmedName,
           description: description || undefined,
           deadline: deadline || null,
           priority,
@@ -163,7 +175,9 @@ export function NytProjektModal({
           routineInterval: isRoutine ? routineInterval : null,
           contactName: contactName || undefined,
           contactEmail: contactEmail || undefined,
+          saveAsTemplate: saveAsTemplate || undefined,
         });
+        toast.success("Projekt oprettet");
       }
       onClose();
       router.refresh();
@@ -249,12 +263,18 @@ export function NytProjektModal({
                   id="np-name"
                   ref={nameInputRef}
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setNameError("");
+                  }}
                   placeholder="Indtast projektets fulde navn..."
                   className={`${inputUnderlineClass} text-lg font-semibold sm:text-xl`}
-                  required
                   autoComplete="off"
+                  aria-invalid={Boolean(nameError)}
                 />
+                {nameError ? (
+                  <p className="mt-2 text-xs text-error">{nameError}</p>
+                ) : null}
               </div>
               <div>
                 <label htmlFor="np-owner" className={labelClass}>
@@ -494,6 +514,24 @@ export function NytProjektModal({
                           expand_more
                         </span>
                       </div>
+                    </div>
+                  ) : null}
+
+                  {mode === "create" ? (
+                    <div className="md:col-span-2 flex items-start gap-3 rounded-lg border border-outline-variant/15 bg-surface-container-low/50 px-4 py-3">
+                      <input
+                        id="np-template"
+                        type="checkbox"
+                        checked={saveAsTemplate}
+                        onChange={(e) => setSaveAsTemplate(e.target.checked)}
+                        className="mt-1 h-4 w-4 rounded border-outline-variant text-primary"
+                      />
+                      <label htmlFor="np-template" className="text-sm text-on-surface">
+                        <span className="font-semibold text-primary">Gem som skabelon</span>
+                        <span className="mt-0.5 block text-xs text-on-surface-variant">
+                          Skabelonen vises under Indstillinger og kan genbruges senere.
+                        </span>
+                      </label>
                     </div>
                   ) : null}
                 </div>

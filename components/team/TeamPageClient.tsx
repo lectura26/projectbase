@@ -87,6 +87,9 @@ export default function TeamPageClient({ rows }: Props) {
     <div className="relative flex gap-0">
       <div className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white">
         <ul className="divide-y divide-outline-variant/10">
+          {rows.length === 0 ? (
+            <li className="px-4 py-8 text-sm text-on-surface-variant/90">Ingen teammedlemmer endnu.</li>
+          ) : null}
           {rows.map((row) => (
             <li key={row.id}>
               <button

@@ -37,6 +37,7 @@ export async function cycleTaskStatus(taskId: string) {
     select: { projectId: true },
   });
   if (project) revalidatePath(`/projekter/${project.projectId}`);
+  return { newStatus: next };
 }
 
 export async function updateTaskFields(input: {

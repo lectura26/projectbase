@@ -16,7 +16,7 @@ export function MainColumn({
   const hideDefaultTopBar = pathname === "/projekter";
 
   return (
-    <div className="flex min-h-screen flex-1 flex-col pl-[220px]">
+    <div className="flex min-h-screen min-w-0 flex-1 flex-col pl-[220px]">
       {hideDefaultTopBar ? null : (
         <TopBar initialNotifications={initialNotifications} />
       )}
