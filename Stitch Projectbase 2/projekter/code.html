@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+
+<html class="light" lang="da"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#ffb786",
+                    "outline": "#757781",
+                    "on-secondary-container": "#4e6873",
+                    "on-surface-variant": "#44464f",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary-container": "#cbe7f3",
+                    "error": "#ba1a1a",
+                    "surface-dim": "#d9dadb",
+                    "primary-fixed-dim": "#b2c5ff",
+                    "on-primary-fixed-variant": "#2f447b",
+                    "on-background": "#191c1d",
+                    "surface-tint": "#485c95",
+                    "primary-container": "#1a3167",
+                    "on-surface": "#191c1d",
+                    "on-primary-container": "#869bd7",
+                    "on-tertiary-fixed-variant": "#6d3910",
+                    "on-tertiary-fixed": "#311400",
+                    "surface-container-highest": "#e1e3e4",
+                    "on-error-container": "#93000a",
+                    "surface-container-low": "#f3f4f5",
+                    "inverse-on-surface": "#f0f1f2",
+                    "primary-fixed": "#dae2ff",
+                    "primary": "#001b4f",
+                    "tertiary-container": "#552700",
+                    "error-container": "#ffdad6",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "surface-container-high": "#e7e8e9",
+                    "on-primary-fixed": "#001849",
+                    "on-secondary-fixed-variant": "#304a54",
+                    "secondary-fixed": "#cbe7f3",
+                    "background": "#f8f9fa",
+                    "secondary": "#48626c",
+                    "outline-variant": "#c5c6d1",
+                    "secondary-fixed-dim": "#afcbd7",
+                    "on-secondary-fixed": "#021f27",
+                    "inverse-primary": "#b2c5ff",
+                    "on-error": "#ffffff",
+                    "surface-container": "#edeeef",
+                    "surface-bright": "#f8f9fa",
+                    "tertiary": "#351600",
+                    "on-tertiary-container": "#d18c5c",
+                    "surface-variant": "#e1e3e4",
+                    "surface": "#f8f9fa",
+                    "on-primary": "#ffffff",
+                    "tertiary-fixed": "#ffdcc6",
+                    "inverse-surface": "#2e3132"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+            vertical-align: middle;
+            font-size: 1.25rem;
+        }
+        .tonal-shift-nesting-no-borders { border: none !important; }
+        .flat-no-shadows { box-shadow: none !important; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface flex min-h-screen">
+<!-- SideNavBar Component -->
+<aside class="w-[220px] h-screen bg-white border-r border-slate-200 flex flex-col p-4 shrink-0 sticky top-0">
+<div class="flex items-center gap-2 text-[#1a3167] font-bold text-lg mb-8">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_balance</span>
+            Projectbase
+        </div>
+<nav class="flex-1 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:bg-slate-50 rounded-md transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                Oversigt
+            </a>
+<!-- Active Tab: Projekter -->
+<a class="flex items-center gap-3 px-4 py-2 text-[#1a3167] font-medium bg-slate-100 rounded-md" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">assignment</span>
+                Projekter
+            </a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:bg-slate-50 rounded-md transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+                Indstillinger
+            </a>
+</nav>
+<div class="mt-auto pt-4 border-t border-slate-100">
+<div class="flex items-center gap-3 px-4 py-3 mb-4 rounded-lg bg-surface-container-low">
+<img alt="S&amp;P Workspace Indicator" class="w-6 h-6 rounded bg-primary-container text-on-primary-container text-[10px] flex items-center justify-center font-bold" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrNIYux5N6Io4VnF1TskDoFcRm5tqSkYRk0a0ckZoH5D6zqkBq_bBAvHQFH5M5cnxDUbdUT-bIyw7vvzQCpskg6nZrLJCrWTlKR8ziX-KRmKLcPz8svKxhcFK2h1UkWZLn5h69u3aU-sO0Y1v8j4shSfr4DS83RPL2027EeqQW0LXxN9obdybuhfAueWcjN8CfjvrkddtC6Ij5z4Bfl9Rx2qeamToT0JkiR4Di7Jm9rAGH6F7HPK8FMRF3Xai58_qOLnR6TeLhiSaJ"/>
+<div class="overflow-hidden">
+<p class="text-xs font-bold truncate">Workspace S&amp;P</p>
+<p class="text-[10px] text-on-surface-variant truncate">Professional Plan</p>
+</div>
+</div>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:bg-slate-50 rounded-md transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+                Log ud
+            </a>
+</div>
+</aside>
+<!-- Main Content Shell -->
+<main class="flex-1 flex flex-col min-w-0">
+<!-- TopNavBar Component -->
+<header class="h-12 w-full bg-white/85 backdrop-blur-md flex justify-between items-center px-6 sticky top-0 z-40">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative max-w-md w-full">
+<span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-md py-1.5 pl-8 pr-4 text-sm focus:ring-1 focus:ring-primary" placeholder="Søg i projekter..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="h-8 w-px bg-outline-variant/30 mx-1"></div>
+<div class="flex items-center gap-2">
+<img alt="User Avatar" class="w-7 h-7 rounded-full object-cover" data-alt="professional headshot of a creative director in a minimalist studio setting with soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiq6ntNA4XAMw-z-l78VaI4sC_8oQCapeJuuLwHSqWmzkgOM4GL-cnu6wVX372YAS5NoxFxyOZHfnH0KkZ8ZT8L7hgUcuCjRpHrr6HjZsWJd7tMZgx6nPE1iay7rjOUKJJ7Dpw_rW0FRf2-y6CtjrzxgwhzmixQD79jAzqxatzWnfEkfRyGNoIfnqtu4dGs8Fu20Jb90jMY8UQAXfHEkbguPkYSmhaKmIyJAI5k3qRsqZuSAXNM5ezJjJDViZdQVxo5v-Ywo3VvC16"/>
+<span class="text-sm font-medium text-primary hidden lg:inline">User Profile</span>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<div class="p-8 space-y-6">
+<!-- Header Section -->
+<div class="flex justify-between items-end">
+<div>
+<h1 class="text-2xl font-bold tracking-tight text-primary">Projekter</h1>
+<p class="text-sm text-on-surface-variant mt-1">Administrer og overvåg dine aktive arbejdsprocesser.</p>
+</div>
+<button class="bg-primary text-on-primary px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-sm">add</span>
+                    Nyt projekt
+                </button>
+</div>
+<!-- Controls & Filters -->
+<div class="flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex bg-surface-container-low p-1 rounded-lg">
+<button class="px-4 py-1.5 text-xs font-semibold rounded-md bg-white shadow-sm text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">list</span>
+                            Liste
+                        </button>
+<button class="px-4 py-1.5 text-xs font-medium text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">view_kanban</span>
+                            Kanban
+                        </button>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1.5 text-xs font-medium text-on-surface-variant">
+<span>Status</span>
+<span class="material-symbols-outlined text-xs">expand_more</span>
+</div>
+<div class="flex items-center gap-1.5 text-xs font-medium text-on-surface-variant">
+<span>Prioritet</span>
+<span class="material-symbols-outlined text-xs">expand_more</span>
+</div>
+<div class="flex items-center gap-1.5 text-xs font-medium text-on-surface-variant">
+<span>Frist</span>
+<span class="material-symbols-outlined text-xs">expand_more</span>
+</div>
+</div>
+<button class="flex items-center gap-1.5 text-xs font-semibold text-primary">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                            Filtrer
+                        </button>
+</div>
+</div>
+</div>
+<!-- List View -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm">
+<!-- Header -->
+<div class="grid grid-cols-[1fr_120px_100px_120px_140px_60px] gap-4 px-6 py-3 bg-surface-container-low border-b border-outline-variant/10">
+<span class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Projekt Navn</span>
+<span class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Status</span>
+<span class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Prioritet</span>
+<span class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Frist</span>
+<span class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Fremdrift</span>
+<span class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Ejer</span>
+</div>
+<!-- Row 1 -->
+<div class="grid grid-cols-[1fr_120px_100px_120px_140px_60px] gap-4 px-6 h-[48px] items-center hover:bg-[#f8f9fa] transition-colors cursor-pointer group border-b border-outline-variant/5">
+<div class="flex items-center gap-3">
+<span class="text-sm font-semibold text-primary">Årsregnskab 2023</span>
+<span class="material-symbols-outlined text-on-primary-container text-[16px]" title="Routine">sync</span>
+</div>
+<div>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-secondary-container text-on-secondary-container uppercase">I GANG</span>
+</div>
+<div class="flex items-center gap-1.5">
+<div class="w-1.5 h-1.5 rounded-full bg-error"></div>
+<span class="text-xs text-on-surface">Høj</span>
+</div>
+<div class="text-xs text-on-surface-variant">15. Dec, 2023</div>
+<div class="flex items-center gap-3">
+<div class="w-[100px] h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[65%]"></div>
+</div>
+<span class="text-[10px] font-medium text-on-surface-variant">65%</span>
+</div>
+<div class="flex justify-center">
+<img alt="Owner" class="w-6 h-6 rounded-full border border-white shadow-sm" data-alt="portrait of a focused professional male software engineer with glasses in a modern office" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1bpsb7Zbf0yA45yDuThqkXN0ofw2gxPLieIFEDSmi3DCPhlRgm1rpSbECyH7BZF4OWUoM9b-u-Pwx1UCi9Y-yZkgfnBXmNu4F3L1PRHKROV54QD5zJIeOvR_2Qg-L8Tth0eQine5bx2wnq_W20wU3UOicIPofqMr39HKIn80gITf0_TTg5syRlg3f4AVodySIkYvTcoUQCiWLed0vI6GskmZwQd8EyLfJ1kqHn9S06-ph6tJp2VlNFwYZyHGubnvrmXxQHgF_5x6N"/>
+</div>
+</div>
+<!-- Row 2 -->
+<div class="grid grid-cols-[1fr_120px_100px_120px_140px_60px] gap-4 px-6 h-[48px] items-center hover:bg-[#f8f9fa] transition-colors cursor-pointer group border-b border-outline-variant/5">
+<div class="flex items-center gap-3">
+<span class="text-sm font-semibold text-primary">Implementering af ERP</span>
+</div>
+<div>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#dcfce7] text-[#16a34a] uppercase">FÆRDIG</span>
+</div>
+<div class="flex items-center gap-1.5">
+<div class="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
+<span class="text-xs text-on-surface">Mellem</span>
+</div>
+<div class="text-xs text-on-surface-variant">01. Jan, 2024</div>
+<div class="flex items-center gap-3">
+<div class="w-[100px] h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="bg-[#16a34a] h-full w-full"></div>
+</div>
+<span class="text-[10px] font-medium text-on-surface-variant">100%</span>
+</div>
+<div class="flex justify-center">
+<img alt="Owner" class="w-6 h-6 rounded-full border border-white shadow-sm" data-alt="candid portrait of a smiling woman executive in a bright contemporary workspace" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrSSmOYGZz5VUAmCj2Q-gPkohYrtFW-9xFEqOnu_03xLndnckVS9s8LQF81JUzOtJldGxsoqx4YPVNC3U73lj3WWS34Wl-mY5InZTo4HJr2V1XkQAjkQG-yAEsttI-BnnvffljvM_xwa1gPfpNhBw5eQ3yFJ5XrfF1CEv2Lo9CZdVznzgiQO9Zm396ojTVnsaUbQ7zUDyA9GrzOnX9clA5V7HtidvwVmUyDT1BLzp9wiCHhQ6WQtr00pj40_9SQRU5C20J1gehEysh"/>
+</div>
+</div>
+<!-- Row 3 -->
+<div class="grid grid-cols-[1fr_120px_100px_120px_140px_60px] gap-4 px-6 h-[48px] items-center hover:bg-[#f8f9fa] transition-colors cursor-pointer group border-b border-outline-variant/5">
+<div class="flex items-center gap-3">
+<span class="text-sm font-semibold text-primary">Budgetgennemgang Q1</span>
+<span class="material-symbols-outlined text-on-primary-container text-[16px]" title="Routine">sync</span>
+</div>
+<div>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-surface-container-highest text-on-surface-variant uppercase">PLANLAGT</span>
+</div>
+<div class="flex items-center gap-1.5">
+<div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
+<span class="text-xs text-on-surface">Lav</span>
+</div>
+<div class="text-xs text-on-surface-variant">20. Jan, 2024</div>
+<div class="flex items-center gap-3">
+<div class="w-[100px] h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[5%]"></div>
+</div>
+<span class="text-[10px] font-medium text-on-surface-variant">5%</span>
+</div>
+<div class="flex justify-center">
+<img alt="Owner" class="w-6 h-6 rounded-full border border-white shadow-sm" data-alt="portrait of a senior analyst with a neutral expression in a high-end corporate environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZ400sXShvU41yMv7XEkiAQH5p2jhVIGz1wBi5IuDnbHZ54gryl1pn0jhDlbUV6tabTnmZZtmVJdwSQB69tgEYRhV24dXbsbH9z8-q3ec1KtBoLZtZevGoRofcVzZFPWBPkPvVNf2l8pde3Ds7PTzbWm4C84f24jSjZutLrihTiW07TIGr7lkDGFsoV6VoLPfVoZPRp75eOi8yiEwkGuHQsv9jN3zY6bB4BaN7B-uaD5tvILxXAKuNsgE-jGgcVaOKfkaKpnl-_SXk"/>
+</div>
+</div>
+<!-- Row 4 -->
+<div class="grid grid-cols-[1fr_120px_100px_120px_140px_60px] gap-4 px-6 h-[48px] items-center hover:bg-[#f8f9fa] transition-colors cursor-pointer group border-b border-outline-variant/5">
+<div class="flex items-center gap-3">
+<span class="text-sm font-semibold text-primary">Skatteoptimering 2024</span>
+</div>
+<div>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-error-container text-on-error-container uppercase">STOPPET</span>
+</div>
+<div class="flex items-center gap-1.5">
+<div class="w-1.5 h-1.5 rounded-full bg-error"></div>
+<span class="text-xs text-on-surface">Høj</span>
+</div>
+<div class="text-xs text-on-surface-variant">02. Feb, 2024</div>
+<div class="flex items-center gap-3">
+<div class="w-[100px] h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="bg-error h-full w-[40%]"></div>
+</div>
+<span class="text-[10px] font-medium text-on-surface-variant">40%</span>
+</div>
+<div class="flex justify-center">
+<img alt="Owner" class="w-6 h-6 rounded-full border border-white shadow-sm" data-alt="professional woman in a navy blazer standing against a clean white background with soft shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHglToYalwlmF5E7hohN39O751SsNLKusnjKmrX9If2xO5GG9LQ6G1v29N8hZyp--810_qmhjI0weGDkQukwukBzfputRj2Tln3a7GfQl65pPC63LgJmTCCCSr2K2k9nZ5wWt--Kf-r6NxpB_6FdsLisPKEBiLxPJddpiK_KdFpK8TlC83HVm0wJ65yFZwz-7h729I86R942Kx-D7AH9TVSc-XYEOlhlMK7-8xQ_rJ2Tn3kNAz-hDF2McL69nwFymTDHsk4YSufik4"/>
+</div>
+</div>
+<!-- Row 5 -->
+<div class="grid grid-cols-[1fr_120px_100px_120px_140px_60px] gap-4 px-6 h-[48px] items-center hover:bg-[#f8f9fa] transition-colors cursor-pointer group border-b border-outline-variant/5">
+<div class="flex items-center gap-3">
+<span class="text-sm font-semibold text-primary">Revision af kontrakter</span>
+<span class="material-symbols-outlined text-on-primary-container text-[16px]" title="Routine">sync</span>
+</div>
+<div>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-secondary-container text-on-secondary-container uppercase">I GANG</span>
+</div>
+<div class="flex items-center gap-1.5">
+<div class="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
+<span class="text-xs text-on-surface">Mellem</span>
+</div>
+<div class="text-xs text-on-surface-variant">28. Dec, 2023</div>
+<div class="flex items-center gap-3">
+<div class="w-[100px] h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[88%]"></div>
+</div>
+<span class="text-[10px] font-medium text-on-surface-variant">88%</span>
+</div>
+<div class="flex justify-center">
+<img alt="Owner" class="w-6 h-6 rounded-full border border-white shadow-sm" data-alt="close-up of a confident businesswoman looking directly at the camera in a modern minimalist office" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDt9wujR8P9xdN9MU0J0S-VR9MuUlpRyawE6x8f_59c6LrRAP1SaMHAG0YLZEysdjfWiUKOfsAfszem6kXP-LouVJ7iWT9j1jEoef4NkBRV1q9PNOK6q567ZknztHPzhk6mD93FZsOySg5ITSvQIhPcMaUxX02KhfDzbAJGj4tG2pPUO2Qazl11YnNI41xcijPoMofR9phjYstVpeweV4cobYk1AhBn8es7OYr5obWpXvIseG6AMEfF-b9PTMUJt2eTbD8CVzPa5s1M"/>
+</div>
+</div>
+</div>
+<!-- List Footer / Pagination Info -->
+<div class="flex items-center justify-between px-2">
+<p class="text-[11px] font-medium text-on-surface-variant uppercase tracking-wider">Viser 5 af 24 projekter</p>
+<div class="flex items-center gap-1">
+<button class="p-1.5 rounded hover:bg-surface-container-low transition-colors disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="px-2.5 py-1 rounded bg-primary text-on-primary text-xs font-bold">1</button>
+<button class="px-2.5 py-1 rounded hover:bg-surface-container-low text-xs font-medium">2</button>
+<button class="px-2.5 py-1 rounded hover:bg-surface-container-low text-xs font-medium">3</button>
+<button class="p-1.5 rounded hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</body></html>

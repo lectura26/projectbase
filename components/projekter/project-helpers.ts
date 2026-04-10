@@ -14,18 +14,19 @@ export function taskProgress(tasks: ProjectListItem["tasks"]): number | null {
   return Math.round((done / tasks.length) * 100);
 }
 
+/** Compact neutral status chips (Stitch Projectbase 2 projekter list). */
 export function statusBadgeClass(status: ProjectStatus): string {
   switch (status) {
     case "NOT_STARTED":
-      return "bg-neutral-200 text-neutral-700";
+      return "bg-surface-container-highest text-on-surface-variant";
     case "IN_PROGRESS":
-      return "bg-sky-600 text-white";
+      return "bg-secondary-container text-on-secondary-container";
     case "WAITING":
-      return "bg-amber-100 text-amber-900";
+      return "bg-surface-container-high text-on-surface-variant";
     case "COMPLETED":
-      return "bg-emerald-100 text-emerald-900";
+      return "bg-emerald-50 text-emerald-700";
     default:
-      return "bg-neutral-200 text-neutral-700";
+      return "bg-surface-container-highest text-on-surface-variant";
   }
 }
 
@@ -42,14 +43,15 @@ export function statusLabelDa(status: ProjectStatus): string {
   }
 }
 
+/** Compact neutral priority chips. */
 export function priorityBadgeClass(priority: Priority): string {
   switch (priority) {
     case "LOW":
-      return "bg-emerald-50 text-emerald-800";
+      return "bg-surface-container-high text-on-surface-variant";
     case "MEDIUM":
-      return "bg-amber-50 text-amber-900";
+      return "bg-surface-container-high text-on-surface-variant";
     case "HIGH":
-      return "bg-red-50 text-red-800";
+      return "bg-error-container/80 text-on-error-container";
   }
 }
 

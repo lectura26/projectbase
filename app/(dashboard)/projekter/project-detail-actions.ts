@@ -5,6 +5,7 @@ import type { Priority, TaskStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { ensureAppUser } from "@/lib/auth/ensure-app-user";
 import { getSessionUser } from "@/lib/auth/session-user";
+import { createNotification } from "@/lib/notifications/service";
 import { projectAccessWhere } from "@/lib/projekter/project-access";
 
 async function assertProjectMember(projectId: string, userId: string) {
@@ -50,7 +51,13 @@ export async function updateTaskFields(input: {
 
   const task = await prisma.task.findFirst({
     where: { id: input.taskId, project: projectAccessWhere(user.id) },
-    select: { id: true, projectId: true },
+    select: {
+      id: true,
+      projectId: true,
+      userId: true,
+      title: true,
+      project: { select: { name: true } },
+    },
   });
   if (!task) throw new Error("Opgave ikke fundet.");
 
@@ -73,6 +80,27 @@ export async function updateTaskFields(input: {
       },
     });
     if (!allowed) throw new Error("Ugyldig ansvarlig.");
+  }
+
+  if (
+    input.userId !== undefined &&
+    input.userId &&
+    input.userId !== task.userId &&
+    input.userId !== user.id
+  ) {
+    const assigner = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { name: true, email: true },
+    });
+    const label =
+      assigner?.name?.trim() || assigner?.email || "En bruger";
+    await createNotification({
+      userId: input.userId,
+      type: "TASK_ASSIGNED",
+      message: `${label} har tildelt dig en opgave på ${task.project.name}`,
+      relatedProjectId: task.projectId,
+      relatedTaskId: task.id,
+    });
   }
 
   await prisma.task.update({

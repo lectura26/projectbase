@@ -51,15 +51,15 @@ const PRIORITY_LABEL: Record<Priority, string> = {
 };
 
 function priorityClass(p: Priority) {
-  if (p === "HIGH") return "bg-error-container text-on-error-container";
-  if (p === "LOW") return "bg-secondary-container text-on-secondary-container";
-  return "bg-tertiary-fixed-dim/40 text-primary";
+  if (p === "HIGH") return "bg-error-container/80 text-on-error-container";
+  if (p === "LOW") return "bg-surface-container-high text-on-surface-variant";
+  return "bg-surface-container-high text-on-surface-variant";
 }
 
 function PriorityBadge({ priority }: { priority: Priority }) {
   return (
     <span
-      className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${priorityClass(priority)}`}
+      className={`inline-flex rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${priorityClass(priority)}`}
     >
       {PRIORITY_LABEL[priority]}
     </span>
@@ -69,13 +69,13 @@ function PriorityBadge({ priority }: { priority: Priority }) {
 function activityBadge(type: ActivityType) {
   switch (type) {
     case "MAIL":
-      return { letter: "M", className: "bg-blue-600 text-white" };
+      return { letter: "M", className: "bg-surface-container-high text-on-surface" };
     case "MEETING":
-      return { letter: "T", className: "bg-green-600 text-white" };
+      return { letter: "T", className: "bg-surface-container-high text-on-surface" };
     case "NOTE":
-      return { letter: "N", className: "bg-amber-500 text-white" };
+      return { letter: "N", className: "bg-surface-container-high text-on-surface" };
     default:
-      return { letter: "F", className: "bg-slate-500 text-white" };
+      return { letter: "F", className: "bg-surface-container-high text-on-surface" };
   }
 }
 
@@ -188,10 +188,10 @@ export default function ProjectDetailClient({
         type="button"
         key={key}
         onClick={() => setActiveTab(key)}
-        className={`border-b-2 px-3 py-2 font-body text-sm font-medium transition-colors ${
+        className={`mr-8 border-b-2 pb-3 pt-1 font-body text-sm font-medium transition-colors last:mr-0 ${
           activeTab === key
-            ? "border-[#1a3167] text-[#1a3167]"
-            : "border-transparent text-on-surface-variant hover:text-on-surface"
+            ? "border-primary text-primary"
+            : "border-transparent text-on-surface-variant hover:text-primary"
         }`}
       >
         {label}
@@ -199,16 +199,16 @@ export default function ProjectDetailClient({
     ) : null;
 
   return (
-    <div className="rounded-xl border border-app-topbar-border bg-surface-container-lowest">
+    <div className="rounded-xl border border-outline-variant/10 bg-surface-container-lowest shadow-sm ring-1 ring-black/5">
       <div className="border-b border-outline-variant/15 px-6 pb-4 pt-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
-            <h1 className="font-headline text-2xl font-semibold text-[#1a3167] sm:text-3xl">
+            <h1 className="font-headline text-2xl font-semibold text-primary sm:text-3xl">
               {initial.name}
             </h1>
             <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
               <div className="flex items-center gap-2">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-app-sidebar text-xs font-bold text-white">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-container text-xs font-bold text-white">
                   {initialsFromUser(initial.owner)}
                 </span>
                 <span className="font-body font-medium text-on-surface">
@@ -240,7 +240,7 @@ export default function ProjectDetailClient({
               id="project-status"
               value={initial.status}
               onChange={(e) => onStatusChange(e.target.value as ProjectStatus)}
-              className="rounded-lg border border-app-topbar-border bg-white px-3 py-2 font-body text-sm text-[#1a3167] focus:outline-none focus:ring-2 focus:ring-app-sidebar/30"
+              className="rounded-lg border border-outline-variant/20 bg-white px-3 py-2 font-body text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             >
               {PROJECT_STATUS_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
@@ -251,7 +251,7 @@ export default function ProjectDetailClient({
             <button
               type="button"
               onClick={() => setEditOpen(true)}
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-app-topbar-border text-app-sidebar hover:bg-secondary-container/50"
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-outline-variant/20 text-on-surface-variant hover:bg-surface-container-low hover:text-primary"
               aria-label="Rediger projekt"
             >
               <span className="material-symbols-outlined text-xl">edit</span>
@@ -265,15 +265,15 @@ export default function ProjectDetailClient({
               <span
                 key={c.id}
                 title={`${c.email} — åbn mail`}
-                className="group inline-flex cursor-default items-center gap-2 rounded-full border border-app-topbar-border bg-surface-container-low px-3 py-1.5 font-body text-xs font-medium text-on-surface"
+                className="group inline-flex cursor-default items-center gap-2 rounded-md border border-outline-variant/20 bg-surface-container-low px-3 py-1.5 font-body text-xs font-medium text-on-surface"
               >
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-app-sidebar text-[10px] font-bold text-white">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary-container text-[10px] font-bold text-white">
                   {initialsFromString(c.name)}
                 </span>
                 {c.name}
                 <a
                   href={`mailto:${c.email}`}
-                  className="hidden text-[#1a3167] underline group-hover:inline"
+                  className="hidden text-primary underline group-hover:inline"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {c.email}
@@ -284,7 +284,7 @@ export default function ProjectDetailClient({
         ) : null}
       </div>
 
-      <div className="scrollbar-thin flex gap-1 overflow-x-auto border-b border-outline-variant/10 px-4">
+      <div className="scrollbar-thin flex gap-2 overflow-x-auto border-b border-outline-variant/30 px-6">
         {tabBtn("opgaver", "Opgaver", true)}
         {tabBtn("kommentarer", "Kommentarer", true)}
         {tabBtn("aktivitet", "Aktivitet", showAktivitet)}
@@ -434,9 +434,9 @@ function OpgaverTab({
                 }}
                 className={`flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full border-2 ${
                   task.status === "DONE"
-                    ? "border-green-600 bg-green-600 text-white"
+                    ? "border-primary bg-primary text-on-primary"
                     : task.status === "IN_PROGRESS"
-                      ? "border-[#1a3167] bg-[#1a3167]/10"
+                      ? "border-primary-container bg-primary/10"
                       : "border-outline-variant text-transparent"
                 }`}
               >
@@ -452,7 +452,7 @@ function OpgaverTab({
                 {task.title}
               </span>
               {task.assignee ? (
-                <span className="hidden shrink-0 rounded-full bg-app-sidebar/15 px-2 py-0.5 text-[11px] font-bold text-app-sidebar sm:inline">
+                <span className="hidden shrink-0 rounded-full bg-primary-container/15 px-2 py-0.5 text-[11px] font-bold text-primary-container sm:inline">
                   {initialsFromUser(task.assignee)}
                 </span>
               ) : null}
@@ -485,7 +485,7 @@ function OpgaverTab({
             }
           }}
           placeholder="Tilføj opgave..."
-          className="w-full rounded-lg border border-dashed border-app-topbar-border bg-transparent px-3 py-2 font-body text-sm placeholder:text-on-surface-variant focus:border-app-sidebar focus:outline-none"
+          className="w-full rounded-lg border border-dashed border-outline-variant/20 bg-transparent px-3 py-2 font-body text-sm placeholder:text-on-surface-variant focus:border-primary focus:outline-none"
         />
       </div>
     </div>
@@ -631,7 +631,7 @@ function TaskExpanded({
         <div className="mt-3 max-h-48 space-y-2 overflow-y-auto">
           {task.comments.map((c) => (
             <div key={c.id} className="flex gap-2 text-sm">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-app-sidebar text-[10px] font-bold text-white">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-container text-[10px] font-bold text-white">
                 {initialsFromUser(c.author)}
               </span>
               <div>
@@ -660,7 +660,7 @@ function TaskExpanded({
           <button
             type="button"
             onClick={() => void sendComment()}
-            className="rounded-lg bg-[#1a3167] px-4 py-2 text-sm font-medium text-white"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white"
           >
             Send
           </button>
@@ -698,7 +698,7 @@ function KommentarerTab({
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pb-4 pr-1">
         {initial.projectComments.map((c) => (
           <div key={c.id} className="flex gap-3">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1a3167] text-xs font-semibold text-white">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white">
               {initialsFromUser(c.author)}
             </span>
             <div className="min-w-0">
@@ -727,13 +727,13 @@ function KommentarerTab({
           }}
           rows={3}
           placeholder="Skriv en kommentar…"
-          className="w-full rounded-lg border border-app-topbar-border px-3 py-2 font-body text-sm"
+          className="w-full rounded-lg border border-outline-variant/20 px-3 py-2 font-body text-sm"
         />
         <div className="mt-2 flex justify-end">
           <button
             type="button"
             onClick={() => void send()}
-            className="rounded-lg bg-[#1a3167] px-6 py-2 text-sm font-medium text-white"
+            className="rounded-lg bg-primary px-6 py-2 text-sm font-medium text-white"
           >
             Send
           </button>
@@ -811,7 +811,7 @@ function AktivitetTab({
                 <button
                   type="button"
                   onClick={() => void onConfirm(a.id)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-800 hover:bg-green-200"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-low text-on-surface hover:bg-surface-container-high"
                   aria-label="Bekræft"
                 >
                   <span className="material-symbols-outlined text-lg">check</span>
@@ -819,7 +819,7 @@ function AktivitetTab({
                 <button
                   type="button"
                   onClick={() => void onDelete(a.id)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-red-100 text-red-800 hover:bg-red-200"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-low text-on-surface hover:bg-surface-container-high"
                   aria-label="Slet"
                 >
                   <span className="material-symbols-outlined text-lg">close</span>
@@ -889,13 +889,13 @@ function KalenderTab({
         <button
           type="button"
           onClick={() => setEventFormOpen(!eventFormOpen)}
-          className="rounded-lg border border-app-topbar-border px-3 py-1.5 font-body text-sm font-medium text-[#1a3167]"
+          className="rounded-lg border border-outline-variant/20 px-3 py-1.5 font-body text-sm font-medium text-primary"
         >
           Tilføj begivenhed
         </button>
       </div>
       {eventFormOpen ? (
-        <div className="mb-6 grid max-w-md gap-3 rounded-lg border border-app-topbar-border p-4 md:grid-cols-2">
+        <div className="mb-6 grid max-w-md gap-3 rounded-lg border border-outline-variant/20 p-4 md:grid-cols-2">
           <input
             type="text"
             value={eventTitle}
@@ -926,7 +926,7 @@ function KalenderTab({
             <button
               type="button"
               onClick={() => void save()}
-              className="rounded-lg bg-[#1a3167] px-4 py-2 text-sm text-white"
+              className="rounded-lg bg-primary px-4 py-2 text-sm text-white"
             >
               Gem
             </button>
@@ -1034,7 +1034,7 @@ function FilerTab({
         <button
           type="button"
           onClick={pick}
-          className="rounded-lg border border-app-topbar-border px-3 py-1.5 font-body text-sm font-medium text-[#1a3167]"
+          className="rounded-lg border border-outline-variant/20 px-3 py-1.5 font-body text-sm font-medium text-primary"
         >
           Upload
         </button>
@@ -1052,7 +1052,7 @@ function FilerTab({
                 href={f.url}
                 target="_blank"
                 rel="noreferrer"
-                className="font-medium text-[#1a3167] hover:underline"
+                className="font-medium text-primary hover:underline"
               >
                 {f.name}
               </a>

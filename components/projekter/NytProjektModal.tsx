@@ -22,7 +22,7 @@ type NytProjektModalProps = {
 };
 
 const labelClass =
-  "block text-[10px] font-bold uppercase tracking-widest text-primary/50 mb-3 ml-1 font-label";
+  "block text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-3 ml-1 font-label";
 
 const inputUnderlineClass =
   "w-full bg-transparent border-0 border-b-2 border-outline-variant/70 py-3 text-sm font-medium text-on-surface shadow-none transition-colors placeholder:text-outline-variant/50 focus:border-primary focus:outline-none focus:ring-0";
@@ -184,7 +184,7 @@ export function NytProjektModal({
       className={`flex-1 rounded-md py-3 px-4 text-xs font-bold uppercase tracking-tight transition-colors ${
         priority === p
           ? "bg-primary text-on-primary"
-          : "bg-surface-container-low text-on-surface-variant hover:bg-secondary-container"
+          : "bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high"
       }`}
     >
       {label}
@@ -200,7 +200,7 @@ export function NytProjektModal({
       }}
     >
       <div
-        className="absolute inset-0 bg-primary/25 backdrop-blur-md"
+        className="absolute inset-0 bg-on-surface/10 backdrop-blur-md"
         aria-hidden
       />
       <div
@@ -208,7 +208,7 @@ export function NytProjektModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="relative z-10 flex max-h-[min(90vh,880px)] w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-surface-container-lowest shadow-[0_8px_32px_rgba(26,49,103,0.12)]"
+        className="relative z-10 flex max-h-[min(90vh,880px)] w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-surface-container-lowest shadow-[0_8px_24px_rgba(15,25,35,0.06)] ring-1 ring-black/5"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-4 border-b border-outline-variant/10 px-8 pt-8 pb-4">
@@ -219,7 +219,7 @@ export function NytProjektModal({
             >
               {mode === "edit" ? "Rediger projekt" : "Opret projekt"}
             </h2>
-            <p className="mt-1 font-body text-sm font-medium italic text-on-surface-variant/80">
+            <p className="mt-1 font-body text-sm font-medium text-on-surface-variant">
               {mode === "edit"
                 ? "Opdater projektets rammer og metadata."
                 : "Konfigurer rammerne for jeres næste succesfulde initiativ."}
@@ -228,7 +228,7 @@ export function NytProjektModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-primary/60 transition-colors hover:bg-secondary-container hover:text-primary"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-primary"
             aria-label="Luk"
           >
             <span className="material-symbols-outlined">close</span>
@@ -266,7 +266,7 @@ export function NytProjektModal({
                     value={users[0]?.id ?? ""}
                     onChange={() => {}}
                     disabled={!users.length}
-                    className={`${inputUnderlineClass} appearance-none bg-secondary-container/30 pr-8`}
+                    className={`${inputUnderlineClass} appearance-none bg-surface-container-low pr-8`}
                     required
                   >
                     {users.length === 0 ? (
@@ -294,7 +294,7 @@ export function NytProjektModal({
                     type="date"
                     value={deadline}
                     onChange={(e) => setDeadline(e.target.value)}
-                    className={`${inputUnderlineClass} bg-secondary-container/30`}
+                    className={`${inputUnderlineClass} bg-surface-container-low`}
                   />
                   <span className="pointer-events-none absolute right-1 top-2.5 text-primary/40 material-symbols-outlined">
                     calendar_today
@@ -333,7 +333,7 @@ export function NytProjektModal({
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Beskriv projektets formål og succeskriterier..."
-                      className={`${inputUnderlineClass} resize-none bg-secondary-container/20`}
+                      className={`${inputUnderlineClass} resize-none bg-surface-container-low`}
                     />
                   </div>
 
@@ -348,7 +348,7 @@ export function NytProjektModal({
 
                   <div className="md:col-span-2">
                     <span className={labelClass}>Synlighed</span>
-                    <div className="flex items-center gap-4 rounded-lg bg-secondary-container/20 p-3">
+                    <div className="flex items-center gap-4 rounded-lg bg-surface-container-low p-3">
                       <span className="material-symbols-outlined text-primary/60">
                         {teamVisible ? "lock_open" : "lock"}
                       </span>
@@ -386,7 +386,7 @@ export function NytProjektModal({
                       {tags.map((t) => (
                         <span
                           key={t}
-                          className="flex items-center gap-2 rounded-full bg-secondary-container/50 px-3 py-1.5 text-[11px] font-bold text-primary"
+                          className="flex items-center gap-2 rounded-md bg-surface-container-high px-3 py-1.5 text-[11px] font-bold text-on-surface-variant"
                         >
                           {t}
                           <button
@@ -483,7 +483,7 @@ export function NytProjektModal({
                           onChange={(e) =>
                             setRoutineInterval(e.target.value as RoutineInterval)
                           }
-                          className={`${inputUnderlineClass} appearance-none bg-secondary-container/30 pr-8`}
+                          className={`${inputUnderlineClass} appearance-none bg-surface-container-low pr-8`}
                         >
                           <option value="DAILY">Daglig</option>
                           <option value="WEEKLY">Ugentlig</option>

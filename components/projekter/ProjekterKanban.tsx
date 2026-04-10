@@ -89,7 +89,7 @@ export function ProjekterKanban({
                   ref={provided.innerRef}
                   {...provided.droppableProps}
                   className={`min-h-[120px] flex-1 rounded-lg p-2 transition-colors ${
-                    snapshot.isDraggingOver ? "bg-app-sidebar/5" : "bg-white/40"
+                    snapshot.isDraggingOver ? "bg-surface-container-low" : "bg-surface-container-low/50"
                   }`}
                 >
                   {grouped[columnId].map((project, index) => (
@@ -108,16 +108,16 @@ export function ProjekterKanban({
                         >
                           <div
                             {...dragProvided.dragHandleProps}
-                            className="flex cursor-grab items-center gap-1 rounded-t-lg border border-b-0 border-app-topbar-border bg-surface-container-lowest px-2 py-1 active:cursor-grabbing"
+                            className="flex cursor-grab items-center gap-1 rounded-t-lg border border-b-0 border-outline-variant/20 bg-surface-container-lowest px-2 py-1 active:cursor-grabbing"
                             aria-label="Træk kort"
                           >
-                            <span className="material-symbols-outlined text-base text-app-sidebar/45">
+                            <span className="material-symbols-outlined text-base text-on-surface-variant/50">
                               drag_indicator
                             </span>
                           </div>
                           <Link
                             href={`/projekter/${project.id}`}
-                            className="block rounded-b-lg border border-app-topbar-border bg-surface-container-lowest p-4 transition-opacity hover:opacity-95"
+                            className="block rounded-b-lg border border-outline-variant/20 bg-surface-container-lowest p-4 shadow-sm ring-1 ring-black/5 transition-colors hover:bg-surface-container-low/40"
                             onClick={(e) => {
                               if (dragSnapshot.isDragging) e.preventDefault();
                             }}

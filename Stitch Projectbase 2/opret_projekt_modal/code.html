@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+
+<html class="light" lang="da"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#ffb786",
+                    "outline": "#757781",
+                    "on-secondary-container": "#4e6873",
+                    "on-surface-variant": "#44464f",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary-container": "#cbe7f3",
+                    "error": "#ba1a1a",
+                    "surface-dim": "#d9dadb",
+                    "primary-fixed-dim": "#b2c5ff",
+                    "on-primary-fixed-variant": "#2f447b",
+                    "on-background": "#191c1d",
+                    "surface-tint": "#485c95",
+                    "primary-container": "#1a3167",
+                    "on-surface": "#191c1d",
+                    "on-primary-container": "#869bd7",
+                    "on-tertiary-fixed-variant": "#6d3910",
+                    "on-tertiary-fixed": "#311400",
+                    "surface-container-highest": "#e1e3e4",
+                    "on-error-container": "#93000a",
+                    "surface-container-low": "#f3f4f5",
+                    "inverse-on-surface": "#f0f1f2",
+                    "primary-fixed": "#dae2ff",
+                    "primary": "#001b4f",
+                    "tertiary-container": "#552700",
+                    "error-container": "#ffdad6",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "surface-container-high": "#e7e8e9",
+                    "on-primary-fixed": "#001849",
+                    "on-secondary-fixed-variant": "#304a54",
+                    "secondary-fixed": "#cbe7f3",
+                    "background": "#f8f9fa",
+                    "secondary": "#48626c",
+                    "outline-variant": "#c5c6d1",
+                    "secondary-fixed-dim": "#afcbd7",
+                    "on-secondary-fixed": "#021f27",
+                    "inverse-primary": "#b2c5ff",
+                    "on-error": "#ffffff",
+                    "surface-container": "#edeeef",
+                    "surface-bright": "#f8f9fa",
+                    "tertiary": "#351600",
+                    "on-tertiary-container": "#d18c5c",
+                    "surface-variant": "#e1e3e4",
+                    "surface": "#f8f9fa",
+                    "on-primary": "#ffffff",
+                    "tertiary-fixed": "#ffdcc6",
+                    "inverse-surface": "#2e3132"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-on-background overflow-hidden">
+<div class="flex h-screen w-full">
+<!-- SideNavBar - JSON Implementation -->
+<aside class="w-[220px] h-screen border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col p-4 font-['Inter'] antialiased tracking-tight text-sm">
+<div class="flex items-center gap-2 text-[#1a3167] dark:text-white font-bold text-lg mb-8">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                Projectbase
+            </div>
+<nav class="flex-grow space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                    Oversigt
+                </a>
+<!-- ACTIVE STATE: Projekter -->
+<a class="flex items-center gap-3 px-4 py-2 text-[#1a3167] dark:text-blue-400 font-medium bg-slate-100 dark:bg-slate-800 rounded-md" href="#">
+<span class="material-symbols-outlined">assignment</span>
+                    Projekter
+                </a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+                    Indstillinger
+                </a>
+</nav>
+<div class="mt-auto">
+<div class="flex items-center gap-3 p-3 mb-4 rounded-lg bg-surface-container-low">
+<img alt="S&amp;P Workspace Indicator" class="w-8 h-8 rounded-full object-cover" data-alt="Close-up portrait of a professional businessman in a light blue shirt looking confidently at the camera" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAs553fQ0Yh38vATc8WfxUUcfsrsB61XPTAbAyqdghcZ1GfjF-F-LfRDR5QE9Kofzs2-63r8Tgq_PX4D4cR_FJ77V4PtSZANvD0cugEZn3ZvVIj_CMaOM8ULwv1FKFM2yAR-spjI9a1tnC1rRgRJSmZfVFVXeS4TrEeMmDxak7w57DiJm7TxOKuK0jR3KTsDkd_ZhwHsSmzy4uFvxpStxxDQsqfozEJYOk7a7HcUXImbInJRgL4x6xH2tyltOTKPDFKif6FXaaBTE6j"/>
+<div class="overflow-hidden">
+<p class="font-bold text-xs truncate">Workspace S&amp;P</p>
+<p class="text-[10px] text-on-surface-variant">Admin Panel</p>
+</div>
+</div>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+                    Log ud
+                </a>
+</div>
+</aside>
+<!-- Main Content Area (Blurred for Modal) -->
+<main class="flex-1 flex flex-col min-w-0 bg-surface blur-[2px]">
+<!-- TopNavBar - JSON Implementation -->
+<header class="flex justify-between items-center px-6 w-full sticky top-0 z-40 h-12 border-b border-slate-100 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-md font-['Inter'] text-sm font-medium">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant text-base">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-md py-1.5 pl-9 pr-4 text-xs focus:ring-1 focus:ring-primary" placeholder="Søg i projekter..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="flex items-center gap-2 pl-2 border-l border-outline-variant/30">
+<img alt="User Avatar" class="w-7 h-7 rounded-full object-cover" data-alt="Close-up of a professional woman with a warm smile, corporate headshot style with soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFQdQ7ZG2Njb2De4NpyVzevihlfLcg_vdJkZsdmfzEZW01HvSBcsavVNnxI3d0giAEC27zMVZNmyLTm2rLLn2EPH_XjvG1vwxzI1hcWV5k_6HtBUIl25ZPOzIjpOLwgZQilQ-hWbwm17LGN_QHuF5zTJlKTB1xV4icjZOIp-lILVJQfJH4F8gcIgiv1e1ByEqfprgRZ4RivducCAqnRYggcZHDELs9ChVnuFxdndW7apA3moiEkkaf-dgWKeq6KZsk--Kw-o1eo0k9"/>
+<span class="hidden lg:inline text-xs font-semibold">User Profile</span>
+</div>
+</div>
+</header>
+<!-- Dashboard Content Preview (Projekter Page) -->
+<div class="p-8">
+<div class="flex justify-between items-end mb-8">
+<div>
+<h1 class="text-2xl font-bold tracking-tight text-primary">Projekter</h1>
+<p class="text-on-surface-variant text-sm">Administrer din portefølje af aktive arbejdsområder.</p>
+</div>
+<button class="bg-primary text-on-primary px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">add</span>
+                        Opret projekt
+                    </button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/10">
+<div class="flex justify-between items-start mb-4">
+<span class="text-[11px] font-bold tracking-widest text-outline uppercase">Aktive</span>
+<span class="material-symbols-outlined text-outline-variant">more_vert</span>
+</div>
+<h3 class="font-semibold mb-2">Q4 Strategi Planlægning</h3>
+<div class="w-full bg-surface-container-low h-1 rounded-full mb-4 overflow-hidden">
+<div class="bg-primary w-3/4 h-full"></div>
+</div>
+<div class="flex justify-between items-center text-xs text-on-surface-variant">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs">calendar_today</span> 12. Dec</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs">group</span> 4 medl.</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- MODAL OVERLAY -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-on-surface/40 backdrop-blur-sm">
+<div class="w-[480px] bg-white rounded-[12px] shadow-2xl flex flex-col max-h-[921px] overflow-hidden">
+<!-- Modal Header -->
+<div class="px-6 py-4 flex justify-between items-center border-b border-surface-container-low">
+<h2 class="text-[18px] font-bold text-primary">Opret projekt</h2>
+<button class="text-on-surface-variant hover:text-on-surface">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Modal Content (Scrollable) -->
+<div class="flex-1 overflow-y-auto px-6 py-6 space-y-5">
+<!-- Project Name -->
+<div class="space-y-1.5">
+<label class="text-[11px] font-semibold uppercase tracking-wider text-outline">Projektnavn</label>
+<input class="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/30 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="Indtast projektets navn" type="text"/>
+</div>
+<!-- Deadline -->
+<div class="space-y-1.5">
+<label class="text-[11px] font-semibold uppercase tracking-wider text-outline">Frist</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant">event</span>
+<input class="w-full h-10 pl-10 pr-3 bg-surface-container-low border border-outline-variant/30 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" type="date"/>
+</div>
+</div>
+<!-- Expanded Options -->
+<div class="pt-2">
+<details class="group" open="">
+<summary class="list-none cursor-pointer flex items-center gap-2 text-primary font-medium text-sm select-none">
+<span class="material-symbols-outlined text-lg group-open:rotate-180 transition-transform">expand_more</span>
+                            Flere indstillinger
+                        </summary>
+<div class="mt-5 space-y-5 border-l-2 border-surface-container-low pl-4">
+<!-- Beskrivelse -->
+<div class="space-y-1.5">
+<label class="text-[11px] font-semibold uppercase tracking-wider text-outline">Beskrivelse</label>
+<textarea class="w-full p-3 bg-surface-container-low border border-outline-variant/30 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all resize-none" placeholder="Beskriv projektets formål..." rows="3"></textarea>
+</div>
+<!-- Tags -->
+<div class="space-y-1.5">
+<label class="text-[11px] font-semibold uppercase tracking-wider text-outline">Tags</label>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-xs font-medium cursor-pointer hover:opacity-80">Strategi</span>
+<span class="px-3 py-1 bg-surface-container-high text-on-surface-variant rounded-full text-xs font-medium cursor-pointer hover:bg-outline-variant/20 transition-colors">Internt</span>
+<span class="px-3 py-1 bg-surface-container-high text-on-surface-variant rounded-full text-xs font-medium cursor-pointer hover:bg-outline-variant/20 transition-colors">Audit</span>
+<button class="w-6 h-6 flex items-center justify-center border border-dashed border-outline-variant rounded-full text-outline hover:border-primary hover:text-primary">
+<span class="material-symbols-outlined text-base">add</span>
+</button>
+</div>
+</div>
+<!-- Prioritet & Status -->
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-1.5">
+<label class="text-[11px] font-semibold uppercase tracking-wider text-outline">Prioritet</label>
+<div class="flex bg-surface-container-low p-1 rounded-lg">
+<button class="flex-1 py-1.5 text-xs font-medium bg-white shadow-sm rounded-md text-primary">Lav</button>
+<button class="flex-1 py-1.5 text-xs font-medium text-on-surface-variant hover:text-on-surface">Mellem</button>
+<button class="flex-1 py-1.5 text-xs font-medium text-on-surface-variant hover:text-on-surface">Høj</button>
+</div>
+</div>
+<div class="space-y-1.5">
+<label class="text-[11px] font-semibold uppercase tracking-wider text-outline">Status</label>
+<div class="flex bg-surface-container-low p-1 rounded-lg">
+<button class="flex-1 py-1.5 text-xs font-medium bg-white shadow-sm rounded-md text-primary">Idé</button>
+<button class="flex-1 py-1.5 text-xs font-medium text-on-surface-variant hover:text-on-surface">Aktiv</button>
+</div>
+</div>
+</div>
+<!-- Kontaktpersoner -->
+<div class="space-y-1.5">
+<label class="text-[11px] font-semibold uppercase tracking-wider text-outline">Kontaktpersoner</label>
+<div class="flex items-center gap-2">
+<div class="flex -space-x-2">
+<img alt="Member 1" class="w-7 h-7 rounded-full border-2 border-white object-cover" data-alt="Close-up of a professional woman with brown hair and glasses, corporate portrait with warm natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxJgMILT6dKThCoiFMCDX6PexwGpHzpEkhnQTDK55AyYdWzfHGBrS-6s66XXpupOt9BZZMggAXB-1jjNeGQONG3z4RTPHicMMiXm0AC3dtj-RsVvZV3sOATgw9-hvwwt8MU4UD6gRs2W1pR9k4jAg8Z8yZmNvIIW659n0qs2BSfHyhrQmpg4vRXE_eTSHjYQB9o4QTnHgepJMAepOxvVaROMmQBtQK1W0njm-wg-jySjoBI5f2zT-cU82gbYcDWIAWF04W7Lh1zzs1"/>
+<img alt="Member 2" class="w-7 h-7 rounded-full border-2 border-white object-cover" data-alt="Close-up of a smiling man in a business suit, professional office background with soft bokeh" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-CYKq7bOTUCQ1SegiYkM48HfgMBGYQSFYXC_r4wTQ-oxIsdpkO_hRfSPBa8cQK5bgj_a2D3mYr6E4OgsgV45ejiiotsX6f4BgSrifHKv5QRUyAuDhEbPb6ihaqIn5MS68K7KVbTH_JTWHA5-imJjXX3eAcd6UXwq4DH9bEfA3eps4WsO3TpuMSh5jZ6pd1KZtO5N75l1pjcRSiV8ecMG_D9Hq-NzRT7Oc7pbYQ-UB057k3Z1JhRt82juO8TLSp8Lz31KEnztpmwMF"/>
+<div class="w-7 h-7 rounded-full border-2 border-white bg-primary flex items-center justify-center text-[10px] text-white font-bold">+2</div>
+</div>
+<button class="text-xs text-primary font-medium hover:underline ml-2">Tilføj flere</button>
+</div>
+</div>
+<!-- Toggles -->
+<div class="flex flex-col gap-3 pt-2">
+<label class="flex items-center justify-between cursor-pointer">
+<span class="text-sm font-medium">Rutineprojekt</span>
+<div class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+</div>
+</label>
+<label class="flex items-center gap-2 cursor-pointer">
+<input class="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox"/>
+<span class="text-sm font-medium">Gem som skabelon</span>
+</label>
+</div>
+</div>
+</details>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="px-6 py-4 bg-surface-container-low/50 flex justify-end gap-3 border-t border-surface-container-low">
+<button class="px-4 py-2 text-sm font-semibold text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors">Annuller</button>
+<button class="px-6 py-2 bg-primary text-on-primary text-sm font-semibold rounded-lg hover:shadow-lg transition-all active:scale-95">Opret projekt</button>
+</div>
+</div>
+</div>
+</body></html>

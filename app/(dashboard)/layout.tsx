@@ -4,7 +4,12 @@ import { AppToaster } from "@/components/Toaster";
 import { AppShell } from "@/components/layout/AppShell";
 import { ensureAppUser } from "@/lib/auth/ensure-app-user";
 import { createClient } from "@/lib/supabase/server";
+import {
+  getNotificationsForUser,
+  syncOverdueTaskNotifications,
+} from "@/lib/notifications/service";
 import { prisma } from "@/lib/prisma";
+import type { NotificationDTO } from "@/types/notifications";
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const supabase = createClient();
@@ -17,17 +22,34 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   }
 
   let userLabel = "";
-  if (user?.email) {
+  let initialNotifications: NotificationDTO[] = [];
+
+  if (user.email) {
     await ensureAppUser(user);
     const row = await prisma.user.findUnique({
       where: { id: user.id },
       select: { name: true, email: true },
     });
     userLabel = row?.name ?? row?.email ?? user.email;
+
+    await syncOverdueTaskNotifications(user.id);
+    const notifRows = await getNotificationsForUser(user.id);
+    initialNotifications = notifRows.map((n) => ({
+      id: n.id,
+      type: n.type,
+      message: n.message,
+      read: n.read,
+      relatedProjectId: n.relatedProjectId,
+      relatedTaskId: n.relatedTaskId,
+      createdAt: n.createdAt.toISOString(),
+    }));
   }
 
   return (
-    <AppShell userLabel={userLabel}>
+    <AppShell
+      userLabel={userLabel}
+      initialNotifications={initialNotifications}
+    >
       <AppToaster />
       {children}
     </AppShell>

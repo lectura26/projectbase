@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+
+<html class="light" lang="da"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#ffb786",
+                    "outline": "#757781",
+                    "on-secondary-container": "#4e6873",
+                    "on-surface-variant": "#44464f",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary-container": "#cbe7f3",
+                    "error": "#ba1a1a",
+                    "surface-dim": "#d9dadb",
+                    "primary-fixed-dim": "#b2c5ff",
+                    "on-primary-fixed-variant": "#2f447b",
+                    "on-background": "#191c1d",
+                    "surface-tint": "#485c95",
+                    "primary-container": "#1a3167",
+                    "on-surface": "#191c1d",
+                    "on-primary-container": "#869bd7",
+                    "on-tertiary-fixed-variant": "#6d3910",
+                    "on-tertiary-fixed": "#311400",
+                    "surface-container-highest": "#e1e3e4",
+                    "on-error-container": "#93000a",
+                    "surface-container-low": "#f3f4f5",
+                    "inverse-on-surface": "#f0f1f2",
+                    "primary-fixed": "#dae2ff",
+                    "primary": "#001b4f",
+                    "tertiary-container": "#552700",
+                    "error-container": "#ffdad6",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "surface-container-high": "#e7e8e9",
+                    "on-primary-fixed": "#001849",
+                    "on-secondary-fixed-variant": "#304a54",
+                    "secondary-fixed": "#cbe7f3",
+                    "background": "#f8f9fa",
+                    "secondary": "#48626c",
+                    "outline-variant": "#c5c6d1",
+                    "secondary-fixed-dim": "#afcbd7",
+                    "on-secondary-fixed": "#021f27",
+                    "inverse-primary": "#b2c5ff",
+                    "on-error": "#ffffff",
+                    "surface-container": "#edeeef",
+                    "surface-bright": "#f8f9fa",
+                    "tertiary": "#351600",
+                    "on-tertiary-container": "#d18c5c",
+                    "surface-variant": "#e1e3e4",
+                    "surface": "#f8f9fa",
+                    "on-primary": "#ffffff",
+                    "tertiary-fixed": "#ffdcc6",
+                    "inverse-surface": "#2e3132"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased">
+<div class="flex min-h-screen">
+<!-- SideNavBar -->
+<aside class="w-[220px] h-screen border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col p-4 font-['Inter'] antialiased tracking-tight text-sm">
+<div class="flex items-center gap-2 text-[#1a3167] dark:text-white font-bold text-lg mb-8">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_tree</span>
+<span>Projectbase</span>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 text-[#1a3167] dark:text-blue-400 font-medium bg-slate-100 dark:bg-slate-800 rounded-md" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Oversigt</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md transition-colors" href="#">
+<span class="material-symbols-outlined">assignment</span>
+<span>Projekter</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Indstillinger</span>
+</a>
+</nav>
+<div class="mt-auto pt-4 border-t border-slate-100">
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span>Log ud</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col">
+<!-- TopNavBar -->
+<header class="h-12 w-full border-b border-slate-200 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-md flex justify-between items-center px-6 sticky top-0 z-40 font-['Inter'] text-sm font-medium">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-md py-1.5 pl-9 pr-3 text-sm focus:ring-1 focus:ring-primary" placeholder="Søg i workspace..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4 relative">
+<!-- Notification Bell Trigger (Active State) -->
+<button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-primary relative">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full border-2 border-white"></span>
+</button>
+<!-- NOTIFICATION DROPDOWN -->
+<div class="absolute right-0 top-10 w-[320px] bg-white border border-outline-variant shadow-lg rounded-xl z-50 overflow-hidden">
+<!-- Dropdown Header -->
+<div class="px-4 py-3 flex justify-between items-center border-b border-surface-container-low">
+<span class="font-bold text-on-surface">Notifikationer</span>
+<button class="text-[11px] text-outline hover:text-primary font-medium tracking-tight">Markér alle som læst</button>
+</div>
+<!-- Notification Rows -->
+<div class="max-h-[400px] overflow-y-auto">
+<!-- Unread Row -->
+<div class="px-4 py-3 bg-secondary-container/20 flex gap-3 hover:bg-secondary-container/30 transition-colors border-b border-surface-container-low">
+<div class="w-8 h-8 rounded-full bg-error-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-error text-[18px]">priority_high</span>
+</div>
+<div class="flex flex-col gap-1 flex-1">
+<p class="text-[13px] leading-tight text-on-surface font-medium">Deadline overskredet på "Design System Phase 2"</p>
+<span class="text-[11px] text-outline">2 min siden</span>
+<div class="mt-2">
+<button class="px-3 py-1 bg-primary text-white text-[11px] rounded-md font-medium hover:opacity-90 transition-opacity">Se opgave</button>
+</div>
+</div>
+<div class="w-2 h-2 rounded-full bg-primary mt-1.5"></div>
+</div>
+<!-- Read Row -->
+<div class="px-4 py-3 bg-white flex gap-3 hover:bg-surface-container-low transition-colors border-b border-surface-container-low">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-secondary-container text-[18px]">person_add</span>
+</div>
+<div class="flex flex-col gap-1 flex-1">
+<p class="text-[13px] leading-tight text-on-surface-variant">Mads Jørgensen har tilføjet dig til "Kvartalsrapport"</p>
+<span class="text-[11px] text-outline">1 time siden</span>
+<div class="mt-2">
+<button class="px-3 py-1 border border-outline-variant text-on-surface-variant text-[11px] rounded-md font-medium hover:bg-surface-container-low transition-colors">Se projekt</button>
+</div>
+</div>
+</div>
+<!-- Unread Row -->
+<div class="px-4 py-3 bg-secondary-container/20 flex gap-3 hover:bg-secondary-container/30 transition-colors border-b border-surface-container-low">
+<div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-emerald-600 text-[18px]">check_circle</span>
+</div>
+<div class="flex flex-col gap-1 flex-1">
+<p class="text-[13px] leading-tight text-on-surface font-medium">Godkendelse modtaget for projektbudget</p>
+<span class="text-[11px] text-outline">3 timer siden</span>
+<div class="mt-2">
+<button class="px-3 py-1 bg-primary text-white text-[11px] rounded-md font-medium hover:opacity-90 transition-opacity">Se projekt</button>
+</div>
+</div>
+<div class="w-2 h-2 rounded-full bg-primary mt-1.5"></div>
+</div>
+</div>
+<!-- Dropdown Footer -->
+<div class="p-3 text-center border-t border-surface-container-low">
+<button class="text-[12px] font-semibold text-primary hover:underline">Se alle notifikationer</button>
+</div>
+</div>
+<div class="h-6 w-px bg-slate-200"></div>
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold text-xs">
+                            SP
+                        </div>
+<span class="text-xs hidden lg:block">Workspace S&amp;P</span>
+</div>
+</div>
+</header>
+<!-- Dashboard Content -->
+<main class="flex-1 p-8 overflow-y-auto">
+<header class="mb-8 flex justify-between items-end">
+<div>
+<h1 class="text-2xl font-bold tracking-tight text-primary">Oversigt</h1>
+<p class="text-on-surface-variant text-sm mt-1">Velkommen tilbage, her er hvad der kræver din opmærksomhed i dag.</p>
+</div>
+<div class="flex gap-2">
+<button class="px-4 py-2 border border-outline-variant rounded-lg text-sm font-medium bg-white hover:bg-surface-container-low transition-colors">Eksportér</button>
+<button class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium shadow-sm hover:opacity-95 transition-opacity">Nyt Projekt</button>
+</div>
+</header>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Main KPI Card -->
+<div class="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-xl p-6 border border-transparent shadow-sm">
+<div class="flex justify-between items-center mb-6">
+<h2 class="font-semibold text-on-surface">Projektfremgang</h2>
+<span class="text-xs text-outline font-medium px-2 py-1 bg-surface-container-low rounded">Seneste 30 dage</span>
+</div>
+<div class="h-[240px] w-full flex items-end gap-2 pb-2">
+<!-- Visual placeholder for a graph -->
+<div class="flex-1 bg-primary/10 rounded-t h-[40%] transition-all hover:bg-primary/20"></div>
+<div class="flex-1 bg-primary/10 rounded-t h-[65%] transition-all hover:bg-primary/20"></div>
+<div class="flex-1 bg-primary/10 rounded-t h-[55%] transition-all hover:bg-primary/20"></div>
+<div class="flex-1 bg-primary rounded-t h-[85%] transition-all"></div>
+<div class="flex-1 bg-primary/10 rounded-t h-[45%] transition-all hover:bg-primary/20"></div>
+<div class="flex-1 bg-primary/10 rounded-t h-[70%] transition-all hover:bg-primary/20"></div>
+<div class="flex-1 bg-primary/10 rounded-t h-[90%] transition-all hover:bg-primary/20"></div>
+<div class="flex-1 bg-primary/10 rounded-t h-[60%] transition-all hover:bg-primary/20"></div>
+</div>
+<div class="flex justify-between mt-4 text-[11px] text-outline font-medium tracking-widest uppercase">
+<span>Uge 1</span><span>Uge 2</span><span>Uge 3</span><span>Uge 4</span>
+</div>
+</div>
+<!-- Side Actions / Quick Info -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-6">
+<div class="bg-primary text-white rounded-xl p-6">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-3xl">bolt</span>
+<h3 class="font-bold">Hurtig Status</h3>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between items-center text-sm">
+<span class="opacity-80">Aktive Projekter</span>
+<span class="font-bold">12</span>
+</div>
+<div class="w-full bg-white/20 h-1.5 rounded-full overflow-hidden">
+<div class="bg-white w-[75%] h-full"></div>
+</div>
+<p class="text-xs opacity-70 leading-relaxed">Du har afsluttet 4 flere opgaver denne uge end gennemsnittet.</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-6 shadow-sm">
+<h3 class="font-semibold text-on-surface mb-4">Aktive Teams</h3>
+<div class="space-y-3">
+<div class="flex items-center gap-3 p-2 rounded-lg hover:bg-surface-container-low transition-colors">
+<img class="w-10 h-10 rounded-lg object-cover" data-alt="Small group of diverse professional colleagues working together in a bright modern glass office space" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDE3bQFApSihjSnzcQu6_DT8JCF8FYjl6QpeQd1MH9l2sLpunidF0IDutHTj99WW1oQrKxNbHsCSZAb-Yj6VbMs6YXmAmU240rH7SZ2nItpdhpPz2i0K1p-czaeS-Q90r1kvZq0HLHBZVoBhiFVL4E1G0_nEzWkxRGAcvFBJzAt7uZLhawKy0FdBu_mMLvxmE_Ju52njcyupT7kbOTDT6kYq9S_yRSRnE85sbK-H4CB19hwCDb683ekQaO4qvw4qt7TFIxI3qTHuxZ0"/>
+<div>
+<p class="text-sm font-medium">Design Team</p>
+<p class="text-[11px] text-outline">4 aktive medlemmer</p>
+</div>
+</div>
+<div class="flex items-center gap-3 p-2 rounded-lg hover:bg-surface-container-low transition-colors">
+<img class="w-10 h-10 rounded-lg object-cover" data-alt="Technical development team collaborating over laptop screens with code displayed in a workspace" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwteV8UnU9DTLe9lbbhT41x8C7weKHOouginpCmvzBATWFqu7dOXnzeuZAPuly42b2y15kGeh12mJydkuyFvDL0RqDOo95bWOzahFJfy5I67NXtp8mDOdQz7VPaiv8Y0H-Mklgg1I6xir6JyiDX8NTNAiaufqdVZTdR-PcX7skkHa3PGfF3z6c_Fei16XGPvQB_s1oH7Dltkp-D6dJIZ8-R8eF5E4b3g7BlKFYF6ZXUhCuPNLOnqLwWWDPayyD9NRCEXXpPNMT9Mzi"/>
+<div>
+<p class="text-sm font-medium">Udvikling</p>
+<p class="text-[11px] text-outline">8 aktive medlemmer</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Task Grid -->
+<div class="col-span-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-white rounded-xl p-5 shadow-sm border border-transparent hover:border-outline-variant transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-4">
+<span class="p-2 bg-secondary-container text-on-secondary-container rounded-lg material-symbols-outlined">description</span>
+<span class="flex items-center gap-1 text-[10px] font-bold text-error bg-error-container px-2 py-0.5 rounded uppercase tracking-wider">Høj</span>
+</div>
+<h4 class="font-semibold text-sm mb-1">Brugerresearch</h4>
+<p class="text-xs text-on-surface-variant line-clamp-2">Afslut interview-analysen for det nye finans-modul inden fredag.</p>
+</div>
+<div class="bg-white rounded-xl p-5 shadow-sm border border-transparent hover:border-outline-variant transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-4">
+<span class="p-2 bg-emerald-100 text-emerald-700 rounded-lg material-symbols-outlined">draw</span>
+<span class="flex items-center gap-1 text-[10px] font-bold text-outline bg-surface-container-low px-2 py-0.5 rounded uppercase tracking-wider">Normal</span>
+</div>
+<h4 class="font-semibold text-sm mb-1">Wireframes v.2</h4>
+<p class="text-xs text-on-surface-variant line-clamp-2">Opdatering af navigationen baseret på seneste feedback-møde.</p>
+</div>
+<div class="bg-white rounded-xl p-5 shadow-sm border border-transparent hover:border-outline-variant transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-4">
+<span class="p-2 bg-amber-100 text-amber-700 rounded-lg material-symbols-outlined">inventory_2</span>
+<span class="flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded uppercase tracking-wider">Planlagt</span>
+</div>
+<h4 class="font-semibold text-sm mb-1">Asset Arkivering</h4>
+<p class="text-xs text-on-surface-variant line-clamp-2">Flyt færdige designs til det centrale arkiv for Q3.</p>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>

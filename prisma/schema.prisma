@@ -46,19 +46,33 @@ enum ActivityType {
   FILE
 }
 
+enum AppRole {
+  ADMIN
+  MEMBER
+}
+
+enum NotificationType {
+  OVERDUE_TASK
+  AI_MATCH
+  TASK_ASSIGNED
+  ROUTINE_RESTARTED
+}
+
 /// Application user; `id` matches `auth.users.id` (UUID) from Supabase Auth.
 model User {
-  id        String    @id
-  email     String    @unique
-  name      String?
-  image     String?
-  createdAt DateTime  @default(now())
+  id             String           @id
+  email          String           @unique
+  name           String?
+  image          String?
+  appRole        AppRole          @default(MEMBER)
+  createdAt      DateTime         @default(now())
 
   ownedProjects  Project[]       @relation("ProjectOwnedBy")
   projectMembers ProjectMember[]
   assignedTasks Task[]           @relation("TaskAssignee")
-  comments      Comment[]
-  uploadedFiles File[]
+  comments       Comment[]
+  uploadedFiles  File[]
+  notifications  Notification[]
 }
 
 model Project {
@@ -196,4 +210,20 @@ model CalendarEvent {
 
   @@index([projectId])
   @@index([externalId])
+}
+
+model Notification {
+  id               String           @id @default(cuid())
+  userId           String
+  type             NotificationType
+  message          String
+  read             Boolean          @default(false)
+  relatedProjectId String?
+  relatedTaskId    String?
+  createdAt        DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([relatedTaskId])
 }

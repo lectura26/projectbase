@@ -10,13 +10,17 @@ import type {
 import { prisma } from "@/lib/prisma";
 import { ensureAppUser } from "@/lib/auth/ensure-app-user";
 import { getSessionUser } from "@/lib/auth/session-user";
+import { createNotification } from "@/lib/notifications/service";
 import { projectAccessWhere } from "@/lib/projekter/project-access";
 import { deadlineFromRoutineInterval } from "@/lib/projekter/routine";
 
 export async function updateProjectStatus(
   projectId: string,
   status: ProjectStatus,
-): Promise<{ ok: true; routineRestarted?: { name: string } }> {
+): Promise<{
+  ok: true;
+  routineRestarted?: { name: string; projectId: string };
+}> {
   const user = await getSessionUser();
   if (!user) throw new Error("Ikke logget ind.");
 
@@ -35,7 +39,7 @@ export async function updateProjectStatus(
     data: { status },
   });
 
-  let routineRestarted: { name: string } | undefined;
+  let routineRestarted: { name: string; projectId: string } | undefined;
 
   if (
     status === "COMPLETED" &&
@@ -44,7 +48,7 @@ export async function updateProjectStatus(
     project.userId === user.id
   ) {
     const newDeadline = deadlineFromRoutineInterval(project.routineInterval);
-    await prisma.project.create({
+    const newProject = await prisma.project.create({
       data: {
         name: project.name,
         description: project.description,
@@ -77,7 +81,20 @@ export async function updateProjectStatus(
         },
       },
     });
-    routineRestarted = { name: project.name };
+    routineRestarted = { name: project.name, projectId: newProject.id };
+
+    const notifyTargets = new Set<string>();
+    notifyTargets.add(project.userId);
+    for (const m of project.members) notifyTargets.add(m.userId);
+    const msg = `Rutineprojekt genstartet: ${project.name}`;
+    for (const uid of Array.from(notifyTargets)) {
+      await createNotification({
+        userId: uid,
+        type: "ROUTINE_RESTARTED",
+        message: msg,
+        relatedProjectId: newProject.id,
+      });
+    }
   }
 
   revalidatePath("/projekter");

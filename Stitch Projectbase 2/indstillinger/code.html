@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+
+<html class="light" lang="da"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#ffb786",
+                    "outline": "#757781",
+                    "on-secondary-container": "#4e6873",
+                    "on-surface-variant": "#44464f",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary-container": "#cbe7f3",
+                    "error": "#ba1a1a",
+                    "surface-dim": "#d9dadb",
+                    "primary-fixed-dim": "#b2c5ff",
+                    "on-primary-fixed-variant": "#2f447b",
+                    "on-background": "#191c1d",
+                    "surface-tint": "#485c95",
+                    "primary-container": "#1a3167",
+                    "on-surface": "#191c1d",
+                    "on-primary-container": "#869bd7",
+                    "on-tertiary-fixed-variant": "#6d3910",
+                    "on-tertiary-fixed": "#311400",
+                    "surface-container-highest": "#e1e3e4",
+                    "on-error-container": "#93000a",
+                    "surface-container-low": "#f3f4f5",
+                    "inverse-on-surface": "#f0f1f2",
+                    "primary-fixed": "#dae2ff",
+                    "primary": "#001b4f",
+                    "tertiary-container": "#552700",
+                    "error-container": "#ffdad6",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "surface-container-high": "#e7e8e9",
+                    "on-primary-fixed": "#001849",
+                    "on-secondary-fixed-variant": "#304a54",
+                    "secondary-fixed": "#cbe7f3",
+                    "background": "#f8f9fa",
+                    "secondary": "#48626c",
+                    "outline-variant": "#c5c6d1",
+                    "secondary-fixed-dim": "#afcbd7",
+                    "on-secondary-fixed": "#021f27",
+                    "inverse-primary": "#b2c5ff",
+                    "on-error": "#ffffff",
+                    "surface-container": "#edeeef",
+                    "surface-bright": "#f8f9fa",
+                    "tertiary": "#351600",
+                    "on-tertiary-container": "#d18c5c",
+                    "surface-variant": "#e1e3e4",
+                    "surface": "#f8f9fa",
+                    "on-primary": "#ffffff",
+                    "tertiary-fixed": "#ffdcc6",
+                    "inverse-surface": "#2e3132"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .tonal-shift-nesting-no-borders {
+            border: none !important;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body antialiased flex h-screen overflow-hidden">
+<!-- SideNavBar (Shared Component) -->
+<aside class="w-[220px] h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col p-4 font-['Inter'] antialiased tracking-tight text-sm">
+<div class="flex items-center gap-2 text-[#1a3167] dark:text-white font-bold text-lg mb-8">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Projectbase</span>
+</div>
+<nav class="flex-1 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Oversigt</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="assignment">assignment</span>
+<span>Projekter</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-[#1a3167] dark:text-blue-400 font-medium bg-slate-100 dark:bg-slate-800 rounded-md" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Indstillinger</span>
+</a>
+</nav>
+<div class="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800">
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span>Log ud</span>
+</a>
+</div>
+</aside>
+<main class="flex-1 flex flex-col overflow-hidden">
+<!-- TopNavBar (Shared Component) -->
+<header class="flex justify-between items-center px-6 w-full sticky top-0 z-40 h-12 bg-white/85 dark:bg-slate-900/85 backdrop-blur-md border-b border-slate-100 dark:border-slate-800">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-xs">
+<span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-outline text-sm" data-icon="search">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-lg py-1.5 pl-8 text-xs focus:ring-2 focus:ring-primary/20" placeholder="Søg i workspace..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="flex items-center gap-2 cursor-pointer">
+<img alt="User Avatar" class="w-8 h-8 rounded-full object-cover" data-alt="Close-up professional headshot of a mature businessman in a navy suit with soft office lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCSWfnpp1lqJqY4uGBbWAEXGBwwbKpx7NwIV-NIqpl1dAURqSSyQCPqHiHUXIz_xSd3rj6ujI-o9fpPTpjT0s4bkesWREZDmtIV4y45rcIxgen8GOph3bsRyEbN2xARR5UG0tLPD446RPzgZYoRG3TqjlKXdvr4mSxyp8yVXlocRchHbqrDHaW42T-MTorcbj2Me4O9SCQoDiEgbxM9IfrUK2h7ZuaaOrmlVD7nF78h_PGWtICoUiQjLxBSxGAxi5VG20Nt25NUc_BJ"/>
+<span class="font-medium text-xs">Erik Jensen</span>
+</div>
+</div>
+</header>
+<!-- Settings Content -->
+<div class="flex-1 overflow-y-auto p-8 max-w-4xl w-full mx-auto">
+<header class="mb-8">
+<h1 class="text-[20px] font-bold text-primary tracking-tight">Indstillinger</h1>
+</header>
+<div class="space-y-6">
+<!-- 1. Min Konto Card -->
+<section class="bg-surface-container-lowest rounded-lg p-6 shadow-sm ring-1 ring-black/5">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-sm font-semibold uppercase tracking-wider text-on-surface-variant">Min konto</h2>
+</div>
+<div class="flex items-start gap-8">
+<div class="flex flex-col items-center gap-2">
+<img alt="User profile photo" class="w-[56px] h-[56px] rounded-full object-cover ring-2 ring-surface-container-high" data-alt="Close-up professional headshot of a mature businessman in a navy suit with soft office lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuApg4WLgNUYGCpuCIv7zyvlj5NOoFiBf9WaJVmCdOJU9k5J4-WojT35nOYop9ex0cBr-5EsIiInvcdKA9F4YkNx5kU-VUy0tVDOad-4uEufBfnySG_wnEEc3OsqZzGd782etrBc1eC3y0YJmiATAkszJd-xzpgNYxjGdfKuIHgLuUG-r7uiyiweRX8u4FOlAK_0EsMYHYOsvJM0vB3DsrmBgJZM24EWNNIgsbsn0K9efW63PmvLHPXHzgsRPdGWWn9wML09Gkv4GFNp"/>
+<button class="text-[11px] font-medium text-primary hover:underline">Skift billede</button>
+</div>
+<div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="flex flex-col gap-1.5">
+<label class="text-[11px] font-semibold uppercase tracking-widest text-on-surface-variant">Navn</label>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent" type="text" value="Erik Jensen"/>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="text-[11px] font-semibold uppercase tracking-widest text-on-surface-variant">Email</label>
+<input class="w-full bg-surface-container-high border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface-variant cursor-not-allowed" readonly="" type="email" value="erik.j@sp-workspace.dk"/>
+</div>
+<div class="col-span-full pt-4 border-t border-surface-container-high">
+<label class="text-[11px] font-semibold uppercase tracking-widest text-on-surface-variant mb-3 block">Notifikationer</label>
+<div class="flex items-center justify-between py-2">
+<span class="text-sm">Email notifikationer ved nye opgaver</span>
+<div class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</div>
+</div>
+<div class="flex items-center justify-between py-2">
+<span class="text-sm">Ugentlig projekt oversigt</span>
+<div class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-8 flex justify-end">
+<button class="bg-primary text-on-primary px-6 py-2 rounded-md text-sm font-medium hover:opacity-90 transition-opacity">Gem ændringer</button>
+</div>
+</section>
+<!-- 2. Microsoft Integration Card -->
+<section class="bg-surface-container-lowest rounded-lg p-6 shadow-sm ring-1 ring-black/5">
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-sm font-semibold uppercase tracking-wider text-on-surface-variant">Microsoft integration</h2>
+<span class="px-2 py-1 rounded text-[10px] font-bold bg-surface-container-high text-on-surface-variant">Ikke konfigureret</span>
+</div>
+<p class="text-sm text-on-surface-variant mb-6 leading-relaxed">
+                        Forbind din Microsoft 365 konto for at synkronisere din kalender, dokumenter og projektfiler direkte med Projectbase. Dette muliggør automatisk tidsregistrering og filhåndtering.
+                    </p>
+<button class="flex items-center gap-2 bg-surface-container-high text-on-surface-variant px-4 py-2 rounded-md text-sm font-medium cursor-not-allowed" disabled="">
+<span class="material-symbols-outlined text-sm" data-icon="cloud">cloud</span>
+                        Tilslut Microsoft 365
+                    </button>
+</section>
+<!-- 3. Skabeloner Card -->
+<section class="bg-surface-container-lowest rounded-lg p-6 shadow-sm ring-1 ring-black/5">
+<h2 class="text-sm font-semibold uppercase tracking-wider text-on-surface-variant mb-6">Skabeloner</h2>
+<div class="space-y-1">
+<!-- Template Row 1 -->
+<div class="flex items-center justify-between p-3 hover:bg-surface-container-low rounded-md transition-colors group">
+<div class="flex flex-col">
+<span class="text-sm font-medium">Standard Byggeprojekt</span>
+<span class="text-[11px] text-outline">Sidst anvendt: 12. Okt 2023</span>
+</div>
+<div class="flex items-center gap-3">
+<button class="text-[11px] font-semibold text-primary px-3 py-1 bg-primary/5 rounded border border-primary/20 hover:bg-primary/10">Brug</button>
+<button class="text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+<!-- Template Row 2 -->
+<div class="flex items-center justify-between p-3 hover:bg-surface-container-low rounded-md transition-colors group">
+<div class="flex flex-col">
+<span class="text-sm font-medium">Renovering - Privat</span>
+<span class="text-[11px] text-outline">Sidst anvendt: 05. Sep 2023</span>
+</div>
+<div class="flex items-center gap-3">
+<button class="text-[11px] font-semibold text-primary px-3 py-1 bg-primary/5 rounded border border-primary/20 hover:bg-primary/10">Brug</button>
+<button class="text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+<!-- Template Row 3 -->
+<div class="flex items-center justify-between p-3 hover:bg-surface-container-low rounded-md transition-colors group">
+<div class="flex flex-col">
+<span class="text-sm font-medium">Konsulent Brief</span>
+<span class="text-[11px] text-outline">Sidst anvendt: 28. Aug 2023</span>
+</div>
+<div class="flex items-center gap-3">
+<button class="text-[11px] font-semibold text-primary px-3 py-1 bg-primary/5 rounded border border-primary/20 hover:bg-primary/10">Brug</button>
+<button class="text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+</div>
+<div class="mt-6">
+<button class="flex items-center gap-2 text-xs font-medium text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                            Opret ny skabelon
+                        </button>
+</div>
+</section>
+<!-- Footer Action -->
+<footer class="pt-8 pb-12 flex justify-center">
+<button class="text-sm font-medium text-error hover:underline transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="dangerous">dangerous</span>
+                        Nulstil alle data
+                    </button>
+</footer>
+</div>
+</div>
+</main>
+</body></html>

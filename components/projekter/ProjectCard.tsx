@@ -28,11 +28,11 @@ export function ProjectCardBody({
   return (
     <>
       <div className="flex items-start justify-between gap-2">
-        <h3 className="min-w-0 flex-1 font-body text-[13px] font-medium text-app-sidebar">
+        <h3 className="min-w-0 flex-1 font-body text-[13px] font-semibold text-primary">
           {project.name}
         </h3>
         <span
-          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-app-sidebar text-[10px] font-semibold text-white"
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-container text-[10px] font-semibold text-on-primary"
           title={project.owner.name}
         >
           {contactInitials(project.owner.name)}
@@ -51,7 +51,7 @@ export function ProjectCardBody({
         </span>
         {project.isRoutine ? (
           <span
-            className="material-symbols-outlined text-[16px] leading-none text-app-sidebar/70"
+            className="material-symbols-outlined text-[16px] leading-none text-on-primary-container"
             aria-label="Rutine"
             title="Rutine"
           >
@@ -75,8 +75,8 @@ export function ProjectCardBody({
             <span>Fremgang</span>
             <span>{progress}%</span>
           </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary-container">
-            <div className="h-full rounded-full bg-[#c8a96e]" style={{ width: `${progress}%` }} />
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-container-highest">
+            <div className="h-full rounded-full bg-primary" style={{ width: `${progress}%` }} />
           </div>
         </div>
       ) : null}
@@ -86,7 +86,7 @@ export function ProjectCardBody({
             <span
               key={c.id}
               title={c.name}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-secondary-fixed text-[10px] font-bold text-app-sidebar"
+              className="flex h-7 w-7 items-center justify-center rounded-full bg-surface-container-high text-[10px] font-bold text-primary-container"
             >
               {contactInitials(c.name)}
             </span>
@@ -101,7 +101,7 @@ export function ProjectCard({ project, className = "" }: { project: ProjectListI
   return (
     <Link
       href={`/projekter/${project.id}`}
-      className={`block rounded-lg border border-app-topbar-border bg-surface-container-lowest p-4 transition-opacity hover:opacity-95 ${className}`}
+      className={`block rounded-xl border border-outline-variant/10 bg-surface-container-lowest p-4 shadow-sm ring-1 ring-black/5 transition-colors hover:bg-surface-container-low/50 ${className}`}
     >
       <ProjectCardBody project={project} />
     </Link>

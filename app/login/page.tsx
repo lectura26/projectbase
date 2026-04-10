@@ -26,29 +26,17 @@ function LoginForm() {
   }
 
   return (
-    <div
-      className="flex min-h-screen flex-col items-center justify-center px-6 py-12"
-      style={{ backgroundColor: "#cce8f4" }}
-    >
-      <div className="flex w-full flex-col items-center" style={{ maxWidth: "400px" }}>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-surface px-6 py-12">
+      <div className="flex w-full max-w-[400px] flex-col items-center">
         <Image
-          src="/projectbase_logo_white.svg"
+          src="/projectbase_logo_dark.svg"
           alt="Projectbase"
           width={180}
           height={45}
           priority
-          style={{ marginBottom: "32px" }}
+          className="mb-8 h-auto w-[180px]"
         />
-        <div
-          className="w-full border bg-white shadow-none"
-          style={{
-            borderWidth: "1px",
-            borderColor: "#b8d4e8",
-            borderRadius: "12px",
-            padding: "48px 40px",
-            boxShadow: "none",
-          }}
-        >
+        <div className="w-full rounded-xl bg-surface-container-lowest p-10 shadow-sm ring-1 ring-black/5">
           {error ? (
             <p className="rounded-lg bg-error-container px-4 py-2 text-sm text-on-error-container">
               Login mislykkedes. Prøv igen.
@@ -58,21 +46,11 @@ function LoginForm() {
             type="button"
             onClick={signInWithGoogle}
             disabled={loading}
-            className={`flex w-full items-center justify-center border-0 font-body font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60 ${error ? "mt-8" : ""}`}
-            style={{
-              backgroundColor: "#1a3167",
-              fontSize: "15px",
-              fontWeight: 500,
-              padding: "12px 24px",
-              borderRadius: "8px",
-            }}
+            className={`flex w-full items-center justify-center rounded-md bg-primary py-3 text-[15px] font-medium text-on-primary transition-opacity hover:opacity-90 disabled:opacity-60 ${error ? "mt-6" : ""}`}
           >
             {loading ? "Omdirigerer…" : "Log ind med Google"}
           </button>
-          <p
-            className="mt-4 text-center font-body text-on-surface-variant/75"
-            style={{ fontSize: "12px" }}
-          >
+          <p className="mt-4 text-center font-body text-xs text-on-surface-variant">
             Kun adgang for Projectbase-brugere
           </p>
         </div>
@@ -83,11 +61,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen" style={{ backgroundColor: "#cce8f4" }} />
-      }
-    >
+    <Suspense fallback={<div className="min-h-screen bg-surface" />}>
       <LoginForm />
     </Suspense>
   );

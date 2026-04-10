@@ -170,7 +170,7 @@ export default async function ProjectDetailPage({ params }: Props) {
     <div className="space-y-4">
       <Link
         href="/projekter"
-        className="inline-flex items-center gap-1 font-body text-sm font-medium text-app-sidebar hover:underline"
+        className="inline-flex items-center gap-1 font-body text-sm font-medium text-primary hover:underline"
       >
         <span className="material-symbols-outlined text-lg">arrow_back</span>
         Tilbage til projekter

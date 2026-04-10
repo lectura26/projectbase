@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+
+<html class="light" lang="da"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#ffb786",
+                    "outline": "#757781",
+                    "on-secondary-container": "#4e6873",
+                    "on-surface-variant": "#44464f",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary-container": "#cbe7f3",
+                    "error": "#ba1a1a",
+                    "surface-dim": "#d9dadb",
+                    "primary-fixed-dim": "#b2c5ff",
+                    "on-primary-fixed-variant": "#2f447b",
+                    "on-background": "#191c1d",
+                    "surface-tint": "#485c95",
+                    "primary-container": "#1a3167",
+                    "on-surface": "#191c1d",
+                    "on-primary-container": "#869bd7",
+                    "on-tertiary-fixed-variant": "#6d3910",
+                    "on-tertiary-fixed": "#311400",
+                    "surface-container-highest": "#e1e3e4",
+                    "on-error-container": "#93000a",
+                    "surface-container-low": "#f3f4f5",
+                    "inverse-on-surface": "#f0f1f2",
+                    "primary-fixed": "#dae2ff",
+                    "primary": "#001b4f",
+                    "tertiary-container": "#552700",
+                    "error-container": "#ffdad6",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "surface-container-high": "#e7e8e9",
+                    "on-primary-fixed": "#001849",
+                    "on-secondary-fixed-variant": "#304a54",
+                    "secondary-fixed": "#cbe7f3",
+                    "background": "#f8f9fa",
+                    "secondary": "#48626c",
+                    "outline-variant": "#c5c6d1",
+                    "secondary-fixed-dim": "#afcbd7",
+                    "on-secondary-fixed": "#021f27",
+                    "inverse-primary": "#b2c5ff",
+                    "on-error": "#ffffff",
+                    "surface-container": "#edeeef",
+                    "surface-bright": "#f8f9fa",
+                    "tertiary": "#351600",
+                    "on-tertiary-container": "#d18c5c",
+                    "surface-variant": "#e1e3e4",
+                    "surface": "#f8f9fa",
+                    "on-primary": "#ffffff",
+                    "tertiary-fixed": "#ffdcc6",
+                    "inverse-surface": "#2e3132"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface flex h-screen overflow-hidden antialiased">
+<!-- Predicted Component: SideNavBar -->
+<aside class="w-[220px] h-screen border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col p-4">
+<div class="flex items-center gap-2 text-[#1a3167] dark:text-white font-bold text-lg mb-8">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Projectbase</span>
+</div>
+<nav class="flex-1 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Oversigt</span>
+</a>
+<!-- Active Tab Mapping: Projektside belongs to Projekter -->
+<a class="flex items-center gap-3 px-4 py-2 text-[#1a3167] dark:text-blue-400 font-medium bg-slate-100 dark:bg-slate-800 rounded-md" href="#">
+<span class="material-symbols-outlined" data-icon="assignment">assignment</span>
+<span>Projekter</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Indstillinger</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-slate-100 pt-4">
+<div class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:bg-slate-50 rounded-md cursor-pointer transition-all duration-150">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span>Log ud</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col overflow-hidden">
+<!-- Predicted Component: TopNavBar -->
+<header class="h-12 w-full border-b border-slate-200 bg-white/85 backdrop-blur-md flex justify-between items-center px-6 sticky top-0 z-40">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-md py-1.5 pl-10 pr-4 text-xs focus:ring-1 focus:ring-primary" placeholder="Søg i projekt..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-slate-500 hover:text-[#1a3167] transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<div class="flex items-center gap-2 cursor-pointer">
+<img alt="User Avatar" class="w-8 h-8 rounded-full border border-outline-variant" data-alt="professional portrait of a man in his late 30s with short hair and glasses, studio lighting, neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0D9yuiNR7X_kl11n93huQaRh3bxI1sbkF5fhHaygQ8jehhMT_Hz-OfwmaZT4qfuut4aCDJJWDGwCDyeUnG6F5Sz7LqK6vCVsvQupCcNn_FaaFbyN9HFuPLEjaupUUtO88zxnUfAnlynSuMRx3Uq0Kox0Pw39op7f-1Cz3HJXrW8Z8JC2MoNdVE5McFpO_pfP-ie1RWFWsamtMLYMCYl5YmhpS9qdZheEsq5kkdKgbslO1czdy-2GYwKb5Ub_-BHFxRYqA779eaKV5"/>
+</div>
+</div>
+</header>
+<!-- Project Detail Content -->
+<div class="flex-1 overflow-y-auto p-8 space-y-8 max-w-6xl mx-auto w-full">
+<!-- Header Section -->
+<section class="space-y-4">
+<div class="flex justify-between items-start">
+<div class="space-y-1">
+<h1 class="text-[22px] font-bold text-primary tracking-tight">Kvartalsvis finansiel rapportering Q3</h1>
+<div class="flex items-center gap-4 text-sm">
+<div class="flex items-center gap-2 px-2 py-1 bg-secondary-container text-on-secondary-container rounded-lg text-xs font-medium cursor-pointer">
+<span>I gang</span>
+<span class="material-symbols-outlined text-xs">expand_more</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+<span class="text-on-surface-variant text-xs font-semibold tracking-wider uppercase">HØJ PRIORITET</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">event</span>
+<span class="text-xs">30. sep 2023</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-24 h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[65%]"></div>
+</div>
+<span class="text-xs font-medium text-primary">65%</span>
+</div>
+</div>
+</div>
+<button class="p-2 hover:bg-surface-container-low rounded-lg text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+<div class="flex items-center -space-x-2">
+<img alt="Avatar" class="w-7 h-7 rounded-full border-2 border-surface" data-alt="headshot of a smiling young woman with dark hair, professional business attire, bright office lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUCSv1EsRcmJ3To2p3IkbqkF07I8cSk2MQsddyQTWg3sspN_IspHc5AIIWLX7BuxOS6mNeyIpJDjsRFAFIhSh2c857cTQSUHs8rS64AoVXxY-iOZ1HTOsFPBHq2JZw1SwIUxh7DoZksq2nHMs-DSAgvLryMCBJhxeaAj5YHNmyLIzbzhxme5LS-weX0kj-pb1ojlEiUeL7KLhKEUxS8CHB-PAI035dePDBytIqGgrDSOgdoSsRaioalKncodZa1IvTeMLWWzCRw1K0"/>
+<img alt="Avatar" class="w-7 h-7 rounded-full border-2 border-surface" data-alt="close up of a professional male architect, neutral expression, soft natural window light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZrnMVClSfNnDlaYwu2rZc2TQG8i-Iu29WSoUG-KMRNQH9jsUFQOZUtKHt-zb9HGqfLSJLjCI4I014nRkdvTdYvJSr5zxrXqImWPknvCdaiHy-GCbUjfLWBVdHZyFSDJMymhVMPLTipe3IXJw_gF7spJhhq3zI-FHW2_IOat4XEKRBYhLGQM_uyAuLxOcqE5DqY6BHXPg4TuKiy4X0zgFjRY2ItxkpoHRnICRb4Fuz3LthT7BGYnSdJWZ60l57h5pQeViWrlqKxD6a"/>
+<img alt="Avatar" class="w-7 h-7 rounded-full border-2 border-surface" data-alt="headshot of a professional man with beard, looking at camera, minimalist background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1OV1lRuRMHvjvwWuQ0t3lVDz4XBjGBF9gC_bZgC2f7hhh5YPRfyvr93_h0P9zqJNz2u70yzibkaiciFWb4WzBRzQDG4tKm3iENc9u__NWUeiMUpdFkviBhpCw_LuKwDjA-LcvUkvZBYONDqSUSD7WUYj7kdZOAkvuDzWce6dLux8RGCZzkBvGlfgbkZJO_uT12r4bUE9MCd5UbD6rmTobvwlQtB0kz-mZTfeI9_x1q0bFtt3j6q6eVC7dIY5Tjb9Nbccveg3JflIl"/>
+<div class="w-7 h-7 rounded-full bg-surface-container-high flex items-center justify-center border-2 border-surface text-[10px] font-bold text-on-surface-variant">+2</div>
+</div>
+</section>
+<!-- Tabs Navigation -->
+<nav class="flex gap-8 border-b border-outline-variant/30">
+<button class="pb-3 text-sm font-medium text-primary border-b-2 border-primary">Opgaver</button>
+<button class="pb-3 text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">Kommentarer</button>
+<button class="pb-3 text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">Aktivitet</button>
+<button class="pb-3 text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">Filer</button>
+</nav>
+<!-- Tasks Content -->
+<section class="space-y-1">
+<!-- Task Row 1 -->
+<div class="group flex items-center h-[44px] px-4 rounded-lg hover:bg-surface-container-low transition-colors">
+<button class="material-symbols-outlined text-outline hover:text-primary transition-colors">radio_button_unchecked</button>
+<span class="ml-4 flex-1 text-sm font-medium">Gennemgå budget for marketingafdelingen</span>
+<span class="mx-4 text-xs text-on-surface-variant">I dag</span>
+<div class="flex items-center gap-1.5 mr-6">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+<span class="text-[10px] font-bold text-on-surface-variant tracking-wider uppercase">HØJ</span>
+</div>
+<img alt="Assignee" class="w-6 h-6 rounded-full grayscale hover:grayscale-0 transition-all" data-alt="professional headshot of a woman, focused expression" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtMAslhr0bl868uoNyIXF70AqFKDnpghmfexkD-BQlIkBSfEODxuIJdaK3j4X3McLKlhiXv8-YYgNeWUZkQS5FW4WGVrv8DIoWaZvb6mRL5rjRycINkilCGWbE0WTYRIG2ueXa8NVWan6G_Yu30j5UVmIzfbFFecRVDKTVe0QawIWH9aWnL8Bh7N3EE1glgdhw1hWFoPpCI7YMHUWmpqiZ2MJ_NgaUZsjZ0QZl5TAv6sBFT1biFSCpNOwsuNa3rdMfM754iGyByFiX"/>
+</div>
+<!-- Task Row 2 (Expanded) -->
+<div class="rounded-lg bg-surface-container-lowest shadow-sm border border-outline-variant/10 overflow-hidden my-2">
+<div class="flex items-center h-[44px] px-4">
+<button class="material-symbols-outlined text-outline">radio_button_unchecked</button>
+<span class="ml-4 flex-1 text-sm font-medium">Udarbejdelse af resultatopgørelse</span>
+<span class="mx-4 text-xs text-on-surface-variant">12. sep</span>
+<div class="flex items-center gap-1.5 mr-6">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+<span class="text-[10px] font-bold text-on-surface-variant tracking-wider uppercase">MEDIUM</span>
+</div>
+<img alt="Assignee" class="w-6 h-6 rounded-full" data-alt="professional headshot of a man, neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7GWn4li8zmP1l3RqLYnKvJPIoG1Grb3-uSwaE1E7oyw0jp2I9VMWTCIm17yzeQmOBWpy1OEsSqyH1lMZv6gfXyhdPPVEsPKg8cInxO5MvvEGnOPsn1mJwmBoczYmyDKWsNaVoQ5RK4tklrmFoYLzos4DO_vH2DOnJvVQa9QOhq0NMnY9TTlpXBW9sIpzIGKPh_bdtfiBf_16JUc-OcQrUesjsUubx4YcbO6qmfJYwqEBppgF78k0MzKlt2e8WtfB9qXvXqpdpZKZq"/>
+</div>
+<div class="px-12 py-4 bg-surface-container-low/30 space-y-6">
+<div class="space-y-2">
+<label class="text-[11px] font-bold text-on-surface-variant tracking-widest uppercase">BESKRIVELSE</label>
+<textarea class="w-full bg-surface-container-lowest border-outline-variant/30 rounded-lg p-3 text-sm focus:ring-primary focus:border-primary min-h-[100px]" placeholder="Tilføj flere detaljer her...">Fokus på driftsomkostninger og afskrivninger for Q3. Sørg for at validere tallene med bogholderiet inden deadline.</textarea>
+</div>
+<div class="space-y-4">
+<label class="text-[11px] font-bold text-on-surface-variant tracking-widest uppercase">KOMMENTARER</label>
+<div class="flex gap-3">
+<img alt="Avatar" class="w-7 h-7 rounded-full mt-1" data-alt="close up of a professional male architect, looking down at plans" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnj7f90qLaPkDffH9CyT7SJS1h0C0ikDyWQljEwA4d0-HjrJChCNZqsPiJ5_Z9QWR5EBCWmpIys6FuJhH6cb93qDviThfveuUivih54PQ9zZvUETsxYvyqTKH854uO2MynA4uNGEKHiWBgwVIqKuzRsF6mZp1JqY4gWk5Q9vB-9FqCdoSdxCHl64FyOjBvlcBD9VyIPpkTZ7hgNd0OAPtALQEyK7653O6KhnyOzCOTdwUdjfLny5g4gSTpwNW7Wmk-bLAkQaC5PxSB"/>
+<div class="flex-1">
+<div class="flex items-baseline gap-2">
+<span class="text-sm font-semibold">Mads Nielsen</span>
+<span class="text-[10px] text-on-surface-variant uppercase tracking-tight">For 2 timer siden</span>
+</div>
+<p class="text-sm text-on-surface mt-0.5 leading-relaxed">Jeg har opdateret regnearket med de seneste tal fra IT-afdelingen. Du kan finde dem under kolonne F.</p>
+</div>
+</div>
+<div class="flex gap-3 pt-2">
+<img alt="Avatar" class="w-7 h-7 rounded-full" data-alt="professional male headshot" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJ5NBJBU7I5y0PAqQPnCgKuudwDbCgWct3qafzaLOrmheE87vPpEq6Z0HV3EZVeUsPHaWegRHHVDzSLC_nZs8E1KbyCzIzWL5dD3fb1KYpbFSt4WOlYyJ6d1R4BSE3E2xOqv3L_l2fynia8zKOm1BSQUAYZL3_AFMI1tWzXXvo_ftiPmU-495v6AGp54mJxuU7mSzWTIBoyktjEb2UidL-vWq3wIqbznNS2HBtSMX9_3hGaS7c17zUqc62tcWmqiSfwvbA8C6XoM7g"/>
+<input class="flex-1 bg-surface-container-lowest border border-outline-variant/30 rounded-lg px-3 py-1.5 text-sm" placeholder="Svar på kommentaren..." type="text"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Task Row 3 -->
+<div class="group flex items-center h-[44px] px-4 rounded-lg hover:bg-surface-container-low transition-colors">
+<button class="material-symbols-outlined text-outline hover:text-primary transition-colors">radio_button_unchecked</button>
+<span class="ml-4 flex-1 text-sm font-medium text-on-surface">Godkendelse af revisorerklæring</span>
+<span class="mx-4 text-xs text-on-surface-variant">15. sep</span>
+<div class="flex items-center gap-1.5 mr-6">
+<span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+<span class="text-[10px] font-bold text-on-surface-variant tracking-wider uppercase">LAV</span>
+</div>
+<img alt="Assignee" class="w-6 h-6 rounded-full grayscale hover:grayscale-0 transition-all" data-alt="professional headshot of a woman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2h8gV_2aXiZQZfCV3clfWHJcPVzSX6ul82ptN9tIWqP355DNLeLYYEyNCNg-jaxjRADuWz603Ut4wY_F9Q3_BZCLyM3-aGWEd3lDx247vlIsICfS8S-tOHXpYnJNbyVqNRa08nydpHO5_LguvObw--_iBue9sNg5gMAXtctduuP-cTHEb5BckwaGxl9pU5dIkMGqI9etRokDnuvYTr90fNMe1XTPtZR7qTmRedFxRHLKIf9mpZMiu9tL3jKATcghHrNGSzN4Q_ual"/>
+</div>
+<!-- Add Task Input -->
+<div class="flex items-center h-[44px] px-4 gap-3 border-t border-outline-variant/10 mt-4">
+<span class="material-symbols-outlined text-primary">add</span>
+<input class="flex-1 bg-transparent border-none text-sm font-medium focus:ring-0 placeholder:text-on-surface-variant" placeholder="Tilføj opgave..." type="text"/>
+</div>
+</section>
+</div>
+</main>
+</body></html>
