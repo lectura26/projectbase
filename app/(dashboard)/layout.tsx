@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
 import { ensureAppUser } from "@/lib/auth/ensure-app-user";
 import { createClient } from "@/lib/supabase/server";
@@ -9,6 +10,10 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
 
   let userLabel = "";
   if (user?.email) {
