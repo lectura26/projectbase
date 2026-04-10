@@ -1,4 +1,4 @@
-import type { Notification } from "@prisma/client";
+import type { NotificationType } from "@prisma/client";
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { AppToaster } from "@/components/Toaster";
@@ -11,6 +11,16 @@ import {
 } from "@/lib/notifications/service";
 import { prisma } from "@/lib/prisma";
 import type { NotificationDTO } from "@/types/notifications";
+
+type AppNotification = {
+  id: string;
+  type: string;
+  message: string;
+  read: boolean;
+  relatedProjectId: string | null;
+  relatedTaskId: string | null;
+  createdAt: Date;
+};
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const supabase = createClient();
@@ -35,9 +45,9 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
     await syncOverdueTaskNotifications(user.id);
     const notifRows = await getNotificationsForUser(user.id);
-    initialNotifications = notifRows.map((n: Notification) => ({
+    initialNotifications = notifRows.map((n: AppNotification) => ({
       id: n.id,
-      type: n.type,
+      type: n.type as NotificationType,
       message: n.message,
       read: n.read,
       relatedProjectId: n.relatedProjectId,
