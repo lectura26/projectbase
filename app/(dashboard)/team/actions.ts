@@ -2,11 +2,16 @@
 
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth/session-user";
-import { projectAccessWhere } from "@/lib/projekter/project-access";
+import { getSharedProjectIdsForUserPair } from "@/lib/team/shared-project-users";
 
 export async function getTeamMemberDetail(memberId: string) {
   const user = await getSessionUser();
   if (!user) throw new Error("Ikke logget ind.");
+
+  const sharedIds = await getSharedProjectIdsForUserPair(user.id, memberId);
+  if (sharedIds.length === 0) {
+    throw new Error("Ingen adgang til denne bruger.");
+  }
 
   const member = await prisma.user.findUnique({
     where: { id: memberId },
@@ -24,6 +29,7 @@ export async function getTeamMemberDetail(memberId: string) {
     where: {
       userId: memberId,
       status: { not: "DONE" },
+      projectId: { in: sharedIds },
       project: { isTemplate: false },
     },
     include: {
@@ -40,7 +46,7 @@ export async function getTeamMemberDetail(memberId: string) {
   const events = await prisma.calendarEvent.findMany({
     where: {
       date: { gte: start, lte: end },
-      project: projectAccessWhere(memberId),
+      projectId: { in: sharedIds },
     },
     include: {
       project: { select: { id: true, name: true } },

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import TeamPageClient from "@/components/team/TeamPageClient";
 import { getSessionUser } from "@/lib/auth/session-user";
 import { prisma } from "@/lib/prisma";
+import { getPeerUserIdsSharingProjects } from "@/lib/team/shared-project-users";
 import type { AppRole } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +21,10 @@ export default async function TeamPage() {
   const user = await getSessionUser();
   if (!user) redirect("/login");
 
+  const peerIds = await getPeerUserIdsSharingProjects(user.id);
+
   const users = await prisma.user.findMany({
+    where: { id: { in: peerIds } },
     orderBy: [{ name: "asc" }, { email: "asc" }],
     select: {
       id: true,
@@ -38,11 +42,32 @@ export default async function TeamPage() {
           where: {
             status: { not: "COMPLETED" },
             isTemplate: false,
-            OR: [{ userId: u.id }, { members: { some: { userId: u.id } } }],
+            AND: [
+              {
+                OR: [{ userId: u.id }, { members: { some: { userId: u.id } } }],
+              },
+              {
+                OR: [{ userId: user.id }, { members: { some: { userId: user.id } } }],
+              },
+            ],
           },
         }),
         prisma.task.count({
-          where: { userId: u.id, status: { not: "DONE" } },
+          where: {
+            userId: u.id,
+            status: { not: "DONE" },
+            project: {
+              isTemplate: false,
+              AND: [
+                {
+                  OR: [{ userId: user.id }, { members: { some: { userId: user.id } } }],
+                },
+                {
+                  OR: [{ userId: u.id }, { members: { some: { userId: u.id } } }],
+                },
+              ],
+            },
+          },
         }),
       ]);
       return {

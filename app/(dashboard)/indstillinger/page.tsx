@@ -4,6 +4,7 @@ import IndstillingerPageClient from "@/components/indstillinger/IndstillingerPag
 import { getSessionUser } from "@/lib/auth/session-user";
 import { prisma } from "@/lib/prisma";
 import { ensureAppUser } from "@/lib/auth/ensure-app-user";
+import { getUserIdsOnSharedProjectsWith } from "@/lib/team/shared-project-users";
 
 export const dynamic = "force-dynamic";
 
@@ -36,10 +37,15 @@ export default async function IndstillingerPage() {
 
   const [members, templates, pendingInvites] = isAdmin
     ? await Promise.all([
-        prisma.user.findMany({
-          orderBy: [{ name: "asc" }, { email: "asc" }],
-          select: { id: true, name: true, email: true, appRole: true },
-        }),
+        (async () => {
+          const sharedUserIds = await getUserIdsOnSharedProjectsWith(user.id);
+          if (sharedUserIds.length === 0) return [];
+          return prisma.user.findMany({
+            where: { id: { in: sharedUserIds } },
+            orderBy: [{ name: "asc" }, { email: "asc" }],
+            select: { id: true, name: true, email: true, appRole: true },
+          });
+        })(),
         prisma.project.findMany({
           where: { isTemplate: true },
           orderBy: { createdAt: "desc" },
