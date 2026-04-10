@@ -36,8 +36,29 @@ export async function cycleTaskStatus(taskId: string) {
     where: { id: taskId },
     select: { projectId: true },
   });
-  if (project) revalidatePath(`/projekter/${project.projectId}`);
+  if (project) {
+    revalidatePath(`/projekter/${project.projectId}`);
+    revalidatePath("/oversigt");
+  }
   return { newStatus: next };
+}
+
+export async function setTaskStatus(taskId: string, status: TaskStatus) {
+  const user = await getSessionUser();
+  if (!user) throw new Error("Ikke logget ind.");
+
+  const task = await prisma.task.findFirst({
+    where: {
+      id: taskId,
+      project: projectAccessWhere(user.id),
+    },
+    select: { id: true, projectId: true },
+  });
+  if (!task) throw new Error("Opgave ikke fundet.");
+
+  await prisma.task.update({ where: { id: taskId }, data: { status } });
+  revalidatePath(`/projekter/${task.projectId}`);
+  revalidatePath("/oversigt");
 }
 
 export async function updateTaskFields(input: {
