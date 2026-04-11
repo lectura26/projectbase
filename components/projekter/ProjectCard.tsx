@@ -67,11 +67,7 @@ export function ProjectCardBody({
         </p>
       ) : null}
       {progress !== null ? (
-        <div className="mt-3 pb-4">
-          <div className="mb-1 flex justify-between text-[10px] font-semibold uppercase tracking-wide text-on-surface-variant">
-            <span>Fremgang</span>
-            <span>{progress}%</span>
-          </div>
+        <div className="mt-3 pb-4 pl-[20px] pr-[20px]">
           <div className="h-1.5 w-full overflow-hidden rounded-[4px] bg-surface-container-highest">
             <div className="h-full rounded-[4px] bg-primary" style={{ width: `${progress}%` }} />
           </div>
@@ -98,7 +94,7 @@ export function ProjectCard({ project, className = "" }: { project: ProjectListI
   return (
     <Link
       href={`/projekter/${project.id}`}
-      className={`block rounded-xl border border-outline-variant/10 bg-surface-container-lowest p-5 shadow-sm ring-1 ring-black/5 transition-colors hover:bg-surface-container-low/50 ${className}`}
+      className={`block rounded-xl border border-outline-variant/10 bg-surface-container-lowest p-[20px] shadow-sm ring-1 ring-black/5 transition-colors hover:bg-surface-container-low/50 ${className}`}
     >
       <ProjectCardBody project={project} />
     </Link>

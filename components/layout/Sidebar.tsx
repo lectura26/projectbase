@@ -21,7 +21,7 @@ export function Sidebar({ userLabel }: { userLabel: string }) {
       className="fixed left-0 top-0 z-50 flex h-screen w-[220px] flex-col border-r border-slate-200 bg-white font-body text-sm antialiased tracking-tight"
       aria-label="Hovednavigation"
     >
-      <div className="flex items-center gap-2 p-5">
+      <div className="flex items-center gap-2 p-[20px]">
         <Logo className="h-8 w-auto" />
       </div>
       <nav className="flex flex-1 flex-col gap-2 px-3">
@@ -32,7 +32,7 @@ export function Sidebar({ userLabel }: { userLabel: string }) {
               key={item.href}
               href={item.href}
               className={[
-                "flex items-center gap-3 rounded-md py-3 pl-7 pr-4 transition-colors",
+                "flex min-h-[36px] items-center gap-3 rounded-md px-4 py-3 transition-colors",
                 isActive
                   ? "bg-slate-100 font-medium text-primary-container"
                   : "text-slate-500 hover:bg-slate-50",
