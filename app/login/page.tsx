@@ -29,7 +29,7 @@ function LoginForm() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-surface px-6 py-12">
       <div className="flex w-full max-w-[400px] flex-col items-center">
         <Image
-          src="/projectbase_logo_dark.svg"
+          src="/projectbase_logo_white.svg?v=2"
           alt="Projectbase"
           width={180}
           height={45}

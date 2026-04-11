@@ -5,5 +5,7 @@
     <rect x="0" y="25" width="11" height="11" rx="2"/>
     <rect x="15" y="25" width="11" height="11" rx="2"/>
   </g>
-  <text x="34" y="27" fill="#1a3167" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600">Projectbase</text>
+  <text x="34" y="27" fill="#1a3167" font-family="system-ui, -apple-system, sans-serif" font-size="15">
+    <tspan font-weight="600">project</tspan><tspan font-weight="300">base</tspan>
+  </text>
 </svg>
