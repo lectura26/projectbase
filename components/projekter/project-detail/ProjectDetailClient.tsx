@@ -3,6 +3,7 @@
 import type { ActivityType, Priority, ProjectStatus, TaskStatus } from "@prisma/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import type { Dispatch, SetStateAction } from "react";
 import {
   useCallback,
   useEffect,
@@ -73,10 +74,9 @@ function TaskCycleButton({
     <button
       type="button"
       aria-label="Skift opgavestatus"
-      className="relative flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full border-0 bg-transparent p-0 outline-none ring-offset-2 focus-visible:ring-2 focus-visible:ring-primary/40"
-      onPointerDown={(e) => {
-        if (e.pointerType === "mouse" && e.button !== 0) return;
-        e.preventDefault();
+      className="relative flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full border-0 bg-transparent p-0 outline-none [touch-action:manipulation] ring-offset-2 focus-visible:ring-2 focus-visible:ring-primary/40"
+      onClick={(e) => {
+        e.stopPropagation();
         onCycle();
       }}
       onKeyDown={(e) => {
@@ -195,13 +195,13 @@ export default function ProjectDetailClient({
   const [eventTime, setEventTime] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [tasksForProgress, setTasksForProgress] = useState<TaskDetailDTO[]>(initial.tasks);
+  const [tasks, setTasks] = useState<TaskDetailDTO[]>(initial.tasks);
   const [projectStatusOverride, setProjectStatusOverride] = useState<ProjectStatus | null>(null);
 
   const displayProjectStatus = projectStatusOverride ?? initial.status;
 
   useEffect(() => {
-    setTasksForProgress(initial.tasks);
+    setTasks(initial.tasks);
     setProjectStatusOverride(null);
   }, [initial.id, initial.updatedAt]); // eslint-disable-line react-hooks/exhaustive-deps -- sync when server payload revision changes
 
@@ -215,11 +215,11 @@ export default function ProjectDetailClient({
   }, [activeTab, showAktivitet]);
 
   const progress = useMemo(() => {
-    const n = tasksForProgress.length;
+    const n = tasks.length;
     if (n === 0) return 0;
-    const done = tasksForProgress.filter((t) => t.status === "DONE").length;
+    const done = tasks.filter((t) => t.status === "DONE").length;
     return Math.round((done / n) * 100);
-  }, [tasksForProgress]);
+  }, [tasks]);
 
   const assigneeOptions = useMemo(() => {
     const m = new Map<string, (typeof initial.owner)>();
@@ -384,9 +384,8 @@ export default function ProjectDetailClient({
         {activeTab === "opgaver" ? (
           <OpgaverTab
             projectId={initial.id}
-            initialTasks={initial.tasks}
-            serverUpdatedAt={initial.updatedAt}
-            onTasksChange={setTasksForProgress}
+            tasks={tasks}
+            setTasks={setTasks}
             assigneeOptions={assigneeOptions}
             expandedTaskId={expandedTaskId}
             setExpandedTaskId={setExpandedTaskId}
@@ -453,9 +452,8 @@ export default function ProjectDetailClient({
 
 function OpgaverTab({
   projectId,
-  initialTasks,
-  serverUpdatedAt,
-  onTasksChange,
+  tasks,
+  setTasks,
   assigneeOptions,
   expandedTaskId,
   setExpandedTaskId,
@@ -464,9 +462,8 @@ function OpgaverTab({
   routerRefresh,
 }: {
   projectId: string;
-  initialTasks: TaskDetailDTO[];
-  serverUpdatedAt: string;
-  onTasksChange: (tasks: TaskDetailDTO[]) => void;
+  tasks: TaskDetailDTO[];
+  setTasks: Dispatch<SetStateAction<TaskDetailDTO[]>>;
   assigneeOptions: ProjectDetailPayload["owner"][];
   expandedTaskId: string | null;
   setExpandedTaskId: (id: string | null) => void;
@@ -475,19 +472,10 @@ function OpgaverTab({
   routerRefresh: () => void;
 }) {
   const [newTaskError, setNewTaskError] = useState("");
-  const [tasks, setTasks] = useState<TaskDetailDTO[]>(initialTasks);
-
-  useEffect(() => {
-    setTasks(initialTasks);
-  }, [projectId, serverUpdatedAt]); // eslint-disable-line react-hooks/exhaustive-deps -- reset from server revision, not every initialTasks identity
-
-  useEffect(() => {
-    onTasksChange(tasks);
-  }, [tasks, onTasksChange]);
 
   const patchTask = useCallback((taskId: string, patch: Partial<TaskDetailDTO>) => {
     setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, ...patch } : t)));
-  }, []);
+  }, [setTasks]);
 
   const cycle = (taskId: string) => {
     let prevStatus: TaskStatus | undefined;
