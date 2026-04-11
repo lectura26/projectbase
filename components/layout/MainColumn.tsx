@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import type { NotificationDTO } from "@/types/notifications";
+import { PageTransition } from "./PageTransition";
 import { TopBar } from "./TopBar";
 
 export function MainColumn({
@@ -25,7 +26,7 @@ export function MainColumn({
           hideDefaultTopBar ? "pt-0" : "pt-12"
         }`}
       >
-        {children}
+        <PageTransition>{children}</PageTransition>
       </main>
     </div>
   );

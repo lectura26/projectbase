@@ -1,27 +1,17 @@
-import type { ReactNode } from "react";
+"use client";
 
-export function Skeleton({
-  className = "",
-  children,
-}: {
-  className?: string;
-  children?: ReactNode;
-}) {
-  return (
-    <div
-      className={`animate-pulse rounded-md bg-surface-container-high ${className}`}
-      aria-hidden
-    >
-      {children}
-    </div>
-  );
-}
+import { motion } from "framer-motion";
 
-export function PageSkeleton() {
+export function Skeleton({ className }: { className?: string }) {
   return (
-    <div className="space-y-6" aria-busy="true" aria-label="Indlæser">
-      <Skeleton className="h-8 w-48" />
-      <Skeleton className="h-40 w-full" />
-    </div>
+    <motion.div
+      className={className ? `rounded-[4px] ${className}` : "rounded-[4px]"}
+      style={{
+        background: "linear-gradient(90deg, #e8e8e8 25%, #f3f4f6 50%, #e8e8e8 75%)",
+        backgroundSize: "200% 100%",
+      }}
+      animate={{ backgroundPosition: ["200% 0", "-200% 0"] }}
+      transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+    />
   );
 }
