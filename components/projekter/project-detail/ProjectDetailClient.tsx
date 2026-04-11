@@ -1,6 +1,7 @@
 "use client";
 
-import type { ActivityType, Priority, ProjectStatus } from "@prisma/client";
+import type { ActivityType, Priority, ProjectStatus, TaskStatus } from "@prisma/client";
+import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import {
   useCallback,
@@ -50,6 +51,88 @@ const PROJECT_STATUS_OPTIONS: { value: ProjectStatus; label: string }[] = [
   { value: "WAITING", label: "Afventer" },
   { value: "COMPLETED", label: "Afsluttet" },
 ];
+
+const TASK_CYCLE_ORDER: TaskStatus[] = ["TODO", "IN_PROGRESS", "DONE"];
+
+function nextTaskStatus(current: TaskStatus): TaskStatus {
+  return TASK_CYCLE_ORDER[(TASK_CYCLE_ORDER.indexOf(current) + 1) % TASK_CYCLE_ORDER.length];
+}
+
+function TaskCycleButton({
+  task,
+  onCycle,
+}: {
+  task: TaskDetailDTO;
+  onCycle: (e?: React.SyntheticEvent) => void;
+}) {
+  const done = task.status === "DONE";
+  const inProgress = task.status === "IN_PROGRESS";
+  return (
+    <motion.span
+      role="button"
+      tabIndex={0}
+      onClick={(e) => onCycle(e)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onCycle(e);
+        }
+      }}
+      className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full border-2"
+      animate={
+        done
+          ? { borderColor: "#1a3167", backgroundColor: "#1a3167" }
+          : inProgress
+            ? {
+                borderColor: "#1a3167",
+                backgroundColor: "rgba(0, 27, 79, 0.1)",
+              }
+            : {
+                borderColor: "#c5c6d1",
+                backgroundColor: "rgba(0, 0, 0, 0)",
+              }
+      }
+      transition={{ duration: 0.15, ease: "easeOut" }}
+    >
+      <AnimatePresence initial={false}>
+        {done ? (
+          <motion.span
+            key="check"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="material-symbols-outlined text-lg leading-none text-white"
+          >
+            check
+          </motion.span>
+        ) : null}
+      </AnimatePresence>
+    </motion.span>
+  );
+}
+
+function TaskTitleAnimated({ task, done }: { task: TaskDetailDTO; done: boolean }) {
+  return (
+    <span className="relative block min-w-0">
+      <span
+        className={`relative z-0 font-body text-sm font-medium ${
+          done ? "text-on-surface-variant" : "text-on-surface"
+        }`}
+      >
+        {task.title}
+      </span>
+      <motion.span
+        aria-hidden
+        className="pointer-events-none absolute left-0 top-[calc(50%+0.06em)] z-10 h-px w-full max-w-full bg-[#44464f]"
+        initial={false}
+        animate={{ scaleX: done ? 1 : 0 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+        style={{ transformOrigin: "left center" }}
+      />
+    </span>
+  );
+}
 
 function PriorityBadge({ priority }: { priority: Priority }) {
   return (
@@ -110,6 +193,27 @@ export default function ProjectDetailClient({
   const [eventTime, setEventTime] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [tasksOverride, setTasksOverride] = useState<TaskDetailDTO[] | null>(null);
+  const [projectStatusOverride, setProjectStatusOverride] = useState<ProjectStatus | null>(null);
+
+  const displayTasks = tasksOverride ?? initial.tasks;
+  const displayProjectStatus = projectStatusOverride ?? initial.status;
+
+  useEffect(() => {
+    setTasksOverride(null);
+    setProjectStatusOverride(null);
+  }, [initial.id, initial.updatedAt]);
+
+  const patchTask = useCallback(
+    (taskId: string, patch: Partial<TaskDetailDTO>) => {
+      setTasksOverride((prev) => {
+        const base = prev ?? initial.tasks;
+        return base.map((t) => (t.id === taskId ? { ...t, ...patch } : t));
+      });
+    },
+    [initial.tasks],
+  );
+
   const showAktivitet = initial.activities.length > 0;
   // Always show Kalender/Filer so the first event/file can be added (Kommentarer-style UX).
   const showKalender = true;
@@ -120,11 +224,11 @@ export default function ProjectDetailClient({
   }, [activeTab, showAktivitet]);
 
   const progress = useMemo(() => {
-    const n = initial.tasks.length;
+    const n = displayTasks.length;
     if (n === 0) return 0;
-    const done = initial.tasks.filter((t) => t.status === "DONE").length;
+    const done = displayTasks.filter((t) => t.status === "DONE").length;
     return Math.round((done / n) * 100);
-  }, [initial.tasks]);
+  }, [displayTasks]);
 
   const assigneeOptions = useMemo(() => {
     const m = new Map<string, (typeof initial.owner)>();
@@ -162,6 +266,7 @@ export default function ProjectDetailClient({
   );
 
   const onStatusChange = async (next: ProjectStatus) => {
+    setProjectStatusOverride(next);
     try {
       const r = await updateProjectStatus(initial.id, next);
       if (r.routineRestarted) {
@@ -169,6 +274,7 @@ export default function ProjectDetailClient({
       }
       router.refresh();
     } catch (e) {
+      setProjectStatusOverride(null);
       toast.error(e instanceof Error ? e.message : "Kunne ikke opdatere status.");
     }
   };
@@ -229,7 +335,7 @@ export default function ProjectDetailClient({
             </label>
             <select
               id="project-status"
-              value={initial.status}
+              value={displayProjectStatus}
               onChange={(e) => onStatusChange(e.target.value as ProjectStatus)}
               className="rounded-lg border border-outline-variant/20 bg-white px-3 py-2 font-body text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             >
@@ -287,12 +393,13 @@ export default function ProjectDetailClient({
         {activeTab === "opgaver" ? (
           <OpgaverTab
             projectId={initial.id}
-            tasks={initial.tasks}
+            tasks={displayTasks}
             assigneeOptions={assigneeOptions}
             expandedTaskId={expandedTaskId}
             setExpandedTaskId={setExpandedTaskId}
             newTaskTitle={newTaskTitle}
             setNewTaskTitle={setNewTaskTitle}
+            patchTask={patchTask}
             routerRefresh={() => router.refresh()}
           />
         ) : null}
@@ -360,6 +467,7 @@ function OpgaverTab({
   setExpandedTaskId,
   newTaskTitle,
   setNewTaskTitle,
+  patchTask,
   routerRefresh,
 }: {
   projectId: string;
@@ -369,17 +477,24 @@ function OpgaverTab({
   setExpandedTaskId: (id: string | null) => void;
   newTaskTitle: string;
   setNewTaskTitle: (s: string) => void;
+  patchTask: (taskId: string, patch: Partial<TaskDetailDTO>) => void;
   routerRefresh: () => void;
 }) {
   const [newTaskError, setNewTaskError] = useState("");
 
   const cycle = async (taskId: string, e?: React.SyntheticEvent) => {
     e?.stopPropagation();
+    const task = tasks.find((t) => t.id === taskId);
+    if (!task) return;
+    const prevStatus = task.status;
+    const optimistic = nextTaskStatus(prevStatus);
+    patchTask(taskId, { status: optimistic });
     try {
       const r = await cycleTaskStatus(taskId);
       if (r.newStatus === "DONE") toast.success("Opgave fuldført");
       routerRefresh();
     } catch (err) {
+      patchTask(taskId, { status: prevStatus });
       toast.error(err instanceof Error ? err.message : "Fejl");
     }
   };
@@ -422,35 +537,10 @@ function OpgaverTab({
               onClick={() => toggleRow(task.id)}
               className="flex w-full items-center gap-3 px-4 py-3 text-left"
             >
-              <span
-                role="button"
-                tabIndex={0}
-                onClick={(e) => cycle(task.id, e)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    void cycle(task.id, e);
-                  }
-                }}
-                className={`flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full border-2 ${
-                  task.status === "DONE"
-                    ? "border-primary bg-primary text-on-primary"
-                    : task.status === "IN_PROGRESS"
-                      ? "border-primary-container bg-primary/10"
-                      : "border-outline-variant text-transparent"
-                }`}
-              >
-                {task.status === "DONE" ? (
-                  <span className="material-symbols-outlined text-lg">check</span>
-                ) : null}
-              </span>
-              <span
-                className={`min-w-0 flex-1 font-body text-sm font-medium ${
-                  done ? "text-on-surface-variant line-through" : "text-on-surface"
-                }`}
-              >
-                {task.title}
-              </span>
+              <TaskCycleButton task={task} onCycle={(e) => void cycle(task.id, e)} />
+              <div className="min-w-0 flex-1 truncate text-left">
+                <TaskTitleAnimated task={task} done={done} />
+              </div>
               {task.assignee ? (
                 <span className="hidden shrink-0 rounded-full bg-primary-container/15 px-2 py-0.5 text-[11px] font-bold text-primary-container sm:inline">
                   {initialsFromUser(task.assignee)}
@@ -467,6 +557,7 @@ function OpgaverTab({
               <TaskExpanded
                 task={task}
                 assigneeOptions={assigneeOptions}
+                patchTask={patchTask}
                 onRefresh={routerRefresh}
               />
             ) : null}
@@ -502,10 +593,12 @@ function OpgaverTab({
 function TaskExpanded({
   task,
   assigneeOptions,
+  patchTask,
   onRefresh,
 }: {
   task: TaskDetailDTO;
   assigneeOptions: ProjectDetailPayload["owner"][];
+  patchTask: (taskId: string, patch: Partial<TaskDetailDTO>) => void;
   onRefresh: () => void;
 }) {
   const [desc, setDesc] = useState(task.description ?? "");
@@ -517,6 +610,8 @@ function TaskExpanded({
 
   const saveDesc = async () => {
     if (desc === (task.description ?? "")) return;
+    const prev = task.description ?? null;
+    patchTask(task.id, { description: desc || null });
     try {
       await updateTaskFields({
         taskId: task.id,
@@ -524,23 +619,34 @@ function TaskExpanded({
       });
       onRefresh();
     } catch (e) {
+      patchTask(task.id, { description: prev });
+      setDesc(prev ?? "");
       toast.error(e instanceof Error ? e.message : "Fejl");
     }
   };
 
   const saveDeadline = async (v: string) => {
+    const prev = task.deadline;
+    const nextDeadline = v || null;
+    patchTask(task.id, { deadline: nextDeadline });
     try {
       await updateTaskFields({
         taskId: task.id,
-        deadline: v || null,
+        deadline: nextDeadline,
       });
       onRefresh();
     } catch (e) {
+      patchTask(task.id, { deadline: prev });
       toast.error(e instanceof Error ? e.message : "Fejl");
     }
   };
 
   const saveAssignee = async (userId: string) => {
+    const prev = task.assignee;
+    const nextUser = userId
+      ? assigneeOptions.find((u) => u.id === userId) ?? null
+      : null;
+    patchTask(task.id, { assignee: nextUser });
     try {
       await updateTaskFields({
         taskId: task.id,
@@ -548,15 +654,19 @@ function TaskExpanded({
       });
       onRefresh();
     } catch (e) {
+      patchTask(task.id, { assignee: prev });
       toast.error(e instanceof Error ? e.message : "Fejl");
     }
   };
 
   const savePriority = async (p: Priority) => {
+    const prev = task.priority;
+    patchTask(task.id, { priority: p });
     try {
       await updateTaskFields({ taskId: task.id, priority: p });
       onRefresh();
     } catch (e) {
+      patchTask(task.id, { priority: prev });
       toast.error(e instanceof Error ? e.message : "Fejl");
     }
   };
@@ -594,6 +704,7 @@ function TaskExpanded({
             Frist
           </label>
           <input
+            key={task.deadline ?? "no-deadline"}
             type="date"
             defaultValue={task.deadline ? task.deadline.slice(0, 10) : ""}
             onChange={(e) => void saveDeadline(e.target.value)}
@@ -605,6 +716,7 @@ function TaskExpanded({
             Ansvarlig
           </label>
           <select
+            key={task.assignee?.id ?? ""}
             value={task.assignee?.id ?? ""}
             onChange={(e) => void saveAssignee(e.target.value)}
             className="mt-1 w-full rounded-lg border border-outline-variant/30 px-3 py-2 font-body text-sm"
@@ -769,27 +881,41 @@ function AktivitetTab({
   setHoverActivityId: (id: string | null) => void;
   onRefresh: () => void;
 }) {
+  const [activities, setActivities] = useState(initial.activities);
+
+  useEffect(() => {
+    setActivities(initial.activities);
+  }, [initial.id, initial.updatedAt]); // eslint-disable-line react-hooks/exhaustive-deps -- sync only when server revision changes; avoid resetting optimistic rows on every activities array identity
+
   const onConfirm = async (id: string) => {
+    const prev = activities;
+    setActivities((rows) =>
+      rows.map((a) => (a.id === id ? { ...a, confirmed: true } : a)),
+    );
     try {
       await confirmActivity(id);
       onRefresh();
     } catch (e) {
+      setActivities(prev);
       toast.error(e instanceof Error ? e.message : "Fejl");
     }
   };
 
   const onDelete = async (id: string) => {
+    const prev = activities;
+    setActivities((rows) => rows.filter((a) => a.id !== id));
     try {
       await deleteActivity(id);
       onRefresh();
     } catch (e) {
+      setActivities(prev);
       toast.error(e instanceof Error ? e.message : "Fejl");
     }
   };
 
   return (
     <ul className="space-y-2">
-      {initial.activities.map((a) => {
+      {activities.map((a) => {
         const b = activityBadge(a.type);
         const hover = hoverActivityId === a.id;
         return (
@@ -821,7 +947,7 @@ function AktivitetTab({
                 AI
               </span>
             ) : null}
-            {hover ? (
+            {hover && !a.confirmed ? (
               <div className="absolute right-2 top-2 flex gap-1">
                 <button
                   type="button"
