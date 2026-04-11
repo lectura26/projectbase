@@ -23,7 +23,9 @@ import {
   deleteProjectFile,
   updateTaskFields,
 } from "@/app/(dashboard)/projekter/project-detail-actions";
+import { validateUploadFile } from "@/lib/storage/file-validation";
 import { createClient } from "@/lib/supabase/client";
+import { SUPABASE_STORAGE_BUCKET } from "@/lib/supabase/storage-bucket";
 import {
   displayName,
   initialsFromString,
@@ -97,13 +99,11 @@ function formatDaTime(iso: string) {
 type Props = {
   initial: ProjectDetailPayload;
   usersForModal: UserOption[];
-  storageBucket: string;
 };
 
 export default function ProjectDetailClient({
   initial,
   usersForModal,
-  storageBucket,
 }: Props) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabKey>("opgaver");
@@ -340,7 +340,6 @@ export default function ProjectDetailClient({
         {activeTab === "filer" ? (
           <FilerTab
             initial={initial}
-            storageBucket={storageBucket}
             fileInputRef={fileInputRef}
             hoverFileId={hoverFileId}
             setHoverFileId={setHoverFileId}
@@ -1023,14 +1022,12 @@ function KalenderTab({
 
 function FilerTab({
   initial,
-  storageBucket,
   fileInputRef,
   hoverFileId,
   setHoverFileId,
   onRefresh,
 }: {
   initial: ProjectDetailPayload;
-  storageBucket: string;
   fileInputRef: React.RefObject<HTMLInputElement>;
   hoverFileId: string | null;
   setHoverFileId: (id: string | null) => void;
@@ -1044,42 +1041,46 @@ function FilerTab({
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
+    const checked = validateUploadFile({
+      size: file.size,
+      name: file.name,
+      type: file.type,
+    });
+    if (!checked.ok) {
+      toast.error(checked.reason);
+      return;
+    }
     try {
       const supabase = createClient();
-      const safe = file.name.replace(/[^\w.\-()+ ]/g, "_");
-      const path = `${initial.id}/${Date.now()}-${safe}`;
+      const path = `${initial.id}/${crypto.randomUUID()}.${checked.ext}`;
       const { error: upErr } = await supabase.storage
-        .from(storageBucket)
+        .from(SUPABASE_STORAGE_BUCKET)
         .upload(path, file, { upsert: false });
       if (upErr) {
-        toast.error(upErr.message);
+        toast.error("Upload fejlede. Prøv igen.");
         return;
       }
-      const { data } = supabase.storage.from(storageBucket).getPublicUrl(path);
       await createProjectFileRecord({
         projectId: initial.id,
         name: file.name,
-        fileType: file.type || file.name.split(".").pop() || "fil",
-        url: data.publicUrl,
+        fileType: file.type || checked.ext,
         storagePath: path,
       });
       toast.success("Fil uploadet");
       onRefresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Upload fejlede");
+      console.error("[upload file]", err);
+      toast.error("Upload fejlede");
     }
   };
 
   const remove = async (f: ProjectDetailPayload["files"][0]) => {
     try {
-      const { storagePath } = await deleteProjectFile(f.id);
-      if (storagePath) {
-        const supabase = createClient();
-        await supabase.storage.from(storageBucket).remove([storagePath]);
-      }
+      await deleteProjectFile(f.id);
       onRefresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Fejl");
+      console.error("[delete file]", err);
+      toast.error("Kunne ikke slette filen");
     }
   };
 

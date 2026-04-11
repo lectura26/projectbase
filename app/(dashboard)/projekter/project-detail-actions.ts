@@ -6,7 +6,9 @@ import { prisma } from "@/lib/prisma";
 import { ensureAppUser } from "@/lib/auth/ensure-app-user";
 import { getSessionUser } from "@/lib/auth/session-user";
 import { createNotification } from "@/lib/notifications/service";
+import { PRIVATE_FILE_PLACEHOLDER } from "@/lib/files/private-file-url";
 import { projectAccessWhere } from "@/lib/projekter/project-access";
+import { removeStorageObject } from "@/lib/supabase/storage-remove";
 
 async function assertProjectMember(projectId: string, userId: string) {
   const p = await prisma.project.findFirst({
@@ -262,8 +264,7 @@ export async function createProjectFileRecord(input: {
   projectId: string;
   name: string;
   fileType: string;
-  url: string;
-  storagePath?: string | null;
+  storagePath: string;
 }) {
   const user = await getSessionUser();
   if (!user?.email) throw new Error("Ikke logget ind.");
@@ -276,8 +277,8 @@ export async function createProjectFileRecord(input: {
       projectId: input.projectId,
       name: input.name,
       fileType: input.fileType,
-      url: input.url,
-      storagePath: input.storagePath ?? null,
+      url: PRIVATE_FILE_PLACEHOLDER,
+      storagePath: input.storagePath,
       uploadedById: user.id,
     },
   });
@@ -295,6 +296,11 @@ export async function deleteProjectFile(fileId: string) {
   if (!file) throw new Error("Fil ikke fundet.");
 
   await prisma.file.delete({ where: { id: fileId } });
+  if (file.storagePath) {
+    const removed = await removeStorageObject(file.storagePath);
+    if (!removed.ok) {
+      console.error("[deleteProjectFile] storage remove failed", file.storagePath);
+    }
+  }
   revalidatePath(`/projekter/${file.projectId}`);
-  return { storagePath: file.storagePath };
 }

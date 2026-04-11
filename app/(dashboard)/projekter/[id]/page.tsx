@@ -133,7 +133,7 @@ export default async function ProjectDetailPage({ params }: Props) {
       id: f.id,
       name: f.name,
       fileType: f.fileType,
-      url: f.url,
+      url: `/api/files/${f.id}/signed`,
       storagePath: f.storagePath,
       createdAt: f.createdAt.toISOString(),
       uploadedBy: f.uploadedBy,
@@ -163,9 +163,6 @@ export default async function ProjectDetailPage({ params }: Props) {
     a.name.localeCompare(b.name, "da"),
   );
 
-  const storageBucket =
-    process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET ?? "projectbase-files";
-
   return (
     <div className="space-y-4">
       <Link
@@ -178,7 +175,6 @@ export default async function ProjectDetailPage({ params }: Props) {
       <ProjectDetailClient
         initial={initial}
         usersForModal={usersForModal}
-        storageBucket={storageBucket}
       />
     </div>
   );
