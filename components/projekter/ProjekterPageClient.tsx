@@ -55,6 +55,7 @@ export default function ProjekterPageClient({
   const [createOpen, setCreateOpen] = useState(false);
   const [projects, setProjects] = useState<ProjectListItem[]>(initialProjects);
   const [quickFilter, setQuickFilter] = useState<ProjekterQuickFilter>("alle");
+  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
 
   useEffect(() => {
@@ -94,7 +95,7 @@ export default function ProjekterPageClient({
             Nyt projekt
           </button>
         </div>
-        <div className="flex min-h-14 items-center justify-start gap-4 px-8 py-3">
+        <div className="flex min-h-14 flex-wrap items-center justify-between gap-4 px-8 py-3">
           <div className="flex min-w-0 flex-wrap items-center rounded-lg border border-[#e8e8e8] bg-white p-1">
             <button type="button" onClick={() => setView("liste")} className={segBtn(view === "liste")}>
               <span className="material-symbols-outlined text-sm">list</span>
@@ -113,41 +114,49 @@ export default function ProjekterPageClient({
               Tabel
             </button>
           </div>
-        </div>
-        <div className="flex items-center justify-between gap-4 border-t border-slate-100 px-8 py-3">
-          <div className="flex min-w-0 flex-wrap gap-2">
-            {QUICK_FILTER_PILLS.map((p) => {
-              const active = quickFilter === p.id;
-              return (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => setQuickFilter(p.id)}
-                  className="rounded-[6px] border px-[14px] py-[6px] font-body text-[13px] font-medium transition-colors"
-                  style={
-                    active
-                      ? {
-                          backgroundColor: "#1a3167",
-                          color: "#fff",
-                          borderColor: "#1a3167",
-                        }
-                      : {
-                          backgroundColor: "#fff",
-                          color: "#0f1923",
-                          borderColor: "#e8e8e8",
-                        }
-                  }
-                >
-                  {p.label}
-                </button>
-              );
-            })}
-          </div>
-          <span className="inline-flex shrink-0 items-center gap-1.5 font-body text-xs font-semibold text-primary">
+          <button
+            type="button"
+            onClick={() => setFilterPanelOpen((o) => !o)}
+            className="inline-flex shrink-0 items-center gap-1.5 font-body text-xs font-semibold text-primary hover:opacity-90"
+          >
             <span className="material-symbols-outlined text-sm">filter_list</span>
-            Filtrer
-          </span>
+            Filtrer{quickFilter !== "alle" ? " (1)" : ""}
+          </button>
         </div>
+        {filterPanelOpen ? (
+          <div className="border-t border-slate-100 px-8 pb-3 pt-0">
+            <div className="rounded-[8px] border border-[#e8e8e8] bg-white px-4 py-3">
+              <div className="flex min-w-0 flex-wrap gap-2">
+                {QUICK_FILTER_PILLS.map((p) => {
+                  const active = quickFilter === p.id;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => setQuickFilter(p.id)}
+                      className="rounded-[6px] border px-[14px] py-[6px] font-body text-[13px] font-medium transition-colors"
+                      style={
+                        active
+                          ? {
+                              backgroundColor: "#1a3167",
+                              color: "#fff",
+                              borderColor: "#1a3167",
+                            }
+                          : {
+                              backgroundColor: "#fff",
+                              color: "#0f1923",
+                              borderColor: "#e8e8e8",
+                            }
+                      }
+                    >
+                      {p.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <div className="px-8 py-8">
