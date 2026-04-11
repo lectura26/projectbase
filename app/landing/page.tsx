@@ -158,8 +158,8 @@ export default function LandingPage() {
       </header>
 
       <main className="pt-14">
-        {/* HERO — 100px top padding below 56px fixed nav */}
-        <section className="bg-white px-10 pb-20 pt-[44px]">
+        {/* HERO — extra luft under fast header (nav = h-14; main har pt-14) */}
+        <section className="bg-white px-10 pb-20 pt-16">
           <div className="mx-auto max-w-[720px] text-center">
             <span className="inline-block rounded-full bg-[#cce8f4] px-3.5 py-1 text-[11px] font-medium text-[#1a3167]">
               Til professionelle teams
