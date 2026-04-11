@@ -1,6 +1,10 @@
 import type { Priority, ProjectStatus } from "@prisma/client";
 import type { ProjectListItem } from "@/types/projekter";
 
+/** Shared shell for status and priority chips (projekter list, oversigt, etc.). */
+export const BADGE_CHIP_CLASS =
+  "inline-flex items-center rounded-[4px] px-2 py-0.5 text-[11px] font-semibold leading-tight";
+
 export function contactInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "?";
@@ -14,19 +18,18 @@ export function taskProgress(tasks: ProjectListItem["tasks"]): number | null {
   return Math.round((done / tasks.length) * 100);
 }
 
-/** Compact neutral status chips (Stitch Projectbase 2 projekter list). */
 export function statusBadgeClass(status: ProjectStatus): string {
   switch (status) {
     case "NOT_STARTED":
-      return "bg-surface-container-highest text-on-surface-variant";
+      return "bg-[#f3f4f6] text-[#6b7280]";
     case "IN_PROGRESS":
-      return "bg-secondary-container text-on-secondary-container";
+      return "bg-[#dbeafe] text-[#1e40af]";
     case "WAITING":
-      return "bg-surface-container-high text-on-surface-variant";
+      return "bg-[#fef3c7] text-[#b45309]";
     case "COMPLETED":
-      return "bg-emerald-50 text-emerald-700";
+      return "bg-[#dcfce7] text-[#15803d]";
     default:
-      return "bg-surface-container-highest text-on-surface-variant";
+      return "bg-[#f3f4f6] text-[#6b7280]";
   }
 }
 
@@ -43,15 +46,14 @@ export function statusLabelDa(status: ProjectStatus): string {
   }
 }
 
-/** Compact neutral priority chips. */
 export function priorityBadgeClass(priority: Priority): string {
   switch (priority) {
     case "LOW":
-      return "bg-surface-container-high text-on-surface-variant";
+      return "bg-[#dcfce7] text-[#16a34a]";
     case "MEDIUM":
-      return "bg-surface-container-high text-on-surface-variant";
+      return "bg-[#fef3c7] text-[#d97706]";
     case "HIGH":
-      return "bg-error-container/80 text-on-error-container";
+      return "bg-[#fee2e2] text-[#dc2626]";
   }
 }
 

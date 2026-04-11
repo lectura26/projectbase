@@ -18,13 +18,13 @@ export function Sidebar({ userLabel }: { userLabel: string }) {
 
   return (
     <aside
-      className="fixed left-0 top-0 z-50 flex h-screen w-[220px] flex-col border-r border-slate-200 bg-white p-4 font-body text-sm antialiased tracking-tight"
+      className="fixed left-0 top-0 z-50 flex h-screen w-[220px] flex-col border-r border-slate-200 bg-white font-body text-sm antialiased tracking-tight"
       aria-label="Hovednavigation"
     >
-      <div className="mb-8 flex items-center gap-2 px-1">
+      <div className="flex items-center gap-2 p-5">
         <Logo className="h-8 w-auto" />
       </div>
-      <nav className="flex flex-1 flex-col gap-1">
+      <nav className="flex flex-1 flex-col gap-2 px-3">
         {NAV_ITEMS.map((item) => {
           const isActive = activeId === item.id;
           return (
@@ -32,7 +32,7 @@ export function Sidebar({ userLabel }: { userLabel: string }) {
               key={item.href}
               href={item.href}
               className={[
-                "flex items-center gap-3 rounded-md px-4 py-2 transition-colors",
+                "flex items-center gap-3 rounded-md py-3 pl-7 pr-4 transition-colors",
                 isActive
                   ? "bg-slate-100 font-medium text-primary-container"
                   : "text-slate-500 hover:bg-slate-50",
@@ -45,7 +45,7 @@ export function Sidebar({ userLabel }: { userLabel: string }) {
         })}
       </nav>
 
-      <div className="mt-auto border-t border-slate-100 pt-4">
+      <div className="mt-auto border-t border-slate-100 px-3 pb-4 pt-4">
         {userLabel ? (
           <div className="mb-4 flex items-center gap-3 rounded-lg bg-surface-container-low px-4 py-3">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-container text-[10px] font-bold text-on-primary">
@@ -64,7 +64,7 @@ export function Sidebar({ userLabel }: { userLabel: string }) {
         <button
           type="button"
           onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-md px-4 py-2 text-left text-slate-500 transition-colors hover:bg-slate-50"
+          className="flex w-full items-center gap-3 rounded-md py-3 pl-7 pr-4 text-left text-slate-500 transition-colors hover:bg-slate-50"
         >
           <span className="material-symbols-outlined text-[20px] leading-none">logout</span>
           Log ud

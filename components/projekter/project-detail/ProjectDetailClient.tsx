@@ -31,6 +31,11 @@ import {
   initialsFromString,
   initialsFromUser,
 } from "@/lib/projekter/display";
+import {
+  BADGE_CHIP_CLASS,
+  priorityBadgeClass,
+  priorityLabelDa,
+} from "@/components/projekter/project-helpers";
 import { routineIntervalLabel } from "@/lib/projekter/routine";
 import type { ProjectDetailPayload, TaskDetailDTO } from "@/types/project-detail";
 import { NytProjektModal } from "@/components/projekter/NytProjektModal";
@@ -46,24 +51,10 @@ const PROJECT_STATUS_OPTIONS: { value: ProjectStatus; label: string }[] = [
   { value: "COMPLETED", label: "Afsluttet" },
 ];
 
-const PRIORITY_LABEL: Record<Priority, string> = {
-  LOW: "Lav",
-  MEDIUM: "Medium",
-  HIGH: "Høj",
-};
-
-function priorityClass(p: Priority) {
-  if (p === "HIGH") return "bg-error-container/80 text-on-error-container";
-  if (p === "LOW") return "bg-surface-container-high text-on-surface-variant";
-  return "bg-surface-container-high text-on-surface-variant";
-}
-
 function PriorityBadge({ priority }: { priority: Priority }) {
   return (
-    <span
-      className={`inline-flex rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${priorityClass(priority)}`}
-    >
-      {PRIORITY_LABEL[priority]}
+    <span className={`${BADGE_CHIP_CLASS} ${priorityBadgeClass(priority)}`}>
+      {priorityLabelDa(priority)}
     </span>
   );
 }

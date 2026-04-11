@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useState, useTransition } from "react";
 import { setTaskStatus } from "@/app/(dashboard)/projekter/project-detail-actions";
 import {
+  BADGE_CHIP_CLASS,
   priorityBadgeClass,
   priorityLabelDa,
   statusBadgeClass,
@@ -135,7 +136,7 @@ export default function OversigtPageClient({
                           </p>
                         </div>
                         <span
-                          className={`inline-flex shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${priorityBadgeClass(task.priority)}`}
+                          className={`${BADGE_CHIP_CLASS} shrink-0 ${priorityBadgeClass(task.priority)}`}
                         >
                           {priorityLabelDa(task.priority)}
                         </span>
@@ -174,7 +175,7 @@ export default function OversigtPageClient({
                           {p.name}
                         </span>
                         <span
-                          className={`inline-flex shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${statusBadgeClass(p.status)}`}
+                          className={`${BADGE_CHIP_CLASS} shrink-0 ${statusBadgeClass(p.status)}`}
                         >
                           {statusLabelDa(p.status)}
                         </span>
