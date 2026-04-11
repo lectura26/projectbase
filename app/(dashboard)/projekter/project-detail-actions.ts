@@ -34,14 +34,6 @@ export async function cycleTaskStatus(taskId: string) {
   const order: TaskStatus[] = ["TODO", "IN_PROGRESS", "DONE"];
   const next = order[(order.indexOf(task.status) + 1) % order.length];
   await prisma.task.update({ where: { id: taskId }, data: { status: next } });
-  const project = await prisma.task.findUnique({
-    where: { id: taskId },
-    select: { projectId: true },
-  });
-  if (project) {
-    revalidatePath(`/projekter/${project.projectId}`);
-    revalidatePath("/oversigt");
-  }
   return { newStatus: next };
 }
 
@@ -59,8 +51,6 @@ export async function setTaskStatus(taskId: string, status: TaskStatus) {
   if (!task) throw new Error("Opgave ikke fundet.");
 
   await prisma.task.update({ where: { id: taskId }, data: { status } });
-  revalidatePath(`/projekter/${task.projectId}`);
-  revalidatePath("/oversigt");
 }
 
 export async function updateTaskFields(input: {

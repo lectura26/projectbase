@@ -58,6 +58,8 @@ function nextTaskStatus(current: TaskStatus): TaskStatus {
   return TASK_CYCLE_ORDER[(TASK_CYCLE_ORDER.indexOf(current) + 1) % TASK_CYCLE_ORDER.length];
 }
 
+const EASE_STANDARD: [number, number, number, number] = [0.25, 0.1, 0.25, 1];
+
 function TaskCycleButton({
   task,
   onCycle,
@@ -89,10 +91,10 @@ function TaskCycleButton({
               }
             : {
                 borderColor: "#c5c6d1",
-                backgroundColor: "rgba(0, 0, 0, 0)",
+                backgroundColor: "#ffffff",
               }
       }
-      transition={{ duration: 0.15, ease: "easeOut" }}
+      transition={{ duration: 0.15, ease: EASE_STANDARD }}
     >
       <AnimatePresence initial={false}>
         {done ? (
@@ -101,7 +103,7 @@ function TaskCycleButton({
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
+            transition={{ duration: 0.15, ease: EASE_STANDARD }}
             className="material-symbols-outlined text-lg leading-none text-white"
           >
             check
@@ -114,23 +116,15 @@ function TaskCycleButton({
 
 function TaskTitleAnimated({ task, done }: { task: TaskDetailDTO; done: boolean }) {
   return (
-    <span className="relative block min-w-0">
-      <span
-        className={`relative z-0 font-body text-sm font-medium ${
-          done ? "text-on-surface-variant" : "text-on-surface"
-        }`}
-      >
-        {task.title}
-      </span>
-      <motion.span
-        aria-hidden
-        className="pointer-events-none absolute left-0 top-[calc(50%+0.06em)] z-10 h-px w-full max-w-full bg-[#44464f]"
-        initial={false}
-        animate={{ scaleX: done ? 1 : 0 }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
-        style={{ transformOrigin: "left center" }}
-      />
-    </span>
+    <motion.span
+      className={`block min-w-0 font-body text-sm font-medium text-on-surface ${
+        done ? "line-through" : ""
+      }`}
+      animate={{ opacity: done ? 0.5 : 1 }}
+      transition={{ duration: 0.15, ease: EASE_STANDARD }}
+    >
+      {task.title}
+    </motion.span>
   );
 }
 
@@ -193,26 +187,15 @@ export default function ProjectDetailClient({
   const [eventTime, setEventTime] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [tasksOverride, setTasksOverride] = useState<TaskDetailDTO[] | null>(null);
+  const [tasksForProgress, setTasksForProgress] = useState<TaskDetailDTO[]>(initial.tasks);
   const [projectStatusOverride, setProjectStatusOverride] = useState<ProjectStatus | null>(null);
 
-  const displayTasks = tasksOverride ?? initial.tasks;
   const displayProjectStatus = projectStatusOverride ?? initial.status;
 
   useEffect(() => {
-    setTasksOverride(null);
+    setTasksForProgress(initial.tasks);
     setProjectStatusOverride(null);
-  }, [initial.id, initial.updatedAt]);
-
-  const patchTask = useCallback(
-    (taskId: string, patch: Partial<TaskDetailDTO>) => {
-      setTasksOverride((prev) => {
-        const base = prev ?? initial.tasks;
-        return base.map((t) => (t.id === taskId ? { ...t, ...patch } : t));
-      });
-    },
-    [initial.tasks],
-  );
+  }, [initial.id, initial.updatedAt]); // eslint-disable-line react-hooks/exhaustive-deps -- sync when server payload revision changes
 
   const showAktivitet = initial.activities.length > 0;
   // Always show Kalender/Filer so the first event/file can be added (Kommentarer-style UX).
@@ -224,11 +207,11 @@ export default function ProjectDetailClient({
   }, [activeTab, showAktivitet]);
 
   const progress = useMemo(() => {
-    const n = displayTasks.length;
+    const n = tasksForProgress.length;
     if (n === 0) return 0;
-    const done = displayTasks.filter((t) => t.status === "DONE").length;
+    const done = tasksForProgress.filter((t) => t.status === "DONE").length;
     return Math.round((done / n) * 100);
-  }, [displayTasks]);
+  }, [tasksForProgress]);
 
   const assigneeOptions = useMemo(() => {
     const m = new Map<string, (typeof initial.owner)>();
@@ -393,13 +376,14 @@ export default function ProjectDetailClient({
         {activeTab === "opgaver" ? (
           <OpgaverTab
             projectId={initial.id}
-            tasks={displayTasks}
+            initialTasks={initial.tasks}
+            serverUpdatedAt={initial.updatedAt}
+            onTasksChange={setTasksForProgress}
             assigneeOptions={assigneeOptions}
             expandedTaskId={expandedTaskId}
             setExpandedTaskId={setExpandedTaskId}
             newTaskTitle={newTaskTitle}
             setNewTaskTitle={setNewTaskTitle}
-            patchTask={patchTask}
             routerRefresh={() => router.refresh()}
           />
         ) : null}
@@ -461,42 +445,57 @@ export default function ProjectDetailClient({
 
 function OpgaverTab({
   projectId,
-  tasks,
+  initialTasks,
+  serverUpdatedAt,
+  onTasksChange,
   assigneeOptions,
   expandedTaskId,
   setExpandedTaskId,
   newTaskTitle,
   setNewTaskTitle,
-  patchTask,
   routerRefresh,
 }: {
   projectId: string;
-  tasks: TaskDetailDTO[];
+  initialTasks: TaskDetailDTO[];
+  serverUpdatedAt: string;
+  onTasksChange: (tasks: TaskDetailDTO[]) => void;
   assigneeOptions: ProjectDetailPayload["owner"][];
   expandedTaskId: string | null;
   setExpandedTaskId: (id: string | null) => void;
   newTaskTitle: string;
   setNewTaskTitle: (s: string) => void;
-  patchTask: (taskId: string, patch: Partial<TaskDetailDTO>) => void;
   routerRefresh: () => void;
 }) {
   const [newTaskError, setNewTaskError] = useState("");
+  const [tasks, setTasks] = useState<TaskDetailDTO[]>(initialTasks);
 
-  const cycle = async (taskId: string, e?: React.SyntheticEvent) => {
+  useEffect(() => {
+    setTasks(initialTasks);
+  }, [projectId, serverUpdatedAt]); // eslint-disable-line react-hooks/exhaustive-deps -- reset from server revision, not every initialTasks identity
+
+  useEffect(() => {
+    onTasksChange(tasks);
+  }, [tasks, onTasksChange]);
+
+  const patchTask = useCallback((taskId: string, patch: Partial<TaskDetailDTO>) => {
+    setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, ...patch } : t)));
+  }, []);
+
+  const cycle = (taskId: string, e?: React.SyntheticEvent) => {
     e?.stopPropagation();
     const task = tasks.find((t) => t.id === taskId);
     if (!task) return;
     const prevStatus = task.status;
     const optimistic = nextTaskStatus(prevStatus);
     patchTask(taskId, { status: optimistic });
-    try {
-      const r = await cycleTaskStatus(taskId);
-      if (r.newStatus === "DONE") toast.success("Opgave fuldført");
-      routerRefresh();
-    } catch (err) {
-      patchTask(taskId, { status: prevStatus });
-      toast.error(err instanceof Error ? err.message : "Fejl");
-    }
+    void cycleTaskStatus(taskId)
+      .then((r) => {
+        if (r.newStatus === "DONE") toast.success("Opgave fuldført");
+      })
+      .catch((err: unknown) => {
+        patchTask(taskId, { status: prevStatus });
+        toast.error(err instanceof Error ? err.message : "Fejl");
+      });
   };
 
   const toggleRow = (taskId: string) => {
