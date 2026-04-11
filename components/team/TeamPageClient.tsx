@@ -132,7 +132,7 @@ export default function TeamPageClient({ rows }: Props) {
             aria-label="Luk panel"
             onClick={closePanel}
           />
-          <aside className="fixed right-0 top-0 z-[160] flex h-full w-full max-w-[320px] flex-col border-l border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,25,35,0.06)] sm:sticky sm:top-12 sm:h-[calc(100vh-3rem)] sm:shrink-0">
+          <aside className="fixed right-0 top-0 z-[160] flex h-full w-full max-w-[320px] flex-col border-l border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,25,35,0.06)] sm:sticky sm:top-16 sm:h-[calc(100vh-4rem)] sm:shrink-0">
             <div className="flex items-start justify-between gap-3 border-b border-outline-variant/10 px-4 py-4">
               <div className="flex items-center gap-3">
                 <UserAvatar

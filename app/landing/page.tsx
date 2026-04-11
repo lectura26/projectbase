@@ -145,7 +145,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen min-w-[1024px] bg-[#f8f9fa] font-body text-[#0f1923] antialiased">
       {/* NAVBAR */}
-      <header className="fixed left-0 right-0 top-0 z-50 flex h-14 items-center justify-between border-b border-[#e8e8e8] bg-white px-10">
+      <header className="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between border-b border-[#e8e8e8] bg-white px-10">
         <Link href="/landing" className="flex items-center">
           <Logo className="h-8 w-auto" />
         </Link>
@@ -157,8 +157,8 @@ export default function LandingPage() {
         </Link>
       </header>
 
-      <main className="pt-14">
-        {/* HERO — extra luft under fast header (nav = h-14; main har pt-14) */}
+      <main className="pt-16">
+        {/* HERO — luft under fast header (nav = h-16; main har pt-16) */}
         <section className="bg-white px-10 pb-20 pt-16">
           <div className="mx-auto max-w-[720px] text-center">
             <span className="inline-block rounded-full bg-[#cce8f4] px-3.5 py-1 text-[11px] font-medium text-[#1a3167]">

@@ -70,7 +70,7 @@ export function TopBar({
 
   return (
     <header
-      className="sticky top-0 z-40 flex h-12 w-full shrink-0 items-center justify-between border-b border-slate-200 bg-white/85 px-6 font-body text-sm font-medium backdrop-blur-md"
+      className="sticky top-0 z-40 flex h-16 w-full shrink-0 items-center justify-between border-b border-slate-200 bg-white px-6 font-body text-sm font-medium"
       role="banner"
     >
       <h1 className="text-base font-extrabold tracking-tight text-primary-container">{title}</h1>

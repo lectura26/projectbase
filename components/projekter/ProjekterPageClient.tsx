@@ -124,7 +124,7 @@ export default function ProjekterPageClient({
   return (
     <div className="-mx-8 -mt-8">
       <div className="sticky top-0 z-30 border-b border-slate-200 bg-white">
-        <div className="flex h-12 items-center justify-between px-8">
+        <div className="flex h-16 min-h-16 items-center justify-between px-8">
           <h1 className="text-base font-extrabold tracking-tight text-primary-container">Projekter</h1>
           <button
             type="button"
@@ -135,7 +135,7 @@ export default function ProjekterPageClient({
             Nyt projekt
           </button>
         </div>
-        <div className="flex items-center justify-between gap-4 px-8 pb-3">
+        <div className="flex min-h-14 items-center justify-between gap-4 px-8 py-3">
           <div className="flex min-w-0 flex-wrap items-center rounded-lg border border-[#e8e8e8] bg-white p-1">
             <button type="button" onClick={() => setView("liste")} className={segBtn(view === "liste")}>
               <span className="material-symbols-outlined text-sm">list</span>
