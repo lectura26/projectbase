@@ -1,7 +1,5 @@
 import type { User } from "@supabase/supabase-js";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { hasSupabaseSessionCookie } from "@/lib/auth/has-supabase-session-cookie";
 import { createClient } from "@/lib/supabase/server";
 
 function buildCallbackRedirectQuery(
@@ -45,7 +43,7 @@ export default async function Page({
     const { data } = await supabase.auth.getUser();
     user = data.user;
   } catch {
-    // Transient or timing issue — fall back to session / cookies below.
+    // Transient or timing issue — fall back to session below.
   }
 
   if (!user?.id) {
@@ -59,14 +57,5 @@ export default async function Page({
     redirect("/oversigt");
   }
 
-  if (hasSupabaseSessionCookie()) {
-    redirect("/oversigt");
-  }
-
-  const hasAnySupabaseCookie = cookies().getAll().some((c) => c.name.startsWith("sb-"));
-  if (hasAnySupabaseCookie) {
-    redirect("/oversigt");
-  }
-
-  redirect("/login");
+  redirect("/landing");
 }
