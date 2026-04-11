@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 /**
  * Keeps `User` in sync with Supabase Auth (`id` is `auth.users.id`).
  * Applies pending team invite (role + name) when e-mail matches.
+ *
+ * Upserts on `id` only (not `email`) so concurrent requests do not race on the unique email index.
  */
 export async function ensureAppUser(authUser: AuthUser) {
   const email = authUser.email;
@@ -30,15 +32,15 @@ export async function ensureAppUser(authUser: AuthUser) {
     where: { id: authUser.id },
     create: {
       id: authUser.id,
-      email,
-      name: displayName,
-      image,
+      email: normalizedEmail,
+      name: displayName ?? authUser.email,
+      image: image ?? null,
       ...(invitedRole ? { appRole: invitedRole } : {}),
     },
     update: {
-      email,
-      name: displayName ?? undefined,
-      image,
+      email: normalizedEmail,
+      name: displayName ?? (authUser.user_metadata?.full_name as string | undefined) ?? undefined,
+      image: image ?? undefined,
       ...(invitedRole ? { appRole: invitedRole } : {}),
     },
   });
