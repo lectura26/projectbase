@@ -20,9 +20,9 @@ import {
   createCalendarEvent,
   createProjectFileRecord,
   createTask,
-  cycleTaskStatus,
   deleteActivity,
   deleteProjectFile,
+  setTaskStatus,
   updateTaskFields,
 } from "@/app/(dashboard)/projekter/project-detail-actions";
 import { validateUploadFile } from "@/lib/storage/file-validation";
@@ -53,10 +53,9 @@ const PROJECT_STATUS_OPTIONS: { value: ProjectStatus; label: string }[] = [
   { value: "COMPLETED", label: "Afsluttet" },
 ];
 
-const TASK_CYCLE_ORDER: TaskStatus[] = ["TODO", "IN_PROGRESS", "DONE"];
-
-function nextTaskStatus(current: TaskStatus): TaskStatus {
-  return TASK_CYCLE_ORDER[(TASK_CYCLE_ORDER.indexOf(current) + 1) % TASK_CYCLE_ORDER.length];
+/** Checkbox: ét klik = færdig / ikke færdig (ikke 3-trins cyklus). */
+function toggleDoneTaskStatus(current: TaskStatus): TaskStatus {
+  return current === "DONE" ? "TODO" : "DONE";
 }
 
 const EASE_STANDARD: [number, number, number, number] = [0.25, 0.1, 0.25, 1];
@@ -479,17 +478,19 @@ function OpgaverTab({
 
   const cycle = (taskId: string) => {
     let prevStatus: TaskStatus | undefined;
+    let nextStatus: TaskStatus | undefined;
     setTasks((prev) => {
       const task = prev.find((t) => t.id === taskId);
       if (!task) return prev;
       prevStatus = task.status;
-      const optimistic = nextTaskStatus(task.status);
-      return prev.map((t) => (t.id === taskId ? { ...t, status: optimistic } : t));
+      const next = toggleDoneTaskStatus(task.status);
+      nextStatus = next;
+      return prev.map((t) => (t.id === taskId ? { ...t, status: next } : t));
     });
-    if (prevStatus === undefined) return;
-    void cycleTaskStatus(taskId)
-      .then((r) => {
-        if (r.newStatus === "DONE") toast.success("Opgave fuldført");
+    if (prevStatus === undefined || nextStatus === undefined) return;
+    void setTaskStatus(taskId, nextStatus)
+      .then(() => {
+        if (nextStatus === "DONE") toast.success("Opgave fuldført");
       })
       .catch((err: unknown) => {
         patchTask(taskId, { status: prevStatus });
