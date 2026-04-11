@@ -126,40 +126,38 @@ export default function ProjekterPageClient({
       <div className="sticky top-0 z-30 border-b border-slate-200 bg-white/85 backdrop-blur-md">
         <div className="flex h-12 items-center justify-between px-8">
           <h1 className="text-base font-extrabold tracking-tight text-primary-container">Projekter</h1>
-          <div className="flex min-w-0 flex-wrap items-center justify-end gap-x-3 gap-y-2">
-            <button
-              type="button"
-              onClick={() => setCreateOpen(true)}
-              className="flex shrink-0 items-center gap-2 rounded-md bg-primary px-4 py-2 font-body text-xs font-medium text-on-primary hover:opacity-90"
-            >
-              <span className="material-symbols-outlined text-sm">add</span>
-              Nyt projekt
-            </button>
-            <div className="flex flex-shrink-0 rounded-lg bg-surface-container-low p-1">
-              <button type="button" onClick={() => setView("liste")} className={segBtn(view === "liste")}>
-                <span className="material-symbols-outlined text-sm">list</span>
-                Liste
-              </button>
-              <button type="button" onClick={() => setView("kanban")} className={segBtn(view === "kanban")}>
-                <span className="material-symbols-outlined text-sm">view_kanban</span>
-                Kanban
-              </button>
-              <button type="button" onClick={() => setView("kalender")} className={segBtn(view === "kalender")}>
-                <span className="material-symbols-outlined text-sm">calendar_month</span>
-                Kalender
-              </button>
-              <button type="button" onClick={() => setView("tabel")} className={segBtn(view === "tabel")}>
-                <span className="material-symbols-outlined text-sm">table_rows</span>
-                Tabel
-              </button>
-            </div>
-          </div>
+          <button
+            type="button"
+            onClick={() => setCreateOpen(true)}
+            className="flex shrink-0 items-center gap-2 rounded-md bg-primary px-4 py-2 font-body text-xs font-medium text-on-primary hover:opacity-90"
+          >
+            <span className="material-symbols-outlined text-sm">add</span>
+            Nyt projekt
+          </button>
         </div>
-        <div className="px-8 pb-3">
+        <div className="flex items-center justify-between gap-4 px-8 pb-3">
+          <div className="flex min-w-0 flex-wrap items-center rounded-lg bg-surface-container-low p-1">
+            <button type="button" onClick={() => setView("liste")} className={segBtn(view === "liste")}>
+              <span className="material-symbols-outlined text-sm">list</span>
+              Liste
+            </button>
+            <button type="button" onClick={() => setView("kanban")} className={segBtn(view === "kanban")}>
+              <span className="material-symbols-outlined text-sm">view_kanban</span>
+              Kanban
+            </button>
+            <button type="button" onClick={() => setView("kalender")} className={segBtn(view === "kalender")}>
+              <span className="material-symbols-outlined text-sm">calendar_month</span>
+              Kalender
+            </button>
+            <button type="button" onClick={() => setView("tabel")} className={segBtn(view === "tabel")}>
+              <span className="material-symbols-outlined text-sm">table_rows</span>
+              Tabel
+            </button>
+          </div>
           <button
             type="button"
             onClick={() => setFiltersOpen((v) => !v)}
-            className="inline-flex items-center gap-1.5 font-body text-xs font-semibold text-primary hover:opacity-90"
+            className="inline-flex shrink-0 items-center gap-1.5 font-body text-xs font-semibold text-primary hover:opacity-90"
           >
             <span className="material-symbols-outlined text-sm">filter_list</span>
             Filtrer
