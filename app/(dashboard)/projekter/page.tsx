@@ -37,18 +37,6 @@ export default async function ProjekterPage() {
 
   const selfLabel = prismaUser?.name ?? prismaUser?.email ?? user.email;
 
-  const ownerOptions = Array.from(
-    new Map(
-      rows.map((r) => [
-        r.user.id,
-        {
-          id: r.user.id,
-          name: r.user.name ?? r.user.email,
-        },
-      ])
-    ).values()
-  ).sort((a, b) => a.name.localeCompare(b.name, "da"));
-
   const initialProjects: ProjectListItem[] = rows.map((r) => ({
     id: r.id,
     name: r.name,
@@ -74,7 +62,6 @@ export default async function ProjekterPage() {
   return (
     <ProjekterPageClient
       initialProjects={initialProjects}
-      ownerOptions={ownerOptions}
       usersForCreate={usersForCreate}
       currentUserId={user.id}
     />

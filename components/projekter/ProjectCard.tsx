@@ -105,15 +105,11 @@ function ProjectListRow({ project }: { project: ProjectListItem }) {
 
 export function ProjekterListView({
   projects,
-  quickFilter,
-  onQuickFilterChange,
   showCompleted,
   onShowCompleted,
   onNytProjekt,
 }: {
   projects: ProjectListItem[];
-  quickFilter: ProjekterQuickFilter;
-  onQuickFilterChange: (q: ProjekterQuickFilter) => void;
   showCompleted: boolean;
   onShowCompleted: () => void;
   onNytProjekt: () => void;
@@ -130,44 +126,8 @@ export function ProjekterListView({
 
   const grouped = useMemo(() => groupByStatus(visibleProjects), [visibleProjects]);
 
-  const pills: { id: ProjekterQuickFilter; label: string }[] = [
-    { id: "alle", label: "Alle" },
-    { id: "mine", label: "Mine" },
-    { id: "hoj_prioritet", label: "Høj prioritet" },
-    { id: "overskredet", label: "Overskredet" },
-  ];
-
   return (
     <div className="w-full min-w-0">
-      <div className="mb-4 flex flex-wrap gap-2">
-        {pills.map((p) => {
-          const active = quickFilter === p.id;
-          return (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => onQuickFilterChange(p.id)}
-              className="rounded-[6px] border px-[14px] py-[6px] font-body text-[13px] font-medium transition-colors"
-              style={
-                active
-                  ? {
-                      backgroundColor: "#1a3167",
-                      color: "#fff",
-                      borderColor: "#1a3167",
-                    }
-                  : {
-                      backgroundColor: "#fff",
-                      color: "#0f1923",
-                      borderColor: "#e8e8e8",
-                    }
-              }
-            >
-              {p.label}
-            </button>
-          );
-        })}
-      </div>
-
       {projects.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <p className="font-body text-sm text-[#6b7280]">Ingen projekter matcher filteret.</p>
