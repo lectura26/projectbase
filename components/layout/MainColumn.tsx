@@ -20,7 +20,7 @@ export function MainColumn({
       {hideDefaultTopBar ? null : (
         <TopBar initialNotifications={initialNotifications} />
       )}
-      <main className="min-h-0 flex-1 bg-surface px-8 py-8 font-body">{children}</main>
+      <main className="min-h-0 flex-1 bg-surface px-8 pb-8 pt-[24px] font-body">{children}</main>
     </div>
   );
 }
