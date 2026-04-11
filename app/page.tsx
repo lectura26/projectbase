@@ -1,4 +1,7 @@
+import type { User } from "@supabase/supabase-js";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { hasSupabaseSessionCookie } from "@/lib/auth/has-supabase-session-cookie";
 import { createClient } from "@/lib/supabase/server";
 
 function buildCallbackRedirectQuery(
@@ -22,8 +25,6 @@ export default async function Page({
 }: {
   searchParams: Record<string, string | string[] | undefined>;
 }) {
-  // Supabase sometimes redirects to Site URL (/) with ?code= instead of /auth/callback.
-  // Forward so the route handler can exchange the code and set cookies.
   const code = searchParams.code;
   const codeStr = Array.isArray(code) ? code[0] : code;
   const error = searchParams.error;
@@ -38,13 +39,34 @@ export default async function Page({
   }
 
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user: User | null = null;
 
-  if (!user) {
-    redirect("/login");
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch {
+    // Transient or timing issue — fall back to session / cookies below.
   }
 
-  redirect("/oversigt");
+  if (!user?.id) {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    user = session?.user ?? null;
+  }
+
+  if (user?.id) {
+    redirect("/oversigt");
+  }
+
+  if (hasSupabaseSessionCookie()) {
+    redirect("/oversigt");
+  }
+
+  const hasAnySupabaseCookie = cookies().getAll().some((c) => c.name.startsWith("sb-"));
+  if (hasAnySupabaseCookie) {
+    redirect("/oversigt");
+  }
+
+  redirect("/login");
 }

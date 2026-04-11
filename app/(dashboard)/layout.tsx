@@ -1,3 +1,4 @@
+import type { User } from "@supabase/supabase-js";
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { AppToaster } from "@/components/Toaster";
@@ -23,11 +24,23 @@ type AppNotification = {
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user: User | null = null;
 
-  if (!user) {
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch {
+    // Session may still be establishing after OAuth — try getSession below.
+  }
+
+  if (!user?.id) {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    user = session?.user ?? null;
+  }
+
+  if (!user?.id) {
     redirect("/login");
   }
 
