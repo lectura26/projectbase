@@ -70,11 +70,14 @@ function TaskCycleButton({
   const done = task.status === "DONE";
   const inProgress = task.status === "IN_PROGRESS";
   return (
-    <motion.button
+    <button
       type="button"
       aria-label="Skift opgavestatus"
-      onMouseDown={(e) => {
-        if (e.button === 0) onCycle();
+      className="relative flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full border-0 bg-transparent p-0 outline-none ring-offset-2 focus-visible:ring-2 focus-visible:ring-primary/40"
+      onPointerDown={(e) => {
+        if (e.pointerType === "mouse" && e.button !== 0) return;
+        e.preventDefault();
+        onCycle();
       }}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -82,37 +85,40 @@ function TaskCycleButton({
           onCycle();
         }
       }}
-      className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full border-2"
-      animate={
-        done
-          ? { borderColor: "#1a3167", backgroundColor: "#1a3167" }
-          : inProgress
-            ? {
-                borderColor: "#1a3167",
-                backgroundColor: "rgba(0, 27, 79, 0.1)",
-              }
-            : {
-                borderColor: "#c5c6d1",
-                backgroundColor: "#ffffff",
-              }
-      }
-      transition={{ duration: 0.15, ease: EASE_STANDARD }}
     >
-      <AnimatePresence initial={false}>
-        {done ? (
-          <motion.span
-            key="check"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.15, ease: EASE_STANDARD }}
-            className="material-symbols-outlined text-lg leading-none text-white"
-          >
-            check
-          </motion.span>
-        ) : null}
-      </AnimatePresence>
-    </motion.button>
+      <motion.div
+        className="pointer-events-none flex h-full w-full items-center justify-center rounded-full border-2"
+        animate={
+          done
+            ? { borderColor: "#1a3167", backgroundColor: "#1a3167" }
+            : inProgress
+              ? {
+                  borderColor: "#1a3167",
+                  backgroundColor: "rgba(0, 27, 79, 0.1)",
+                }
+              : {
+                  borderColor: "#c5c6d1",
+                  backgroundColor: "#ffffff",
+                }
+        }
+        transition={{ duration: 0.15, ease: EASE_STANDARD }}
+      >
+        <AnimatePresence initial={false}>
+          {done ? (
+            <motion.span
+              key="check"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.15, ease: EASE_STANDARD }}
+              className="material-symbols-outlined text-lg leading-none text-white"
+            >
+              check
+            </motion.span>
+          ) : null}
+        </AnimatePresence>
+      </motion.div>
+    </button>
   );
 }
 
@@ -484,11 +490,15 @@ function OpgaverTab({
   }, []);
 
   const cycle = (taskId: string) => {
-    const task = tasks.find((t) => t.id === taskId);
-    if (!task) return;
-    const prevStatus = task.status;
-    const optimistic = nextTaskStatus(prevStatus);
-    patchTask(taskId, { status: optimistic });
+    let prevStatus: TaskStatus | undefined;
+    setTasks((prev) => {
+      const task = prev.find((t) => t.id === taskId);
+      if (!task) return prev;
+      prevStatus = task.status;
+      const optimistic = nextTaskStatus(task.status);
+      return prev.map((t) => (t.id === taskId ? { ...t, status: optimistic } : t));
+    });
+    if (prevStatus === undefined) return;
     void cycleTaskStatus(taskId)
       .then((r) => {
         if (r.newStatus === "DONE") toast.success("Opgave fuldført");
