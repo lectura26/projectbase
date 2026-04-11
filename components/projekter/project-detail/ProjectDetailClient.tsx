@@ -73,7 +73,15 @@ function TaskCycleButton({
     <motion.button
       type="button"
       aria-label="Skift opgavestatus"
-      onClick={onCycle}
+      onMouseDown={(e) => {
+        if (e.button === 0) onCycle();
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onCycle();
+        }
+      }}
       className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full border-2"
       animate={
         done
