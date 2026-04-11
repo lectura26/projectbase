@@ -510,8 +510,10 @@ function OpgaverTab({
     }
     setNewTaskError("");
     try {
-      await createTask(projectId, t);
+      const created = await createTask(projectId, t);
       setNewTaskTitle("");
+      setTasks((prev) => (prev.some((x) => x.id === created.id) ? prev : [...prev, created]));
+      setExpandedTaskId(created.id);
       routerRefresh();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Fejl");

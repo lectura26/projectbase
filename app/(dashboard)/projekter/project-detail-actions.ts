@@ -9,6 +9,7 @@ import { createNotification } from "@/lib/notifications/service";
 import { PRIVATE_FILE_PLACEHOLDER } from "@/lib/files/private-file-url";
 import { projectAccessWhere } from "@/lib/projekter/project-access";
 import { removeStorageObject } from "@/lib/supabase/storage-remove";
+import type { TaskDetailDTO } from "@/types/project-detail";
 
 async function assertProjectMember(projectId: string, userId: string) {
   const p = await prisma.project.findFirst({
@@ -133,7 +134,7 @@ export async function updateTaskFields(input: {
   revalidatePath(`/projekter/${task.projectId}`);
 }
 
-export async function createTask(projectId: string, title: string) {
+export async function createTask(projectId: string, title: string): Promise<TaskDetailDTO> {
   const user = await getSessionUser();
   if (!user) throw new Error("Ikke logget ind.");
 
@@ -141,13 +142,31 @@ export async function createTask(projectId: string, title: string) {
   if (!t) throw new Error("Titel påkrævet.");
 
   await assertProjectMember(projectId, user.id);
-  await prisma.task.create({
+  const row = await prisma.task.create({
     data: {
       projectId,
       title: t,
     },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      status: true,
+      priority: true,
+      deadline: true,
+    },
   });
   revalidatePath(`/projekter/${projectId}`);
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    status: row.status,
+    priority: row.priority,
+    deadline: row.deadline ? row.deadline.toISOString() : null,
+    assignee: null,
+    comments: [],
+  };
 }
 
 export async function addProjectComment(projectId: string, content: string) {
