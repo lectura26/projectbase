@@ -134,28 +134,72 @@ export async function updateTaskFields(input: {
   revalidatePath(`/projekter/${task.projectId}`);
 }
 
-export async function createTask(projectId: string, title: string): Promise<TaskDetailDTO> {
+export type CreateTaskInput = {
+  title: string;
+  description?: string | null;
+  deadline?: string | null;
+  userId?: string | null;
+  priority?: Priority;
+};
+
+export async function createTask(projectId: string, input: CreateTaskInput): Promise<TaskDetailDTO> {
   const user = await getSessionUser();
   if (!user) throw new Error("Ikke logget ind.");
 
-  const t = title.trim();
+  const t = input.title.trim();
   if (!t) throw new Error("Titel påkrævet.");
 
   await assertProjectMember(projectId, user.id);
+
+  if (input.userId) {
+    const allowed = await prisma.user.findFirst({
+      where: {
+        id: input.userId,
+        OR: [
+          { ownedProjects: { some: { id: projectId } } },
+          { projectMembers: { some: { projectId } } },
+        ],
+      },
+    });
+    if (!allowed) throw new Error("Ugyldig ansvarlig.");
+  }
+
+  const deadline =
+    input.deadline && input.deadline.trim() !== "" ? new Date(input.deadline.trim()) : null;
+
   const row = await prisma.task.create({
     data: {
       projectId,
       title: t,
+      description: input.description?.trim() || null,
+      deadline,
+      userId: input.userId || null,
+      priority: input.priority ?? "MEDIUM",
     },
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      status: true,
-      priority: true,
-      deadline: true,
+    include: {
+      user: { select: { id: true, name: true, email: true, image: true } },
     },
   });
+
+  if (input.userId && input.userId !== user.id) {
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { name: true },
+    });
+    const assigner = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { name: true, email: true },
+    });
+    const label = assigner?.name?.trim() || assigner?.email || "En bruger";
+    await createNotification({
+      userId: input.userId,
+      type: "TASK_ASSIGNED",
+      message: `${label} har tildelt dig en opgave på ${project?.name ?? "projekt"}`,
+      relatedProjectId: projectId,
+      relatedTaskId: row.id,
+    });
+  }
+
   revalidatePath(`/projekter/${projectId}`);
   return {
     id: row.id,
@@ -164,7 +208,14 @@ export async function createTask(projectId: string, title: string): Promise<Task
     status: row.status,
     priority: row.priority,
     deadline: row.deadline ? row.deadline.toISOString() : null,
-    assignee: null,
+    assignee: row.user
+      ? {
+          id: row.user.id,
+          name: row.user.name,
+          email: row.user.email,
+          image: row.user.image,
+        }
+      : null,
     comments: [],
   };
 }

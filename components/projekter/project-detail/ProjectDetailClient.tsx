@@ -186,7 +186,6 @@ export default function ProjectDetailClient({
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
   const [hoverActivityId, setHoverActivityId] = useState<string | null>(null);
   const [hoverFileId, setHoverFileId] = useState<string | null>(null);
-  const [newTaskTitle, setNewTaskTitle] = useState("");
   const [projectCommentDraft, setProjectCommentDraft] = useState("");
   const [eventFormOpen, setEventFormOpen] = useState(false);
   const [eventTitle, setEventTitle] = useState("");
@@ -388,8 +387,6 @@ export default function ProjectDetailClient({
             assigneeOptions={assigneeOptions}
             expandedTaskId={expandedTaskId}
             setExpandedTaskId={setExpandedTaskId}
-            newTaskTitle={newTaskTitle}
-            setNewTaskTitle={setNewTaskTitle}
             routerRefresh={() => router.refresh()}
           />
         ) : null}
@@ -456,8 +453,6 @@ function OpgaverTab({
   assigneeOptions,
   expandedTaskId,
   setExpandedTaskId,
-  newTaskTitle,
-  setNewTaskTitle,
   routerRefresh,
 }: {
   projectId: string;
@@ -466,11 +461,35 @@ function OpgaverTab({
   assigneeOptions: ProjectDetailPayload["owner"][];
   expandedTaskId: string | null;
   setExpandedTaskId: (id: string | null) => void;
-  newTaskTitle: string;
-  setNewTaskTitle: (s: string) => void;
   routerRefresh: () => void;
 }) {
-  const [newTaskError, setNewTaskError] = useState("");
+  const [addTaskOpen, setAddTaskOpen] = useState(false);
+  const [draftTitle, setDraftTitle] = useState("");
+  const [draftDesc, setDraftDesc] = useState("");
+  const [draftDeadline, setDraftDeadline] = useState("");
+  const [draftAssignee, setDraftAssignee] = useState("");
+  const [draftPriority, setDraftPriority] = useState<Priority>("MEDIUM");
+  const [createError, setCreateError] = useState("");
+  const [creating, setCreating] = useState(false);
+
+  const resetAddTaskForm = useCallback(() => {
+    setDraftTitle("");
+    setDraftDesc("");
+    setDraftDeadline("");
+    setDraftAssignee("");
+    setDraftPriority("MEDIUM");
+    setCreateError("");
+  }, []);
+
+  const openAddTaskForm = useCallback(() => {
+    resetAddTaskForm();
+    setAddTaskOpen(true);
+  }, [resetAddTaskForm]);
+
+  const cancelAddTask = useCallback(() => {
+    resetAddTaskForm();
+    setAddTaskOpen(false);
+  }, [resetAddTaskForm]);
 
   const patchTask = useCallback((taskId: string, patch: Partial<TaskDetailDTO>) => {
     setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, ...patch } : t)));
@@ -502,21 +521,31 @@ function OpgaverTab({
     setExpandedTaskId(expandedTaskId === taskId ? null : taskId);
   };
 
-  const addTask = async () => {
-    const t = newTaskTitle.trim();
+  const submitNewTask = async () => {
+    const t = draftTitle.trim();
     if (!t) {
-      setNewTaskError("Titel er påkrævet.");
+      setCreateError("Titel er påkrævet.");
       return;
     }
-    setNewTaskError("");
+    setCreateError("");
+    setCreating(true);
     try {
-      const created = await createTask(projectId, t);
-      setNewTaskTitle("");
+      const created = await createTask(projectId, {
+        title: t,
+        description: draftDesc.trim() || null,
+        deadline: draftDeadline.trim() || null,
+        userId: draftAssignee.trim() || null,
+        priority: draftPriority,
+      });
+      resetAddTaskForm();
+      setAddTaskOpen(false);
       setTasks((prev) => (prev.some((x) => x.id === created.id) ? prev : [...prev, created]));
       setExpandedTaskId(created.id);
       routerRefresh();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Fejl");
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -567,27 +596,116 @@ function OpgaverTab({
           </div>
         );
       })}
-      <div className="pt-4">
-        <input
-          type="text"
-          value={newTaskTitle}
-          onChange={(e) => {
-            setNewTaskTitle(e.target.value);
-            setNewTaskError("");
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              void addTask();
-            }
-          }}
-          placeholder="Tilføj opgave..."
-          aria-invalid={Boolean(newTaskError)}
-          className="w-full rounded-lg border border-dashed border-outline-variant/20 bg-transparent px-3 py-2 font-body text-sm placeholder:text-on-surface-variant focus:border-primary focus:outline-none"
-        />
-        {newTaskError ? (
-          <p className="mt-1.5 text-xs text-error">{newTaskError}</p>
-        ) : null}
+      <div className="rounded-lg border border-outline-variant/15 bg-surface-container-low/50">
+        {!addTaskOpen ? (
+          <button
+            type="button"
+            onClick={openAddTaskForm}
+            className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-surface-container-low"
+          >
+            <span
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-outline-variant/40 text-on-surface-variant"
+              aria-hidden
+            >
+              <span className="material-symbols-outlined text-[20px] leading-none">add</span>
+            </span>
+            <span className="font-body text-sm font-medium text-on-surface-variant">Tilføj opgave...</span>
+          </button>
+        ) : (
+          <div className="bg-white px-4 py-4" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-4">
+              <label className="sr-only" htmlFor="new-task-title">
+                Opgavetitel
+              </label>
+              <input
+                id="new-task-title"
+                type="text"
+                value={draftTitle}
+                onChange={(e) => {
+                  setDraftTitle(e.target.value);
+                  setCreateError("");
+                }}
+                autoFocus
+                placeholder="Opgavetitel"
+                className="w-full border-0 border-b border-transparent bg-transparent px-0 py-0.5 font-body text-sm font-medium text-on-surface placeholder:text-on-surface-variant/70 focus:border-primary focus:outline-none focus:ring-0"
+              />
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="md:col-span-2">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+                  Beskrivelse
+                </label>
+                <textarea
+                  value={draftDesc}
+                  onChange={(e) => setDraftDesc(e.target.value)}
+                  rows={3}
+                  className="mt-1 w-full rounded-lg border border-outline-variant/30 px-3 py-2 font-body text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+                  Frist
+                </label>
+                <input
+                  type="date"
+                  value={draftDeadline}
+                  onChange={(e) => setDraftDeadline(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-outline-variant/30 px-3 py-2 font-body text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+                  Ansvarlig
+                </label>
+                <select
+                  value={draftAssignee}
+                  onChange={(e) => setDraftAssignee(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-outline-variant/30 px-3 py-2 font-body text-sm"
+                >
+                  <option value="">—</option>
+                  {assigneeOptions.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {displayName(u)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+                  Prioritet
+                </label>
+                <select
+                  value={draftPriority}
+                  onChange={(e) => setDraftPriority(e.target.value as Priority)}
+                  className="mt-1 w-full rounded-lg border border-outline-variant/30 px-3 py-2 font-body text-sm"
+                >
+                  <option value="LOW">Lav</option>
+                  <option value="MEDIUM">Medium</option>
+                  <option value="HIGH">Høj</option>
+                </select>
+              </div>
+            </div>
+            {createError ? <p className="mt-3 text-xs text-error">{createError}</p> : null}
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                disabled={creating}
+                onClick={() => void submitNewTask()}
+                className="rounded-lg bg-primary px-5 py-2.5 font-body text-sm font-medium text-on-primary hover:opacity-90 disabled:opacity-60"
+              >
+                Opret opgave
+              </button>
+              <button
+                type="button"
+                disabled={creating}
+                onClick={cancelAddTask}
+                className="rounded-lg px-4 py-2.5 font-body text-sm font-medium text-on-surface-variant hover:bg-surface-container-low hover:text-primary"
+              >
+                Annuller
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
