@@ -65,21 +65,15 @@ function TaskCycleButton({
   onCycle,
 }: {
   task: TaskDetailDTO;
-  onCycle: (e?: React.SyntheticEvent) => void;
+  onCycle: () => void;
 }) {
   const done = task.status === "DONE";
   const inProgress = task.status === "IN_PROGRESS";
   return (
-    <motion.span
-      role="button"
-      tabIndex={0}
-      onClick={(e) => onCycle(e)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onCycle(e);
-        }
-      }}
+    <motion.button
+      type="button"
+      aria-label="Skift opgavestatus"
+      onClick={onCycle}
       className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full border-2"
       animate={
         done
@@ -110,7 +104,7 @@ function TaskCycleButton({
           </motion.span>
         ) : null}
       </AnimatePresence>
-    </motion.span>
+    </motion.button>
   );
 }
 
@@ -481,8 +475,7 @@ function OpgaverTab({
     setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, ...patch } : t)));
   }, []);
 
-  const cycle = (taskId: string, e?: React.SyntheticEvent) => {
-    e?.stopPropagation();
+  const cycle = (taskId: string) => {
     const task = tasks.find((t) => t.id === taskId);
     if (!task) return;
     const prevStatus = task.status;
@@ -531,27 +524,29 @@ function OpgaverTab({
             key={task.id}
             className="rounded-lg border border-outline-variant/15 bg-surface-container-low/50"
           >
-            <button
-              type="button"
-              onClick={() => toggleRow(task.id)}
-              className="flex w-full items-center gap-3 px-4 py-3 text-left"
-            >
-              <TaskCycleButton task={task} onCycle={(e) => void cycle(task.id, e)} />
-              <div className="min-w-0 flex-1 truncate text-left">
-                <TaskTitleAnimated task={task} done={done} />
-              </div>
-              {task.assignee ? (
-                <span className="hidden shrink-0 rounded-full bg-primary-container/15 px-2 py-0.5 text-[11px] font-bold text-primary-container sm:inline">
-                  {initialsFromUser(task.assignee)}
-                </span>
-              ) : null}
-              {task.deadline ? (
-                <span className="hidden text-xs text-on-surface-variant sm:inline">
-                  {formatDaDate(task.deadline)}
-                </span>
-              ) : null}
-              <PriorityBadge priority={task.priority} />
-            </button>
+            <div className="flex w-full items-center gap-3 px-4 py-3">
+              <TaskCycleButton task={task} onCycle={() => cycle(task.id)} />
+              <button
+                type="button"
+                className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                onClick={() => toggleRow(task.id)}
+              >
+                <div className="min-w-0 flex-1 truncate text-left">
+                  <TaskTitleAnimated task={task} done={done} />
+                </div>
+                {task.assignee ? (
+                  <span className="hidden shrink-0 rounded-full bg-primary-container/15 px-2 py-0.5 text-[11px] font-bold text-primary-container sm:inline">
+                    {initialsFromUser(task.assignee)}
+                  </span>
+                ) : null}
+                {task.deadline ? (
+                  <span className="hidden text-xs text-on-surface-variant sm:inline">
+                    {formatDaDate(task.deadline)}
+                  </span>
+                ) : null}
+                <PriorityBadge priority={task.priority} />
+              </button>
+            </div>
             {expanded ? (
               <TaskExpanded
                 task={task}
