@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { Logo } from "@/components/Logo";
 import { createClient } from "@/lib/supabase/client";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
@@ -28,14 +28,7 @@ function LoginForm() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-surface px-6 py-12">
       <div className="flex w-full max-w-[400px] flex-col items-center">
-        <Image
-          src="/projectbase_logo_white.svg?v=2"
-          alt="Projectbase"
-          width={180}
-          height={45}
-          priority
-          className="mb-8 h-auto w-[180px]"
-        />
+        <Logo className="mb-8 h-auto w-[180px]" />
         <div className="w-full rounded-xl bg-surface-container-lowest p-10 shadow-sm ring-1 ring-black/5">
           {error ? (
             <p className="rounded-lg bg-error-container px-4 py-2 text-sm text-on-error-container">

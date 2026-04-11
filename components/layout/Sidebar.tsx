@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+import { Logo } from "@/components/Logo";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { NAV_ITEMS, navIdFromPath } from "./nav-config";
@@ -22,14 +22,7 @@ export function Sidebar({ userLabel }: { userLabel: string }) {
       aria-label="Hovednavigation"
     >
       <div className="mb-8 flex items-center gap-2 px-1">
-        <Image
-          src="/projectbase_logo_dark.svg"
-          alt="Projectbase"
-          width={148}
-          height={36}
-          priority
-          className="h-8 w-auto"
-        />
+        <Logo className="h-8 w-auto" />
       </div>
       <nav className="flex flex-1 flex-col gap-1">
         {NAV_ITEMS.map((item) => {
