@@ -76,6 +76,7 @@ export default async function ProjekterPage() {
       initialProjects={initialProjects}
       ownerOptions={ownerOptions}
       usersForCreate={usersForCreate}
+      currentUserId={user.id}
     />
   );
 }

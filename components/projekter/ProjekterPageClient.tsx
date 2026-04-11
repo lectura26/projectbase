@@ -4,7 +4,10 @@ import type { Priority, ProjectStatus } from "@prisma/client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ProjectListItem } from "@/types/projekter";
 import { NytProjektModal } from "./NytProjektModal";
-import { ProjectCard } from "./ProjectCard";
+import {
+  ProjekterListView,
+  type ProjekterQuickFilter,
+} from "./ProjectCard";
 import { ProjekterKanban } from "./ProjekterKanban";
 
 type ViewMode = "liste" | "kanban" | "kalender" | "tabel";
@@ -50,32 +53,65 @@ function applyFilters(projects: ProjectListItem[], f: FilterState): ProjectListI
   });
 }
 
+function applyQuickFilter(
+  projects: ProjectListItem[],
+  q: ProjekterQuickFilter,
+  currentUserId: string,
+): ProjectListItem[] {
+  if (q === "alle") return projects;
+  const now = new Date();
+  switch (q) {
+    case "mine":
+      return projects.filter((p) => p.owner.id === currentUserId);
+    case "hoj_prioritet":
+      return projects.filter((p) => p.priority === "HIGH");
+    case "overskredet":
+      return projects.filter(
+        (p) =>
+          p.deadline != null &&
+          new Date(p.deadline) < now &&
+          p.status !== "COMPLETED",
+      );
+    default:
+      return projects;
+  }
+}
+
 export default function ProjekterPageClient({
   initialProjects,
   ownerOptions,
   usersForCreate,
+  currentUserId,
 }: {
   initialProjects: ProjectListItem[];
   ownerOptions: { id: string; name: string }[];
   usersForCreate: { id: string; name: string; email: string }[];
+  currentUserId: string;
 }) {
   const [view, setView] = useState<ViewMode>("liste");
   const [createOpen, setCreateOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [projects, setProjects] = useState<ProjectListItem[]>(initialProjects);
+  const [quickFilter, setQuickFilter] = useState<ProjekterQuickFilter>("alle");
+  const [showCompleted, setShowCompleted] = useState(false);
 
   useEffect(() => {
     setProjects(initialProjects);
   }, [initialProjects]);
 
-  const filtered = useMemo(() => applyFilters(projects, filters), [projects, filters]);
+  const advancedFiltered = useMemo(() => applyFilters(projects, filters), [projects, filters]);
+
+  const quickFiltered = useMemo(
+    () => applyQuickFilter(advancedFiltered, quickFilter, currentUserId),
+    [advancedFiltered, quickFilter, currentUserId],
+  );
 
   const onProjectsUpdate = useCallback(
     (updater: (prev: ProjectListItem[]) => ProjectListItem[]) => {
       setProjects(updater);
     },
-    []
+    [],
   );
 
   const segBtn = (active: boolean) =>
@@ -211,20 +247,17 @@ export default function ProjekterPageClient({
       </div>
 
       <div className="px-8 py-8">
-        {filtered.length === 0 ? (
-          <p className="py-6 text-center text-sm text-on-surface-variant/90">
-            {projects.length === 0
-              ? "Ingen projekter endnu."
-              : "Ingen projekter matcher filtrene."}
-          </p>
-        ) : view === "liste" ? (
-          <div className="grid grid-cols-2 gap-3">
-            {filtered.map((p) => (
-              <ProjectCard key={p.id} project={p} />
-            ))}
-          </div>
+        {view === "liste" ? (
+          <ProjekterListView
+            projects={quickFiltered}
+            quickFilter={quickFilter}
+            onQuickFilterChange={setQuickFilter}
+            showCompleted={showCompleted}
+            onShowCompleted={() => setShowCompleted(true)}
+            onNytProjekt={() => setCreateOpen(true)}
+          />
         ) : view === "kanban" ? (
-          <ProjekterKanban projects={filtered} onProjectsUpdate={onProjectsUpdate} />
+          <ProjekterKanban projects={advancedFiltered} onProjectsUpdate={onProjectsUpdate} />
         ) : view === "kalender" ? (
           <div className="rounded-xl bg-surface-container-lowest p-12 text-center font-body text-sm text-on-surface-variant shadow-sm ring-1 ring-black/5">
             Kalendervisning kommer snart.
