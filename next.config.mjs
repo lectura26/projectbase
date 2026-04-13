@@ -1,44 +1,17 @@
 /** @type {import('next').NextConfig} */
-function supabaseConnectHost() {
-  const raw = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (!raw) return "*.supabase.co";
-  try {
-    return new URL(raw).host;
-  } catch {
-    return "*.supabase.co";
-  }
-}
-
-const supabaseHost = supabaseConnectHost();
-const connectSupabase =
-  supabaseHost === "*.supabase.co"
-    ? "https://*.supabase.co wss://*.supabase.co"
-    : `https://${supabaseHost} wss://${supabaseHost}`;
-
-const csp = [
-  "default-src 'self'",
-  "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src 'self' data: https://fonts.gstatic.com",
-  "img-src 'self' data: blob: https:",
-  `connect-src 'self' ${connectSupabase} https://*.googleapis.com`,
-  "frame-src 'self' https://accounts.google.com",
-  "form-action 'self'",
-  "base-uri 'self'",
-  "object-src 'none'",
-].join("; ");
-
 const nextConfig = {
   async headers() {
     return [
       {
-        source: "/:path*",
+        source: "/(.*)",
         headers: [
-          { key: "X-Frame-Options", value: "DENY" },
-          { key: "X-Content-Type-Options", value: "nosniff" },
           {
-            key: "Strict-Transport-Security",
-            value: "max-age=31536000; includeSubDomains",
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
           },
           {
             key: "Referrer-Policy",
@@ -46,9 +19,35 @@ const nextConfig = {
           },
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
+            value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
           },
-          { key: "Content-Security-Policy", value: csp },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' https://fonts.gstatic.com",
+              "img-src 'self' data: blob: https://lh3.googleusercontent.com https://*.supabase.co",
+              "connect-src 'self' https://*.supabase.co https://accounts.google.com",
+              "frame-src https://accounts.google.com",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+            ].join("; "),
+          },
+          {
+            key: "Cross-Origin-Opener-Policy",
+            value: "same-origin-allow-popups",
+          },
+          {
+            key: "Cross-Origin-Resource-Policy",
+            value: "same-origin",
+          },
         ],
       },
     ];
