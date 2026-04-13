@@ -20,9 +20,9 @@ function tableStatusBadgeClass(status: ProjectStatus): string {
     case "IN_PROGRESS":
       return "bg-[#dbeafe] text-[#1e40af]";
     case "WAITING":
-      return "bg-[#fee2e2] text-[#b91c1c]";
+      return "bg-[#fee2e2] text-[#dc2626]";
     case "COMPLETED":
-      return "bg-[#dcfce7] text-[#15803d]";
+      return "bg-[#dcfce7] text-[#16a34a]";
     default:
       return "bg-[#f3f4f6] text-[#6b7280]";
   }
@@ -44,27 +44,18 @@ function tableStatusLabelUpper(status: ProjectStatus): string {
 function priorityDotClass(priority: Priority): string {
   switch (priority) {
     case "HIGH":
-      return "bg-[#ef4444]";
+      return "bg-[#dc2626]";
     case "MEDIUM":
-      return "bg-amber-400";
+      return "bg-[#d97706]";
     case "LOW":
       return "bg-[#9ca3af]";
   }
 }
 
-function progressBarFillClass(status: ProjectStatus): string {
-  switch (status) {
-    case "IN_PROGRESS":
-      return "bg-[#001533]";
-    case "COMPLETED":
-      return "bg-[#15803d]";
-    case "WAITING":
-      return "bg-[#dc2626]";
-    case "NOT_STARTED":
-      return "bg-[#6b7280]";
-    default:
-      return "bg-[#001533]";
-  }
+function progressBarFillClass(status: ProjectStatus, pct: number): string {
+  if (status === "WAITING") return "bg-[#dc2626]";
+  if (status === "COMPLETED" || pct >= 100) return "bg-[#16a34a]";
+  return "bg-[#1a3167]";
 }
 
 function formatFristDate(d: Date): string {
@@ -87,7 +78,7 @@ function ProjectListRow({ project }: { project: ProjectListItem }) {
 
   return (
     <tr
-      className="h-[52px] cursor-pointer border-b border-[#e8e8e8] transition-colors hover:bg-[#f8f9fa]"
+      className="cursor-pointer border-b border-[#e8e8e8] bg-white transition-colors last:border-b-0 hover:bg-[#f8f9fa]"
       onClick={go}
       role="link"
       tabIndex={0}
@@ -98,26 +89,26 @@ function ProjectListRow({ project }: { project: ProjectListItem }) {
         }
       }}
     >
-      <td className="px-3 py-0 align-middle">
+      <td className="px-4 py-[14px] align-middle">
         <div className="flex min-w-0 items-center gap-1.5">
           <span className="min-w-0 truncate font-body text-[14px] font-medium text-[#0f1923]">
             {project.name}
           </span>
           {project.isRoutine ? (
-            <span className="shrink-0 text-[14px] font-medium text-[#1e40af]" title="Rutine" aria-label="Rutine">
+            <span className="shrink-0 text-[14px] font-medium text-[#6b7280]" title="Rutine" aria-label="Rutine">
               ↻
             </span>
           ) : null}
         </div>
       </td>
-      <td className="px-3 py-0 align-middle">
+      <td className="px-4 py-[14px] align-middle">
         <span
           className={`${BADGE_TABLE_CLASS} whitespace-nowrap ${tableStatusBadgeClass(project.status)}`}
         >
           {tableStatusLabelUpper(project.status)}
         </span>
       </td>
-      <td className="px-3 py-0 align-middle">
+      <td className="px-4 py-[14px] align-middle">
         <span className="inline-flex items-center gap-2 font-body text-[13px] text-[#0f1923]">
           <span
             className={`h-2 w-2 shrink-0 rounded-full ${priorityDotClass(project.priority)}`}
@@ -126,16 +117,16 @@ function ProjectListRow({ project }: { project: ProjectListItem }) {
           {priorityLabelDa(project.priority)}
         </span>
       </td>
-      <td className="px-3 py-0 align-middle">
-        <span className="whitespace-nowrap font-body text-[13px] text-[#6b7280]">
+      <td className="px-4 py-[14px] align-middle">
+        <span className="whitespace-nowrap font-body text-[12px] text-[#6b7280]">
           {deadline ? formatFristDate(deadline) : "—"}
         </span>
       </td>
-      <td className="px-3 py-0 align-middle">
+      <td className="px-4 py-[14px] align-middle">
         <div className="flex w-[140px] max-w-full items-center justify-end gap-2">
-          <div className="h-[4px] w-[120px] shrink-0 overflow-hidden rounded-full bg-[#e8e8e8]">
+          <div className="h-[4px] w-[120px] shrink-0 overflow-hidden rounded-[2px] bg-[#e8e8e8]">
             <div
-              className={`h-full rounded-full ${progressBarFillClass(project.status)}`}
+              className={`h-full rounded-[2px] ${progressBarFillClass(project.status, pct)}`}
               style={{ width: `${pct}%` }}
             />
           </div>
@@ -144,9 +135,9 @@ function ProjectListRow({ project }: { project: ProjectListItem }) {
           </span>
         </div>
       </td>
-      <td className="px-3 py-0 align-middle text-right">
+      <td className="px-4 py-[14px] align-middle text-right">
         <span
-          className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#001533] text-[11px] font-semibold text-white"
+          className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#1a3167] text-[11px] font-semibold text-white"
           title={project.owner.name}
         >
           {contactInitials(project.owner.name)}
@@ -171,31 +162,31 @@ export function ProjekterListView({
           <button
             type="button"
             onClick={onNytProjekt}
-            className="mt-3 font-body text-sm font-medium text-[#001533] underline decoration-[#001533]/30 underline-offset-2 hover:opacity-90"
+            className="mt-3 font-body text-sm font-medium text-[#1a3167] underline decoration-[#1a3167]/30 underline-offset-2 hover:opacity-90"
           >
             + Nyt projekt
           </button>
         </div>
       ) : (
         <table className="w-full min-w-[720px] table-fixed border-collapse">
-          <thead>
+          <thead className="bg-[#f8f9fa]">
             <tr className="border-b border-[#e8e8e8]">
-              <th className="w-[28%] px-3 py-3 text-left font-body text-[11px] font-semibold uppercase tracking-[0.06em] text-[#9ca3af]">
+              <th className="w-[28%] px-4 py-[10px] text-left font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
                 Projekt navn
               </th>
-              <th className="w-[14%] px-3 py-3 text-left font-body text-[11px] font-semibold uppercase tracking-[0.06em] text-[#9ca3af]">
+              <th className="w-[14%] px-4 py-[10px] text-left font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
                 Status
               </th>
-              <th className="w-[14%] px-3 py-3 text-left font-body text-[11px] font-semibold uppercase tracking-[0.06em] text-[#9ca3af]">
+              <th className="w-[14%] px-4 py-[10px] text-left font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
                 Prioritet
               </th>
-              <th className="w-[14%] px-3 py-3 text-left font-body text-[11px] font-semibold uppercase tracking-[0.06em] text-[#9ca3af]">
+              <th className="w-[14%] px-4 py-[10px] text-left font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
                 Frist
               </th>
-              <th className="w-[22%] px-3 py-3 text-left font-body text-[11px] font-semibold uppercase tracking-[0.06em] text-[#9ca3af]">
+              <th className="w-[22%] px-4 py-[10px] text-left font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
                 Fremdrift
               </th>
-              <th className="w-[8%] px-3 py-3 text-right font-body text-[11px] font-semibold uppercase tracking-[0.06em] text-[#9ca3af]">
+              <th className="w-[8%] px-4 py-[10px] text-right font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
                 Ejer
               </th>
             </tr>
