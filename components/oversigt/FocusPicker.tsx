@@ -2,14 +2,12 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { differenceInCalendarDays, startOfDay } from "date-fns";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   statusBadgeClass,
   statusLabelDa,
 } from "@/components/projekter/project-helpers";
 import type { OversigtFocusSuggestion } from "@/types/oversigt";
-
-const AUTO_MS = 5000;
 
 export function fristLine(deadlineIso: string | null): { text: string; urgent: boolean } {
   if (!deadlineIso) return { text: "Ingen frist", urgent: false };
@@ -30,8 +28,6 @@ type Props = {
   autoSelectedId: string | null;
   onClose: () => void;
   onConfirm: (projectId: string) => Promise<void>;
-  onSkip: () => void;
-  onAutoSelect: (projectId: string) => Promise<void>;
 };
 
 export function FocusPicker({
@@ -42,64 +38,31 @@ export function FocusPicker({
   autoSelectedId,
   onClose,
   onConfirm,
-  onSkip,
-  onAutoSelect,
 }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(autoSelectedId);
-  const [barPct, setBarPct] = useState(100);
-  const [countdownLabel, setCountdownLabel] = useState(5);
   const [submitting, setSubmitting] = useState(false);
 
-  const onAutoSelectRef = useRef(onAutoSelect);
-  onAutoSelectRef.current = onAutoSelect;
-
-  const cancelledRef = useRef(false);
-  const rafRef = useRef<number | null>(null);
-
   useEffect(() => {
-    if (!open || !autoSelectedId || suggestions.length === 0) return;
+    if (open) setSelectedId(autoSelectedId);
+  }, [open, autoSelectedId]);
 
-    setSelectedId(autoSelectedId);
-    setBarPct(100);
-    setCountdownLabel(5);
-    cancelledRef.current = false;
+  const topSuggestionId = autoSelectedId ?? suggestions[0]?.id ?? null;
 
-    const start = performance.now();
-    const tick = (now: number) => {
-      if (cancelledRef.current) return;
-      const elapsed = now - start;
-      const pct = Math.max(0, 100 - (elapsed / AUTO_MS) * 100);
-      setBarPct(pct);
-      const secLeft = Math.ceil(Math.max(0, AUTO_MS - elapsed) / 1000);
-      setCountdownLabel(Math.max(0, Math.min(5, secLeft)));
-
-      if (elapsed >= AUTO_MS) {
-        void onAutoSelectRef.current(autoSelectedId).catch(() => {});
-        return;
-      }
-      rafRef.current = requestAnimationFrame(tick);
-    };
-    rafRef.current = requestAnimationFrame(tick);
-    return () => {
-      cancelledRef.current = true;
-      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
-    };
-  }, [open, autoSelectedId, suggestions.length]);
-
-  const cancelTimer = useCallback(() => {
-    cancelledRef.current = true;
-    if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
-  }, []);
-
-  const handleSkip = useCallback(() => {
-    cancelTimer();
-    onSkip();
-    onClose();
-  }, [cancelTimer, onSkip, onClose]);
+  const handleSkip = useCallback(async () => {
+    if (!topSuggestionId) {
+      onClose();
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await onConfirm(topSuggestionId);
+    } finally {
+      setSubmitting(false);
+    }
+  }, [topSuggestionId, onConfirm, onClose]);
 
   const handleConfirm = useCallback(async () => {
     if (!selectedId) return;
-    cancelTimer();
     setSubmitting(true);
     try {
       await onConfirm(selectedId);
@@ -107,7 +70,7 @@ export function FocusPicker({
     } finally {
       setSubmitting(false);
     }
-  }, [selectedId, cancelTimer, onConfirm, onClose]);
+  }, [selectedId, onConfirm, onClose]);
 
   return (
     <AnimatePresence>
@@ -200,25 +163,12 @@ export function FocusPicker({
               })}
             </div>
 
-            {suggestions.length > 0 && autoSelectedId ? (
-              <div className="mt-4 text-center">
-                <p className="text-[13px] text-[#9ca3af]">
-                  Vælger automatisk om {countdownLabel}…
-                </p>
-                <div className="mt-2 h-[3px] w-full overflow-hidden rounded-full bg-[#e8e8e8]">
-                  <div
-                    className="h-full rounded-full bg-[#1a3167]"
-                    style={{ width: `${barPct}%` }}
-                  />
-                </div>
-              </div>
-            ) : null}
-
             <div className="mt-5 flex items-center justify-between gap-3">
               <button
                 type="button"
-                onClick={handleSkip}
-                className="rounded-[6px] border border-[#e8e8e8] bg-white px-[18px] py-2 text-[13px] font-medium text-[#6b7280] hover:bg-[#f8f9fa]"
+                disabled={submitting || !topSuggestionId}
+                onClick={() => void handleSkip()}
+                className="rounded-[6px] border border-[#e8e8e8] bg-white px-[18px] py-2 text-[13px] font-medium text-[#6b7280] hover:bg-[#f8f9fa] disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Spring over
               </button>

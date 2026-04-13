@@ -95,11 +95,6 @@ export default function OversigtPageClient({
     [router],
   );
 
-  const handleSkipFocusPicker = useCallback(() => {
-    morningPickerDismissedRef.current = true;
-    setPickerOpen(false);
-  }, []);
-
   const onToggleTask = useCallback(
     (task: OversigtTaskRow, nextDone: boolean) => {
       if (!nextDone) return;
@@ -126,8 +121,6 @@ export default function OversigtPageClient({
         autoSelectedId={focusAutoSelectedId}
         onClose={() => setPickerOpen(false)}
         onConfirm={applyFocus}
-        onSkip={handleSkipFocusPicker}
-        onAutoSelect={applyFocus}
       />
 
       <header className="mb-8">
