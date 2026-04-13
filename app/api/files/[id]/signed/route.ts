@@ -6,8 +6,8 @@ import { prisma } from "@/lib/prisma";
 import { projectAccessWhere } from "@/lib/projekter/project-access";
 import { createSignedStorageUrl } from "@/lib/supabase/storage-signed";
 
-function supabaseFromCookies() {
-  const cookieStore = cookies();
+async function supabaseFromCookies() {
+  const cookieStore = await cookies();
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -30,10 +30,11 @@ const SIGNED_URL_TTL_SEC = 600;
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const supabase = supabaseFromCookies();
+    const { id } = await params;
+    const supabase = await supabaseFromCookies();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -43,7 +44,7 @@ export async function GET(
     }
 
     const file = await prisma.file.findFirst({
-      where: { id: params.id, project: projectAccessWhere(user.id) },
+      where: { id, project: projectAccessWhere(user.id) },
       select: { storagePath: true },
     });
 

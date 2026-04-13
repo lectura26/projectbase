@@ -22,7 +22,7 @@ export async function removeStorageObject(storagePath: string): Promise<{ ok: tr
     return { ok: true };
   }
 
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
   const { error } = await supabase.storage.from(SUPABASE_STORAGE_BUCKET).remove([storagePath]);
   if (error) {
     console.error("[removeStorageObject]", error.message);

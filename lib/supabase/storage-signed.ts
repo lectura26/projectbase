@@ -27,7 +27,7 @@ export async function createSignedStorageUrl(
     return { signedUrl: data.signedUrl };
   }
 
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
   const { data, error } = await supabase.storage
     .from(SUPABASE_STORAGE_BUCKET)
     .createSignedUrl(storagePath, expiresInSeconds);

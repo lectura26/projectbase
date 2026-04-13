@@ -23,7 +23,7 @@ type AppNotification = {
 };
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   let user: User | null = null;
 
   try {

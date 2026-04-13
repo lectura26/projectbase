@@ -19,8 +19,8 @@ const MAX_CONTACT_LEN = 320;
 const POST_WINDOW_MS = 60_000;
 const POST_MAX_PER_WINDOW = 60;
 
-function supabaseFromCookies() {
-  const cookieStore = cookies();
+async function supabaseFromCookies() {
+  const cookieStore = await cookies();
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -41,7 +41,7 @@ function supabaseFromCookies() {
 
 export async function GET() {
   try {
-    const supabase = supabaseFromCookies();
+    const supabase = await supabaseFromCookies();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -81,7 +81,7 @@ type CreateBody = {
 
 export async function POST(request: Request) {
   try {
-    const supabase = supabaseFromCookies();
+    const supabase = await supabaseFromCookies();
     const {
       data: { user },
     } = await supabase.auth.getUser();

@@ -1368,7 +1368,7 @@ function FilerTab({
   onRefresh,
 }: {
   initial: ProjectDetailPayload;
-  fileInputRef: React.RefObject<HTMLInputElement>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
   hoverFileId: string | null;
   setHoverFileId: (id: string | null) => void;
   onRefresh: () => void;

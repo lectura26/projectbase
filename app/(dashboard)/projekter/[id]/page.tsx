@@ -10,27 +10,27 @@ import type { ProjectDetailPayload } from "@/types/project-detail";
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: { id: string } };
+type Props = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
   const user = await getSessionUser();
   if (!user) {
     return { title: "Projekt" };
   }
   const project = await prisma.project.findFirst({
-    where: { id: params.id, ...projectAccessWhere(user.id) },
+    where: { id, ...projectAccessWhere(user.id) },
     select: { name: true },
   });
   return { title: project?.name ?? "Projekt" };
 }
 
 export default async function ProjectDetailPage({ params }: Props) {
+  const { id } = await params;
   const user = await getSessionUser();
   if (!user) {
     redirect("/login");
   }
-
-  const { id } = params;
 
   const row = await prisma.project.findFirst({
     where: { id, ...projectAccessWhere(user.id) },

@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${origin}/login?error=auth`);
     }
 
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const redirectTo = `${origin}/oversigt`;
     const response = NextResponse.redirect(redirectTo);
 
