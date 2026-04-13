@@ -5,7 +5,6 @@ import { CalendarRange, ChevronRight, LayoutGrid, List } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Priority, ProjectStatus } from "@prisma/client";
 import type { ProjectListItem } from "@/types/projekter";
-import { getGanttTasksForProject } from "@/app/(dashboard)/projekter/actions";
 import GanttView from "./GanttView";
 import { NytProjektModal } from "./NytProjektModal";
 import { ProjekterCompletedListView, ProjekterListView } from "./ProjectCard";
@@ -480,7 +479,7 @@ export default function ProjekterPageClient({
 
       <div className="px-8 pb-8 pt-6">
         {view === "gantt" ? (
-          <GanttView projects={filtered} fetchTasks={getGanttTasksForProject} />
+          <GanttView projects={filtered} />
         ) : view === "liste" ? (
           <>
             <div className="overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white">

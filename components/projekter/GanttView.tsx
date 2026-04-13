@@ -29,8 +29,22 @@ import {
   useRef,
   useState,
 } from "react";
+import { getGanttTasksForProject } from "@/app/(dashboard)/projekter/gantt-actions";
 import type { GanttTaskRow, ProjectListItem } from "@/types/projekter";
 import { BADGE_CHIP_CLASS, statusBadgeClass, statusLabelDa } from "./project-helpers";
+
+function actionErrorMessage(e: unknown): string {
+  if (e instanceof Error) return e.message;
+  if (
+    typeof e === "object" &&
+    e !== null &&
+    "message" in e &&
+    typeof (e as { message: unknown }).message === "string"
+  ) {
+    return (e as { message: string }).message;
+  }
+  return "Kunne ikke hente opgaver.";
+}
 
 type Zoom = "day" | "week" | "month";
 
@@ -161,10 +175,8 @@ function zoomSeg(active: boolean): string {
 
 export default function GanttView({
   projects,
-  fetchTasks,
 }: {
   projects: ProjectListItem[];
-  fetchTasks: (projectId: string) => Promise<GanttTaskRow[]>;
 }) {
   const [level, setLevel] = useState<1 | 2>(1);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
@@ -282,13 +294,12 @@ export default function GanttView({
     let cancelled = false;
     setTasksLoading(true);
     setTasksError(null);
-    fetchTasks(selectedProjectId)
+    getGanttTasksForProject(selectedProjectId)
       .then((rows) => {
-        if (!cancelled) setTasks(rows);
+        if (!cancelled) setTasks(Array.isArray(rows) ? rows : []);
       })
       .catch((e: unknown) => {
-        if (!cancelled)
-          setTasksError(e instanceof Error ? e.message : "Kunne ikke hente opgaver.");
+        if (!cancelled) setTasksError(actionErrorMessage(e));
       })
       .finally(() => {
         if (!cancelled) setTasksLoading(false);
@@ -296,7 +307,7 @@ export default function GanttView({
     return () => {
       cancelled = true;
     };
-  }, [level, selectedProjectId, fetchTasks]);
+  }, [level, selectedProjectId]);
 
   const projectLayouts = useMemo(() => {
     return projects.map((p) => {
