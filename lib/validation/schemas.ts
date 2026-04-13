@@ -8,6 +8,7 @@ import {
   TaskStatus,
 } from "@prisma/client";
 import { z } from "zod";
+import { isAllowedProjectColor } from "@/lib/projekter/project-colors";
 import { MAX_FILE_BYTES } from "@/lib/storage/file-validation";
 
 /** Project / task / comment text limits (defense-in-depth with DB). */
@@ -43,6 +44,12 @@ const trimmedName = z
 export const projectNameSchema = trimmedName;
 
 /** POST /api/projects JSON body */
+const optionalProjectColorZ = z
+  .string()
+  .optional()
+  .transform((s) => (s?.trim() ? s.trim() : undefined))
+  .refine((v) => v === undefined || isAllowedProjectColor(v), "Ugyldig projektfarve");
+
 export const apiProjectCreateSchema = z.object({
   name: trimmedName,
   description: z.union([z.string().max(MAX_PROJECT_DESCRIPTION), z.null()]).optional(),
@@ -53,6 +60,7 @@ export const apiProjectCreateSchema = z.object({
   isRoutine: z.boolean().optional(),
   contactName: z.string().max(MAX_CONTACT_LEN).optional(),
   contactEmail: z.string().max(MAX_CONTACT_LEN).optional(),
+  color: optionalProjectColorZ,
 });
 
 export type ApiProjectCreate = z.infer<typeof apiProjectCreateSchema>;
@@ -71,6 +79,7 @@ export const createProjectActionSchema = z.object({
   contactName: z.string().max(MAX_CONTACT_LEN).optional(),
   contactEmail: z.string().max(MAX_CONTACT_LEN).optional(),
   saveAsTemplate: z.boolean().optional(),
+  color: optionalProjectColorZ,
 });
 
 export const updateProjectActionSchema = createProjectActionSchema.extend({

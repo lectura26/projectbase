@@ -26,6 +26,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useRouter } from "next/navigation";
 import { getGanttTasksForProject } from "@/app/(dashboard)/projekter/gantt-actions";
 import { formatDanishDate } from "@/lib/datetime/format-danish";
 import type { GanttTaskRow, ProjectListItem } from "@/types/projekter";
@@ -176,7 +177,7 @@ function taskStatusLabelDa(status: TaskStatus): string {
   }
 }
 
-function projectBarColor(status: ProjectStatus): string {
+function projectBarColor(status: ProjectStatus, projectHex: string): string {
   switch (status) {
     case "WAITING":
       return "#9ca3af";
@@ -185,19 +186,13 @@ function projectBarColor(status: ProjectStatus): string {
     case "NOT_STARTED":
     case "IN_PROGRESS":
     default:
-      return "#1a3167";
+      return projectHex;
   }
 }
 
-function taskBarColor(status: TaskStatus): string {
-  switch (status) {
-    case "DONE":
-      return "#16a34a";
-    case "TODO":
-    case "IN_PROGRESS":
-    default:
-      return "#1a3167";
-  }
+function taskBarColor(status: TaskStatus, projectHex: string): string {
+  if (status === "DONE") return "#16a34a";
+  return projectHex;
 }
 
 function projectDateRange(p: ProjectListItem): { start: Date; end: Date } {
@@ -248,6 +243,7 @@ export default function GanttView({
 }: {
   projects: ProjectListItem[];
 }) {
+  const router = useRouter();
   const [level, setLevel] = useState<1 | 2>(1);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
     null,
@@ -389,6 +385,21 @@ export default function GanttView({
     };
   }, [level, selectedProjectId]);
 
+  const selectedProject = useMemo(
+    () => (selectedProjectId ? projects.find((p) => p.id === selectedProjectId) : undefined),
+    [projects, selectedProjectId],
+  );
+
+  const taskProjectHex = selectedProject?.color ?? "#1a3167";
+
+  const goToTask = useCallback(
+    (taskId: string) => {
+      if (!selectedProjectId) return;
+      router.push(`/projekter/${selectedProjectId}?taskId=${taskId}`);
+    },
+    [router, selectedProjectId],
+  );
+
   const projectLayouts = useMemo(() => {
     return projects.map((p) => {
       const { start, end } = projectDateRange(p);
@@ -401,7 +412,7 @@ export default function GanttView({
         firstMonthInTimeline,
         weekViewStartMonday,
       );
-      return { project: p, layout, color: projectBarColor(p.status) };
+      return { project: p, layout, color: projectBarColor(p.status, p.color) };
     });
   }, [
     projects,
@@ -424,10 +435,11 @@ export default function GanttView({
         firstMonthInTimeline,
         weekViewStartMonday,
       );
-      return { task: t, layout, color: taskBarColor(t.status) };
+      return { task: t, layout, color: taskBarColor(t.status, taskProjectHex) };
     });
   }, [
     tasks,
+    taskProjectHex,
     zoom,
     centerDate,
     totalWidth,
@@ -707,9 +719,11 @@ export default function GanttView({
             {level === 2 &&
               !tasksLoading &&
               tasks.map((t) => (
-                <div
+                <button
                   key={t.id}
-                  className="flex w-full items-center gap-2 border-b border-[#e8e8e8] px-3 transition-colors hover:bg-[#f8f9fa]"
+                  type="button"
+                  onClick={() => goToTask(t.id)}
+                  className="flex w-full cursor-pointer items-center gap-2 border-b border-[#e8e8e8] px-3 text-left transition-colors hover:bg-[#f8f9fa]"
                   style={{ height: ROW_H }}
                 >
                   <FileText
@@ -724,7 +738,7 @@ export default function GanttView({
                   >
                     {taskStatusLabelDa(t.status)}
                   </span>
-                </div>
+                </button>
               ))}
             {level === 1 && projects.length === 0 ? (
               <div className="px-3 py-6 font-body text-[13px] text-[#6b7280]">
@@ -852,9 +866,11 @@ export default function GanttView({
                       style={{ left: todayLineLeft }}
                     />
                     {layout ? (
-                      <div className="pointer-events-none absolute inset-0 z-[3] flex items-center">
-                        <div
-                          className="absolute flex max-w-full items-center overflow-hidden text-[11px] font-semibold text-white"
+                      <div className="absolute inset-0 z-[3] flex items-center">
+                        <button
+                          type="button"
+                          onClick={() => goToTask(t.id)}
+                          className="absolute flex max-w-full cursor-pointer items-center overflow-hidden text-left text-[11px] font-semibold text-white"
                           style={{
                             left: layout.left,
                             width: layout.width,
@@ -869,7 +885,7 @@ export default function GanttView({
                           {layout.width >= 60 ? (
                             <span className="truncate">{t.title}</span>
                           ) : null}
-                        </div>
+                        </button>
                       </div>
                     ) : null}
                   </div>

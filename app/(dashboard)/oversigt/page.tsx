@@ -79,6 +79,7 @@ export default async function OversigtPage() {
     return {
       id: p.id,
       name: p.name,
+      color: p.color,
       status: p.status,
       deadline: p.deadline ? p.deadline.toISOString() : null,
       progress: pct,

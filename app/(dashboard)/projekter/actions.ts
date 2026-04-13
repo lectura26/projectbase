@@ -11,6 +11,8 @@ import { prisma } from "@/lib/prisma";
 import { ensureAppUser } from "@/lib/auth/ensure-app-user";
 import { getSessionUser } from "@/lib/auth/session-user";
 import { createNotification } from "@/lib/notifications/service";
+import { nextAssignedColorForUser } from "@/lib/projekter/assign-project-color";
+import { isAllowedProjectColor } from "@/lib/projekter/project-colors";
 import { projectAccessWhere } from "@/lib/projekter/project-access";
 import { ymdStringToDateOrNull } from "@/lib/datetime/ymd";
 import { deadlineFromRoutineInterval } from "@/lib/projekter/routine";
@@ -67,6 +69,7 @@ export async function updateProjectStatus(
         visibility: project.visibility,
         deadline: newDeadline,
         userId: project.userId,
+        color: project.color,
         isRoutine: true,
         routineInterval: project.routineInterval,
         tags: project.tags,
@@ -127,6 +130,8 @@ export type CreateProjectInput = {
   contactEmail?: string;
   /** Opretter en ekstra skabelon-række (vises under Indstillinger). */
   saveAsTemplate?: boolean;
+  /** Must be one of PROJECT_COLORS; otherwise server assigns next free color. */
+  color?: string;
 };
 
 export type UpdateProjectInput = CreateProjectInput & {
@@ -146,6 +151,7 @@ export type EditProjectInitial = {
   routineInterval: RoutineInterval | null;
   contactName: string;
   contactEmail: string;
+  color: string;
 };
 
 export async function updateProject(input: UpdateProjectInput) {
@@ -165,6 +171,11 @@ export async function updateProject(input: UpdateProjectInput) {
   const contactName = parsed.contactName?.trim();
   const contactEmail = parsed.contactEmail?.trim();
 
+  const nextColor =
+    parsed.color !== undefined && isAllowedProjectColor(parsed.color)
+      ? parsed.color
+      : undefined;
+
   await prisma.$transaction(async (tx) => {
     await tx.project.update({
       where: { id: parsed.projectId },
@@ -178,6 +189,7 @@ export async function updateProject(input: UpdateProjectInput) {
         tags: parsed.tags.filter(Boolean),
         isRoutine: parsed.isRoutine,
         routineInterval: parsed.isRoutine ? parsed.routineInterval ?? "MONTHLY" : null,
+        ...(nextColor !== undefined ? { color: nextColor } : {}),
       },
     });
     await tx.contact.deleteMany({ where: { projectId: parsed.projectId } });
@@ -238,10 +250,16 @@ export async function createProject(input: CreateProjectInput) {
   const contactName = parsed.contactName?.trim();
   const contactEmail = parsed.contactEmail?.trim();
 
+  const colorHex =
+    parsed.color !== undefined && isAllowedProjectColor(parsed.color)
+      ? parsed.color
+      : await nextAssignedColorForUser(user.id);
+
   await prisma.project.create({
     data: {
       name: parsed.name,
       userId: user.id,
+      color: colorHex,
       description,
       startDate: ymdStringToDateOrNull(parsed.startDate ?? ""),
       deadline: ymdStringToDateOrNull(parsed.deadline ?? ""),
@@ -265,6 +283,7 @@ export async function createProject(input: CreateProjectInput) {
       data: {
         name: `${parsed.name} (skabelon)`,
         userId: user.id,
+        color: colorHex,
         description,
         startDate: null,
         deadline: null,

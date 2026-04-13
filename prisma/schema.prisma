@@ -106,6 +106,7 @@ model Project {
   routineInterval RoutineInterval?
   tags            String[]          @default([])
   isTemplate      Boolean           @default(false)
+  color           String            @default("#1a3167")
 
   user           User             @relation("ProjectOwnedBy", fields: [userId], references: [id], onDelete: Restrict)
   members        ProjectMember[]

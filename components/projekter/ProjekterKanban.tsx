@@ -118,7 +118,8 @@ export function ProjekterKanban({
                         >
                           <div
                             {...dragProvided.dragHandleProps}
-                            className="flex cursor-grab items-center gap-1 rounded-t-lg border border-b-0 border-outline-variant/20 bg-surface-container-lowest px-2 py-1 active:cursor-grabbing"
+                            className="flex cursor-grab items-center gap-1 rounded-t-lg border border-b-0 border-l border-r border-t-[3px] border-outline-variant/20 bg-surface-container-lowest px-2 py-1 active:cursor-grabbing"
+                            style={{ borderTopColor: project.color }}
                             aria-label="Træk kort"
                           >
                             <GripVertical
@@ -128,7 +129,7 @@ export function ProjekterKanban({
                           </div>
                           <Link
                             href={`/projekter/${project.id}`}
-                            className="block rounded-b-lg border border-outline-variant/20 bg-surface-container-lowest p-5 shadow-sm ring-1 ring-black/5 transition-colors hover:bg-surface-container-low/40"
+                            className="block rounded-b-lg border border-t-0 border-outline-variant/20 bg-surface-container-lowest p-5 shadow-sm ring-1 ring-black/5 transition-colors hover:bg-surface-container-low/40"
                             onClick={(e) => {
                               if (dragSnapshot.isDragging) e.preventDefault();
                             }}

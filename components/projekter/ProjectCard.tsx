@@ -74,6 +74,7 @@ function ProjectListRow({ project }: { project: ProjectListItem }) {
   return (
     <tr
       className="cursor-pointer border-b border-[#e8e8e8] bg-white transition-colors last:border-b-0 hover:bg-[#f8f9fa]"
+      style={{ borderLeftWidth: 3, borderLeftStyle: "solid", borderLeftColor: project.color }}
       onClick={go}
       role="link"
       tabIndex={0}
@@ -153,6 +154,7 @@ function CompletedProjectListRow({ project }: { project: ProjectListItem }) {
   return (
     <tr
       className="cursor-pointer border-b border-[#e8e8e8] bg-white opacity-80 transition-colors last:border-b-0 hover:bg-[#f8f9fa]"
+      style={{ borderLeftWidth: 3, borderLeftStyle: "solid", borderLeftColor: project.color }}
       onClick={go}
       role="link"
       tabIndex={0}
@@ -327,7 +329,10 @@ export function ProjectCardBody({
 
   return (
     <>
-      <div className="flex items-start justify-between gap-2">
+      <div
+        className="flex items-start justify-between gap-2 border-l-[3px] pl-3"
+        style={{ borderLeftColor: project.color }}
+      >
         <h3 className="min-w-0 flex-1 font-body text-[13px] font-semibold text-primary">
           {project.name}
         </h3>

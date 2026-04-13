@@ -3,7 +3,7 @@
 import type { ActivityType, Priority, ProjectStatus, TaskStatus } from "@prisma/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Pencil, Plus, Repeat, Trash2, X } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import {
   useCallback,
@@ -185,9 +185,12 @@ export default function ProjectDetailClient({
   usersForModal,
 }: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<TabKey>("opgaver");
   const [editOpen, setEditOpen] = useState(false);
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
+  const [highlightTaskId, setHighlightTaskId] = useState<string | null>(null);
+  const deepLinkHandledFor = useRef<string | null>(null);
   const [hoverActivityId, setHoverActivityId] = useState<string | null>(null);
   const [hoverFileId, setHoverFileId] = useState<string | null>(null);
   const [projectCommentDraft, setProjectCommentDraft] = useState("");
@@ -249,6 +252,29 @@ export default function ProjectDetailClient({
     return Math.round((done / n) * 100);
   }, [tasks]);
 
+  const taskIdFromQuery = searchParams.get("taskId");
+
+  useEffect(() => {
+    if (!taskIdFromQuery) {
+      deepLinkHandledFor.current = null;
+      return;
+    }
+    if (deepLinkHandledFor.current === taskIdFromQuery) return;
+    const exists = tasks.some((t) => t.id === taskIdFromQuery);
+    if (!exists) return;
+    deepLinkHandledFor.current = taskIdFromQuery;
+    setActiveTab("opgaver");
+    setExpandedTaskId(taskIdFromQuery);
+    setHighlightTaskId(taskIdFromQuery);
+    const fade = window.setTimeout(() => setHighlightTaskId(null), 1000);
+    requestAnimationFrame(() => {
+      document
+        .getElementById(`task-row-${taskIdFromQuery}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    return () => clearTimeout(fade);
+  }, [taskIdFromQuery, tasks]);
+
   const assigneeOptions = useMemo(() => {
     const m = new Map<string, (typeof initial.owner)>();
     m.set(initial.owner.id, initial.owner);
@@ -281,6 +307,7 @@ export default function ProjectDetailClient({
       routineInterval: initial.routineInterval,
       contactName: initial.contacts[0]?.name ?? "",
       contactEmail: initial.contacts[0]?.email ?? "",
+      color: initial.color,
     }),
     [initial],
   );
@@ -317,7 +344,10 @@ export default function ProjectDetailClient({
 
   return (
     <div className="rounded-xl border border-outline-variant/10 bg-surface-container-lowest shadow-sm ring-1 ring-black/5">
-      <div className="border-b border-outline-variant/15 px-6 pb-4 pt-6">
+      <div
+        className="border-b border-outline-variant/15 px-6 pb-4 pt-6"
+        style={{ borderLeft: `4px solid ${initial.color}` }}
+      >
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
             <h1 className="font-headline text-2xl font-semibold text-primary sm:text-3xl">
@@ -438,6 +468,7 @@ export default function ProjectDetailClient({
             assigneeOptions={assigneeOptions}
             expandedTaskId={expandedTaskId}
             setExpandedTaskId={setExpandedTaskId}
+            highlightTaskId={highlightTaskId}
             routerRefresh={() => router.refresh()}
           />
         ) : null}
@@ -504,6 +535,7 @@ function OpgaverTab({
   assigneeOptions,
   expandedTaskId,
   setExpandedTaskId,
+  highlightTaskId,
   routerRefresh,
 }: {
   projectId: string;
@@ -512,6 +544,7 @@ function OpgaverTab({
   assigneeOptions: ProjectDetailPayload["owner"][];
   expandedTaskId: string | null;
   setExpandedTaskId: (id: string | null) => void;
+  highlightTaskId: string | null;
   routerRefresh: () => void;
 }) {
   const [addTaskOpen, setAddTaskOpen] = useState(false);
@@ -614,7 +647,10 @@ function OpgaverTab({
         return (
           <div
             key={task.id}
-            className="rounded-lg border border-outline-variant/15 bg-surface-container-low/50"
+            id={`task-row-${task.id}`}
+            className={`rounded-lg border border-outline-variant/15 transition-[background-color] duration-1000 ease-out ${
+              highlightTaskId === task.id ? "bg-[#f0f6ff]" : "bg-surface-container-low/50"
+            }`}
           >
             <div className="flex w-full items-center gap-3 px-4 py-3">
               <TaskCycleButton task={task} onCycle={() => cycle(task.id)} />

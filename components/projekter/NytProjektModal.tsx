@@ -19,6 +19,8 @@ import {
   type EditProjectInitial,
 } from "@/app/(dashboard)/projekter/actions";
 import { commitYmdString } from "@/lib/datetime/ymd";
+import { ProjectColorPicker } from "@/components/projekter/ProjectColorPicker";
+import { PROJECT_COLORS } from "@/lib/projekter/project-colors";
 import { DatePicker } from "@/components/ui/DatePicker";
 
 type UserOption = { id: string; name: string; email: string };
@@ -68,6 +70,7 @@ export function NytProjektModal({
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [saveAsTemplate, setSaveAsTemplate] = useState(false);
+  const [color, setColor] = useState<string>(PROJECT_COLORS[0]!);
   const [nameError, setNameError] = useState("");
 
   const resetForm = useCallback(() => {
@@ -84,6 +87,7 @@ export function NytProjektModal({
     setContactName("");
     setContactEmail("");
     setSaveAsTemplate(false);
+    setColor(PROJECT_COLORS[0]!);
     setNameError("");
     setError(null);
   }, []);
@@ -113,6 +117,7 @@ export function NytProjektModal({
       setRoutineInterval(initialEdit.routineInterval ?? "MONTHLY");
       setContactName(initialEdit.contactName);
       setContactEmail(initialEdit.contactEmail);
+      setColor(initialEdit.color);
       setError(null);
     } else {
       resetForm();
@@ -176,6 +181,7 @@ export function NytProjektModal({
           routineInterval: isRoutine ? routineInterval : null,
           contactName: contactName || undefined,
           contactEmail: contactEmail || undefined,
+          color,
         });
       } else {
         await createProject({
@@ -191,6 +197,7 @@ export function NytProjektModal({
           contactName: contactName || undefined,
           contactEmail: contactEmail || undefined,
           saveAsTemplate: saveAsTemplate || undefined,
+          color,
         });
         toast.success("Projekt oprettet");
       }
@@ -424,6 +431,8 @@ export function NytProjektModal({
                       </button>
                     </div>
                   </div>
+
+                  <ProjectColorPicker value={color} onChange={setColor} />
 
                   <div className="md:col-span-2">
                     <span className={labelClass}>Tags</span>

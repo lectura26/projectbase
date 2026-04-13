@@ -19,6 +19,8 @@ export type GanttTaskRow = {
 export type ProjectListItem = {
   id: string;
   name: string;
+  /** Hex from project palette (e.g. #1a3167). */
+  color: string;
   status: ProjectStatus;
   priority: Priority;
   deadline: string | null;

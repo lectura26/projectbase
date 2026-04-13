@@ -175,6 +175,11 @@ export default function OversigtPageClient({
                         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-container text-[10px] font-bold text-on-primary">
                           {p.initials}
                         </span>
+                        <span
+                          className="h-[10px] w-[10px] shrink-0 rounded-full"
+                          style={{ backgroundColor: p.color }}
+                          aria-hidden
+                        />
                         <span className="min-w-0 flex-1 font-body text-sm font-medium text-on-surface">
                           {p.name}
                         </span>

@@ -40,6 +40,7 @@ async function ProjekterPageContent() {
   const mapProject = (r: (typeof bundle.activeOwnedProjects)[0]): ProjectListItem => ({
     id: r.id,
     name: r.name,
+    color: r.color,
     status: r.status,
     priority: r.priority,
     deadline: r.deadline ? r.deadline.toISOString() : null,

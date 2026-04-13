@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { Suspense } from "react";
 import ProjectDetailClient from "@/components/projekter/project-detail/ProjectDetailClient";
 import { getSessionUser } from "@/lib/auth/session-user";
 import { prisma } from "@/lib/prisma";
@@ -84,6 +85,7 @@ export default async function ProjectDetailPage({ params }: Props) {
   const initial: ProjectDetailPayload = {
     id: row.id,
     name: row.name,
+    color: row.color,
     description: row.description,
     status: row.status,
     priority: row.priority,
@@ -175,10 +177,19 @@ export default async function ProjectDetailPage({ params }: Props) {
         <ArrowLeft className="h-5 w-5 shrink-0" aria-hidden />
         Tilbage til projekter
       </Link>
-      <ProjectDetailClient
-        initial={initial}
-        usersForModal={usersForModal}
-      />
+      <Suspense
+        fallback={
+          <div className="rounded-xl border border-outline-variant/10 bg-surface-container-lowest p-8 shadow-sm ring-1 ring-black/5">
+            <div className="h-8 w-48 animate-pulse rounded bg-surface-container-high" />
+            <div className="mt-3 h-4 w-96 max-w-full animate-pulse rounded bg-surface-container-high" />
+          </div>
+        }
+      >
+        <ProjectDetailClient
+          initial={initial}
+          usersForModal={usersForModal}
+        />
+      </Suspense>
     </div>
   );
 }

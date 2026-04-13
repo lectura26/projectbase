@@ -64,6 +64,8 @@ export type CalendarEventDTO = {
 export type ProjectDetailPayload = {
   id: string;
   name: string;
+  /** Hex from project palette (e.g. #1a3167). */
+  color: string;
   description: string | null;
   status: ProjectStatus;
   priority: Priority;

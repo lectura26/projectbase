@@ -13,6 +13,7 @@ export type OversigtTaskRow = {
 export type OversigtPulseProject = {
   id: string;
   name: string;
+  color: string;
   status: ProjectStatus;
   deadline: string | null;
   progress: number;

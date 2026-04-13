@@ -4,6 +4,8 @@ import { NextResponse } from "next/server";
 import type { Priority, ProjectVisibility } from "@prisma/client";
 import { jsonError, logServerError } from "@/lib/api/safe-response";
 import { prisma } from "@/lib/prisma";
+import { nextAssignedColorForUser } from "@/lib/projekter/assign-project-color";
+import { isAllowedProjectColor } from "@/lib/projekter/project-colors";
 import { ensureAppUser } from "@/lib/auth/ensure-app-user";
 import { clientIpFromRequest, rateLimitAllow } from "@/lib/rate-limit";
 import { parseOrThrow } from "@/lib/validation/parse";
@@ -121,10 +123,16 @@ export async function POST(request: Request) {
 
     await ensureAppUser(user);
 
+    const colorHex =
+      parsed.color !== undefined && isAllowedProjectColor(parsed.color)
+        ? parsed.color
+        : await nextAssignedColorForUser(user.id);
+
     const project = await prisma.project.create({
       data: {
         name,
         userId: user.id,
+        color: colorHex,
         description,
         deadline,
         priority: parsed.priority as Priority,
