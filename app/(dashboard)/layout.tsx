@@ -9,7 +9,7 @@ import {
   getNotificationsForUser,
   syncOverdueTaskNotifications,
 } from "@/lib/notifications/service";
-import { prisma } from "@/lib/prisma";
+import { getCachedUserBasic } from "@/lib/data/cached-queries";
 import type { NotificationDTO } from "@/types/notifications";
 
 type AppNotification = {
@@ -49,10 +49,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   if (user.email) {
     await ensureAppUser(user);
-    const row = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { name: true, email: true },
-    });
+    const row = await getCachedUserBasic(user.id);
     userLabel = row?.name ?? row?.email ?? user.email;
 
     await syncOverdueTaskNotifications(user.id);

@@ -10,8 +10,6 @@ import type {
   KalenderUserOption,
 } from "@/types/kalender";
 
-export const dynamic = "force-dynamic";
-
 export default async function KalenderPage() {
   const user = await getSessionUser();
   if (!user) redirect("/login");

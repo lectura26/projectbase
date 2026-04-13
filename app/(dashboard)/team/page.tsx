@@ -5,8 +5,6 @@ import { prisma } from "@/lib/prisma";
 import { getPeerUserIdsSharingProjects } from "@/lib/team/shared-project-users";
 import type { AppRole } from "@prisma/client";
 
-export const dynamic = "force-dynamic";
-
 export type TeamListRow = {
   id: string;
   name: string;

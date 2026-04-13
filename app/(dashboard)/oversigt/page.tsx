@@ -4,10 +4,8 @@ import OversigtPageClient from "@/components/oversigt/OversigtPageClient";
 import { contactInitials, taskProgress } from "@/components/projekter/project-helpers";
 import { ensureAppUser } from "@/lib/auth/ensure-app-user";
 import { getSessionUser } from "@/lib/auth/session-user";
-import { copenhagenDayRangeUTC } from "@/lib/datetime/copenhagen-range";
 import { projectCalendarColor } from "@/lib/projekter/display";
-import { prisma } from "@/lib/prisma";
-import { projectAccessWhere } from "@/lib/projekter/project-access";
+import { getCachedOversigtDashboardData } from "@/lib/data/cached-queries";
 import type {
   OversigtDeadlineItem,
   OversigtMeetingItem,
@@ -16,7 +14,7 @@ import type {
 } from "@/types/oversigt";
 import { toZonedTime } from "date-fns-tz";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 export const metadata: Metadata = {
   title: "Oversigt",
@@ -59,62 +57,12 @@ export default async function OversigtPage() {
 
   await ensureAppUser(user);
 
-  const row = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { name: true, email: true },
-  });
-  if (!row) redirect("/login");
+  const data = await getCachedOversigtDashboardData(user.id);
+  if (!data) redirect("/login");
+
+  const { user: row, now, todayTasks, pulseRaw, deadlineTasks, meetingRows } = data;
 
   const displayName = (row.name?.trim() || row.email).trim();
-  const now = new Date();
-  const { start: dayStart, end: dayEnd } = copenhagenDayRangeUTC(now);
-
-  const [todayTasks, pulseRaw, deadlineTasks, meetingRows] = await Promise.all([
-    prisma.task.findMany({
-      where: {
-        userId: user.id,
-        status: { not: "DONE" },
-        deadline: { gte: dayStart, lte: dayEnd },
-        project: projectAccessWhere(user.id),
-      },
-      include: {
-        project: { select: { name: true } },
-      },
-      orderBy: [{ deadline: "asc" }, { title: "asc" }],
-    }),
-    prisma.project.findMany({
-      where: projectAccessWhere(user.id),
-      take: 5,
-      orderBy: { updatedAt: "desc" },
-      include: {
-        tasks: { select: { status: true } },
-      },
-    }),
-    prisma.task.findMany({
-      where: {
-        userId: user.id,
-        status: { not: "DONE" },
-        deadline: { gte: now },
-        project: projectAccessWhere(user.id),
-      },
-      include: {
-        project: { select: { name: true } },
-      },
-      orderBy: [{ deadline: "asc" }, { title: "asc" }],
-      take: 5,
-    }),
-    prisma.calendarEvent.findMany({
-      where: {
-        date: { gte: dayStart },
-        project: projectAccessWhere(user.id),
-      },
-      include: {
-        project: { select: { name: true } },
-      },
-      orderBy: [{ date: "asc" }, { title: "asc" }],
-      take: 5,
-    }),
-  ]);
 
   const tasks: OversigtTaskRow[] = todayTasks.map((t) => ({
     id: t.id,

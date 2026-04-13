@@ -6,8 +6,6 @@ import { prisma } from "@/lib/prisma";
 import { ensureAppUser } from "@/lib/auth/ensure-app-user";
 import { getUserIdsOnSharedProjectsWith } from "@/lib/team/shared-project-users";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Indstillinger",
 };

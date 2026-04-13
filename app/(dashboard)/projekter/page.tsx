@@ -1,18 +1,28 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
 import ProjekterPageClient from "@/components/projekter/ProjekterPageClient";
+import { ProjectListSkeleton } from "@/components/projekter/ProjectListSkeleton";
 import type { ProjectListItem } from "@/types/projekter";
 import { getSessionUser } from "@/lib/auth/session-user";
 import { ensureAppUser } from "@/lib/auth/ensure-app-user";
+import { getCachedProjekterPageBundle } from "@/lib/data/cached-queries";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 export const metadata: Metadata = {
   title: "Projekter",
 };
 
-export default async function ProjekterPage() {
+export default function ProjekterPage() {
+  return (
+    <Suspense fallback={<ProjectListSkeleton />}>
+      <ProjekterPageContent />
+    </Suspense>
+  );
+}
+
+async function ProjekterPageContent() {
   const user = await getSessionUser();
   if (!user?.email) {
     redirect("/login");
@@ -20,22 +30,13 @@ export default async function ProjekterPage() {
 
   await ensureAppUser(user);
 
-  const rows = await prisma.project.findMany({
-    where: { userId: user.id, isTemplate: false },
-    orderBy: { createdAt: "desc" },
-    include: {
-      user: { select: { id: true, name: true, email: true } },
-      contacts: { select: { id: true, name: true } },
-      tasks: { select: { status: true } },
-    },
-  });
+  const bundle = await getCachedProjekterPageBundle(user.id);
+  if (!bundle) {
+    redirect("/login");
+  }
 
-  const prismaUser = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { id: true, name: true, email: true },
-  });
-
-  const selfLabel = prismaUser?.name ?? prismaUser?.email ?? user.email;
+  const rows = bundle.ownedProjects;
+  const selfLabel = bundle.name?.trim() || bundle.email || user.email;
 
   const initialProjects: ProjectListItem[] = rows.map((r) => ({
     id: r.id,
@@ -54,7 +55,7 @@ export default async function ProjekterPage() {
   const usersForCreate = [
     {
       id: user.id,
-      email: prismaUser?.email ?? user.email,
+      email: bundle.email,
       name: selfLabel,
     },
   ];
