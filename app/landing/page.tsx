@@ -305,9 +305,9 @@ export default function LandingPage() {
               <a href="mailto:kontakt@projectbase.dk" className="hover:text-[#1a3167]">
                 Kontakt
               </a>
-              <a href="#" className="hover:text-[#1a3167]">
-                Fortrolighed
-              </a>
+              <Link href="/privacy" className="hover:text-[#1a3167]">
+                Privatlivspolitik
+              </Link>
             </div>
           </div>
         </footer>

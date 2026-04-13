@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import {
   deleteProjectTemplate,
+  deleteUserAccount,
   inviteTeamMember,
   removeTeamMember,
   updateMemberRole,
@@ -81,6 +82,10 @@ export default function IndstillingerPageClient({
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteErrors, setInviteErrors] = useState<{ name?: string; email?: string }>({});
   const [inviting, startInvite] = useTransition();
+
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deleting, startDelete] = useTransition();
 
   function saveAccount() {
     setNameError("");
@@ -430,6 +435,73 @@ export default function IndstillingerPageClient({
           </div>
         </section>
       ) : null}
+
+      {/* SLET KONTO */}
+      <section className="rounded-xl border border-[#fecaca] bg-white p-6 shadow-sm">
+        <h2 className="text-[20px] font-bold text-[#dc2626]">Slet konto</h2>
+        <p className="mt-2 text-sm leading-relaxed text-[#6b7280]">
+          Sletning af din konto er permanent og kan ikke fortrydes. Alle dine projekter, opgaver, kommentarer, filer og
+          data slettes øjeblikkeligt.
+        </p>
+        {!deleteOpen ? (
+          <button
+            type="button"
+            onClick={() => {
+              setDeleteOpen(true);
+              setDeleteConfirm("");
+            }}
+            className="mt-4 rounded-md border border-solid border-[#dc2626] bg-white px-4 py-2 text-sm font-medium text-[#dc2626] hover:bg-red-50"
+          >
+            Slet min konto
+          </button>
+        ) : (
+          <div className="mt-4 space-y-4 rounded-lg border border-outline-variant/20 bg-surface-container-low p-4">
+            <div>
+              <label htmlFor="delete-confirm" className="text-xs font-medium text-on-surface-variant">
+                Skriv SLET for at bekræfte
+              </label>
+              <input
+                id="delete-confirm"
+                value={deleteConfirm}
+                onChange={(e) => setDeleteConfirm(e.target.value)}
+                autoComplete="off"
+                className="mt-1 w-full rounded-md border border-outline-variant bg-white px-3 py-2 text-sm"
+                placeholder="SLET"
+              />
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                disabled={deleting || deleteConfirm !== "SLET"}
+                onClick={() => {
+                  startDelete(async () => {
+                    try {
+                      await deleteUserAccount(user.id);
+                      window.location.href = "/login";
+                    } catch (e) {
+                      toast.error(e instanceof Error ? e.message : "Kunne ikke slette kontoen");
+                    }
+                  });
+                }}
+                className="rounded-md bg-[#dc2626] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Bekræft sletning
+              </button>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => {
+                  setDeleteOpen(false);
+                  setDeleteConfirm("");
+                }}
+                className="rounded-md border border-outline-variant bg-white px-4 py-2 text-sm font-medium text-on-surface hover:bg-surface-container-low"
+              >
+                Annuller
+              </button>
+            </div>
+          </div>
+        )}
+      </section>
     </div>
   );
 }
