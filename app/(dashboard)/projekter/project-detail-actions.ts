@@ -19,6 +19,7 @@ import {
   projectFileRecordSchema,
   setTaskStatusSchema,
   updateTaskFieldsSchema,
+  updateTaskTitleSchema,
 } from "@/lib/validation/schemas";
 import type { TaskDetailDTO } from "@/types/project-detail";
 
@@ -154,6 +155,31 @@ export async function updateTaskFields(input: {
   });
   revalidatePath(`/projekter/${task.projectId}`);
 }
+
+export async function updateTaskTitle(taskId: string, title: string) {
+  const user = await getSessionUser();
+  if (!user) throw new Error("Ikke logget ind.");
+
+  const parsed = parseOrThrow(updateTaskTitleSchema, { taskId, title });
+
+  const task = await prisma.task.findFirst({
+    where: { id: parsed.taskId, project: projectAccessWhere(user.id) },
+    select: { id: true, projectId: true },
+  });
+  if (!task) throw new Error("Opgave ikke fundet.");
+
+  await prisma.task.update({
+    where: { id: parsed.taskId },
+    data: { title: parsed.title },
+  });
+  revalidatePath(`/projekter/${task.projectId}`);
+}
+
+export async function updateTaskDescription(taskId: string, description: string | null) {
+  return updateTaskFields({ taskId, description });
+}
+
+export const updateTaskField = updateTaskFields;
 
 export type CreateTaskInput = {
   title: string;

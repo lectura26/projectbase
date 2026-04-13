@@ -188,6 +188,7 @@ export default async function ProjectDetailPage({ params }: Props) {
         <ProjectDetailClient
           initial={initial}
           usersForModal={usersForModal}
+          currentUserId={user.id}
         />
       </Suspense>
     </div>

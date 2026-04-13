@@ -20,7 +20,6 @@ import {
 } from "@/app/(dashboard)/projekter/actions";
 import {
   addProjectComment,
-  addTaskComment,
   confirmActivity,
   createCalendarEvent,
   createProjectFileRecord,
@@ -28,7 +27,6 @@ import {
   deleteActivity,
   deleteProjectFile,
   setTaskStatus,
-  updateTaskFields,
 } from "@/app/(dashboard)/projekter/project-detail-actions";
 import { validateUploadFile } from "@/lib/storage/file-validation";
 import { createClient } from "@/lib/supabase/client";
@@ -46,13 +44,10 @@ import {
 import { routineIntervalLabel } from "@/lib/projekter/routine";
 import type { ProjectDetailPayload, TaskDetailDTO } from "@/types/project-detail";
 import { NytProjektModal } from "@/components/projekter/NytProjektModal";
+import { TaskSidePanel } from "@/components/projekter/project-detail/TaskSidePanel";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { formatDanishDate } from "@/lib/datetime/format-danish";
-import {
-  commitYmdString,
-  isoToYmd,
-  ymdToIsoDate,
-} from "@/lib/datetime/ymd";
+import { commitYmdString, isoToYmd } from "@/lib/datetime/ymd";
 
 type UserOption = { id: string; name: string; email: string };
 
@@ -178,11 +173,13 @@ function formatDaTime(iso: string) {
 type Props = {
   initial: ProjectDetailPayload;
   usersForModal: UserOption[];
+  currentUserId: string;
 };
 
 export default function ProjectDetailClient({
   initial,
   usersForModal,
+  currentUserId,
 }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -463,12 +460,14 @@ export default function ProjectDetailClient({
         {activeTab === "opgaver" ? (
           <OpgaverTab
             projectId={initial.id}
+            projectName={initial.name}
             tasks={tasks}
             setTasks={setTasks}
             assigneeOptions={assigneeOptions}
             expandedTaskId={expandedTaskId}
             setExpandedTaskId={setExpandedTaskId}
             highlightTaskId={highlightTaskId}
+            currentUserId={currentUserId}
             routerRefresh={() => router.refresh()}
           />
         ) : null}
@@ -530,21 +529,25 @@ export default function ProjectDetailClient({
 
 function OpgaverTab({
   projectId,
+  projectName,
   tasks,
   setTasks,
   assigneeOptions,
   expandedTaskId,
   setExpandedTaskId,
   highlightTaskId,
+  currentUserId,
   routerRefresh,
 }: {
   projectId: string;
+  projectName: string;
   tasks: TaskDetailDTO[];
   setTasks: Dispatch<SetStateAction<TaskDetailDTO[]>>;
   assigneeOptions: ProjectDetailPayload["owner"][];
   expandedTaskId: string | null;
   setExpandedTaskId: (id: string | null) => void;
   highlightTaskId: string | null;
+  currentUserId: string;
   routerRefresh: () => void;
 }) {
   const [addTaskOpen, setAddTaskOpen] = useState(false);
@@ -603,9 +606,14 @@ function OpgaverTab({
       });
   };
 
-  const toggleRow = (taskId: string) => {
+  const openTaskPanel = (taskId: string) => {
     setExpandedTaskId(expandedTaskId === taskId ? null : taskId);
   };
+
+  const selectedTask =
+    expandedTaskId === null
+      ? undefined
+      : tasks.find((t) => t.id === expandedTaskId);
 
   const submitNewTask = async () => {
     const t = draftTitle.trim();
@@ -643,21 +651,32 @@ function OpgaverTab({
       ) : null}
       {tasks.map((task) => {
         const done = task.status === "DONE";
-        const expanded = expandedTaskId === task.id;
+        const selected = expandedTaskId === task.id;
         return (
           <div
             key={task.id}
             id={`task-row-${task.id}`}
             className={`rounded-lg border border-outline-variant/15 transition-[background-color] duration-1000 ease-out ${
-              highlightTaskId === task.id ? "bg-[#f0f6ff]" : "bg-surface-container-low/50"
+              selected
+                ? "border-l-2 border-l-[#1a3167] bg-[#f0f6ff]"
+                : highlightTaskId === task.id
+                  ? "bg-[#f0f6ff]"
+                  : "bg-surface-container-low/50"
             }`}
           >
-            <div className="flex w-full items-center gap-3 px-4 py-3">
+            <div className="flex w-full cursor-pointer items-center gap-3 px-4 py-3">
               <TaskCycleButton task={task} onCycle={() => cycle(task.id)} />
-              <button
-                type="button"
-                className="flex min-w-0 flex-1 items-center gap-3 text-left"
-                onClick={() => toggleRow(task.id)}
+              <div
+                role="button"
+                tabIndex={0}
+                className="flex min-w-0 flex-1 items-center gap-3 text-left outline-none"
+                onClick={() => openTaskPanel(task.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    openTaskPanel(task.id);
+                  }
+                }}
               >
                 <div className="min-w-0 flex-1 truncate text-left">
                   <TaskTitleAnimated task={task} done={done} />
@@ -673,19 +692,21 @@ function OpgaverTab({
                   </span>
                 ) : null}
                 <PriorityBadge priority={task.priority} />
-              </button>
+              </div>
             </div>
-            {expanded ? (
-              <TaskExpanded
-                task={task}
-                assigneeOptions={assigneeOptions}
-                patchTask={patchTask}
-                onRefresh={routerRefresh}
-              />
-            ) : null}
           </div>
         );
       })}
+      <TaskSidePanel
+        open={expandedTaskId !== null}
+        task={selectedTask}
+        projectId={projectId}
+        projectName={projectName}
+        currentUserId={currentUserId}
+        patchTask={patchTask}
+        onRefresh={routerRefresh}
+        onClose={() => setExpandedTaskId(null)}
+      />
       <div className="rounded-lg border border-outline-variant/15 bg-surface-container-low/50">
         {!addTaskOpen ? (
           <button
@@ -805,242 +826,6 @@ function OpgaverTab({
             </div>
           </div>
         )}
-      </div>
-    </div>
-  );
-}
-
-function TaskExpanded({
-  task,
-  assigneeOptions,
-  patchTask,
-  onRefresh,
-}: {
-  task: TaskDetailDTO;
-  assigneeOptions: ProjectDetailPayload["owner"][];
-  patchTask: (taskId: string, patch: Partial<TaskDetailDTO>) => void;
-  onRefresh: () => void;
-}) {
-  const [desc, setDesc] = useState(task.description ?? "");
-  const [comment, setComment] = useState("");
-  const [startYmd, setStartYmd] = useState(() => isoToYmd(task.startDate));
-  const [deadlineYmd, setDeadlineYmd] = useState(() => isoToYmd(task.deadline));
-
-  useEffect(() => {
-    setDesc(task.description ?? "");
-  }, [task.description, task.id]);
-
-  useEffect(() => {
-    setStartYmd(isoToYmd(task.startDate));
-    setDeadlineYmd(isoToYmd(task.deadline));
-  }, [task.id, task.startDate, task.deadline]);
-
-  const saveDesc = async () => {
-    if (desc === (task.description ?? "")) return;
-    const prev = task.description ?? null;
-    patchTask(task.id, { description: desc || null });
-    try {
-      await updateTaskFields({
-        taskId: task.id,
-        description: desc || null,
-      });
-      onRefresh();
-    } catch (e) {
-      patchTask(task.id, { description: prev });
-      setDesc(prev ?? "");
-      toast.error(e instanceof Error ? e.message : "Fejl");
-    }
-  };
-
-  const saveStartDate = async (ymd: string) => {
-    const prev = task.startDate;
-    const nextIso = ymd ? ymdToIsoDate(ymd) : null;
-    patchTask(task.id, { startDate: nextIso });
-    try {
-      await updateTaskFields({
-        taskId: task.id,
-        startDate: ymd || null,
-      });
-      onRefresh();
-    } catch (e) {
-      patchTask(task.id, { startDate: prev });
-      toast.error(e instanceof Error ? e.message : "Fejl");
-    }
-  };
-
-  const saveDeadline = async (ymd: string) => {
-    const prev = task.deadline;
-    const nextIso = ymd ? ymdToIsoDate(ymd) : null;
-    patchTask(task.id, { deadline: nextIso });
-    try {
-      await updateTaskFields({
-        taskId: task.id,
-        deadline: ymd || null,
-      });
-      onRefresh();
-    } catch (e) {
-      patchTask(task.id, { deadline: prev });
-      toast.error(e instanceof Error ? e.message : "Fejl");
-    }
-  };
-
-  const saveAssignee = async (userId: string) => {
-    const prev = task.assignee;
-    const nextUser = userId
-      ? assigneeOptions.find((u) => u.id === userId) ?? null
-      : null;
-    patchTask(task.id, { assignee: nextUser });
-    try {
-      await updateTaskFields({
-        taskId: task.id,
-        userId: userId || null,
-      });
-      onRefresh();
-    } catch (e) {
-      patchTask(task.id, { assignee: prev });
-      toast.error(e instanceof Error ? e.message : "Fejl");
-    }
-  };
-
-  const savePriority = async (p: Priority) => {
-    const prev = task.priority;
-    patchTask(task.id, { priority: p });
-    try {
-      await updateTaskFields({ taskId: task.id, priority: p });
-      onRefresh();
-    } catch (e) {
-      patchTask(task.id, { priority: prev });
-      toast.error(e instanceof Error ? e.message : "Fejl");
-    }
-  };
-
-  const sendComment = async () => {
-    const t = comment.trim();
-    if (!t) return;
-    try {
-      await addTaskComment(task.id, t);
-      setComment("");
-      toast.success("Kommentar tilføjet");
-      onRefresh();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Fejl");
-    }
-  };
-
-  return (
-    <div className="border-t border-outline-variant/10 bg-white px-4 py-4" onClick={(e) => e.stopPropagation()}>
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="md:col-span-2">
-          <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
-            Beskrivelse
-          </label>
-          <textarea
-            value={desc}
-            onChange={(e) => setDesc(e.target.value)}
-            onBlur={() => void saveDesc()}
-            rows={3}
-            className="mt-1 w-full rounded-lg border border-outline-variant/30 px-3 py-2 font-body text-sm"
-          />
-        </div>
-        <div>
-          <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
-            Startdato
-          </label>
-          <DatePicker
-            value={startYmd}
-            onChange={setStartYmd}
-            onBlurCommit={(c) => void saveStartDate(c)}
-            className="mt-1 w-full rounded-lg border border-outline-variant/30 px-3 py-2 font-body text-sm"
-          />
-        </div>
-        <div>
-          <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
-            Frist
-          </label>
-          <DatePicker
-            value={deadlineYmd}
-            onChange={setDeadlineYmd}
-            onBlurCommit={(c) => void saveDeadline(c)}
-            className="mt-1 w-full rounded-lg border border-outline-variant/30 px-3 py-2 font-body text-sm"
-          />
-        </div>
-        <div>
-          <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
-            Ansvarlig
-          </label>
-          <select
-            key={task.assignee?.id ?? ""}
-            value={task.assignee?.id ?? ""}
-            onChange={(e) => void saveAssignee(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-outline-variant/30 px-3 py-2 font-body text-sm"
-          >
-            <option value="">—</option>
-            {assigneeOptions.map((u) => (
-              <option key={u.id} value={u.id}>
-                {displayName(u)}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
-            Prioritet
-          </label>
-          <select
-            value={task.priority}
-            onChange={(e) => void savePriority(e.target.value as Priority)}
-            className="mt-1 w-full rounded-lg border border-outline-variant/30 px-3 py-2 font-body text-sm"
-          >
-            <option value="LOW">Lav</option>
-            <option value="MEDIUM">Medium</option>
-            <option value="HIGH">Høj</option>
-          </select>
-        </div>
-      </div>
-      <div className="mt-4 rounded-lg border border-outline-variant/15 bg-surface-container-low/40 p-3">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
-          Kommentarer
-        </p>
-        <div className="mt-3 max-h-48 space-y-2 overflow-y-auto">
-          {task.comments.length === 0 ? (
-            <p className="text-[11px] text-on-surface-variant/90">Ingen kommentarer endnu.</p>
-          ) : null}
-          {task.comments.map((c) => (
-            <div key={c.id} className="flex gap-2 text-sm">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-container text-[10px] font-bold text-white">
-                {initialsFromUser(c.author)}
-              </span>
-              <div>
-                <p className="text-on-surface">{c.content}</p>
-                <p className="text-[11px] text-on-surface-variant">
-                  {formatDanishDate(c.createdAt)} · {formatDaTime(c.createdAt)}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="mt-3 flex gap-2">
-          <input
-            type="text"
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                void sendComment();
-              }
-            }}
-            placeholder="Skriv en kommentar…"
-            className="min-w-0 flex-1 rounded-lg border border-outline-variant/30 px-3 py-2 text-sm"
-          />
-          <button
-            type="button"
-            onClick={() => void sendComment()}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white"
-          >
-            Send
-          </button>
-        </div>
       </div>
     </div>
   );

@@ -127,6 +127,11 @@ export const updateTaskFieldsSchema = z.object({
   priority: priorityZ.optional(),
 });
 
+export const updateTaskTitleSchema = z.object({
+  taskId: cuidLikeSchema,
+  title: trimmedTaskTitle,
+});
+
 export const commentContentSchema = z
   .string()
   .transform((s) => s.trim())
