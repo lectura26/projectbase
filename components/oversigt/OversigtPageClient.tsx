@@ -12,7 +12,7 @@ import {
   statusBadgeClass,
   statusLabelDa,
 } from "@/components/projekter/project-helpers";
-import { formatDanishDate } from "@/lib/datetime/format-danish";
+import { formatDanishDate, formatOversigtTaskDeadline } from "@/lib/datetime/format-danish";
 import type {
   OversigtDeadlineItem,
   OversigtFocusProjectCard,
@@ -32,7 +32,7 @@ function upcomingDeadlinePresentation(deadlineIso: string | null): {
   const d = startOfDay(new Date(deadlineIso));
   const today = startOfDay(new Date());
   const diff = differenceInCalendarDays(d, today);
-  const label = formatDanishDate(deadlineIso);
+  const label = formatOversigtTaskDeadline(deadlineIso);
   if (diff < 0 || diff === 0) return { label, color: "#dc2626" };
   if (diff <= 7) return { label, color: "#d97706" };
   return { label, color: "#16a34a" };
@@ -140,45 +140,67 @@ export default function OversigtPageClient({
                   Ingen kommende opgaver
                 </p>
               ) : (
-                <ul>
-                  {initialTasks.map((task) => {
-                    const dl = upcomingDeadlinePresentation(task.deadline);
-                    return (
-                      <li key={task.id} className="border-b border-[#f3f4f6] last:border-b-0">
-                        <button
-                          type="button"
-                          onClick={() => navigateToTask(task)}
-                          className="flex h-11 w-full cursor-pointer items-center gap-0 px-4 text-left transition-colors hover:bg-[#f8f9fa]"
-                        >
-                          <span
-                            className="h-[10px] w-[10px] shrink-0 rounded-full"
-                            style={{ backgroundColor: task.projectColor }}
-                            aria-hidden
-                          />
-                          <span className="ml-2.5 min-w-0 flex-1 truncate font-body text-[13px] font-medium text-[#0f1923]">
-                            {task.title}
-                          </span>
-                          <div className="ml-2 flex shrink-0 items-center gap-3 pl-2">
-                            <span className="max-w-[100px] truncate font-body text-[12px] text-[#9ca3af] sm:max-w-[140px]">
+                <>
+                  <div
+                    className="flex items-center border-b border-t border-[#e8e8e8] bg-[#f8f9fa] px-4 py-2"
+                    role="row"
+                    aria-hidden
+                  >
+                    <span className="min-w-0 flex-1 font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
+                      Opgave
+                    </span>
+                    <span className="w-[160px] min-w-[160px] shrink-0 text-right font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
+                      Projekt
+                    </span>
+                    <span className="w-[100px] min-w-[100px] shrink-0 text-right font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
+                      Frist
+                    </span>
+                    <span className="ml-3 w-[80px] min-w-[80px] shrink-0 text-right font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
+                      Prioritet
+                    </span>
+                  </div>
+                  <ul>
+                    {initialTasks.map((task) => {
+                      const dl = upcomingDeadlinePresentation(task.deadline);
+                      return (
+                        <li key={task.id} className="border-b border-[#f3f4f6] last:border-b-0">
+                          <button
+                            type="button"
+                            onClick={() => navigateToTask(task)}
+                            className="flex h-11 w-full cursor-pointer items-center px-4 text-left transition-colors hover:bg-[#f8f9fa]"
+                          >
+                            <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                              <span
+                                className="h-[10px] w-[10px] shrink-0 rounded-full"
+                                style={{ backgroundColor: task.projectColor }}
+                                aria-hidden
+                              />
+                              <span className="min-w-0 truncate font-body text-[13px] font-medium text-[#0f1923]">
+                                {task.title}
+                              </span>
+                            </div>
+                            <span className="w-[160px] min-w-[160px] shrink-0 truncate text-right font-body text-[12px] text-[#9ca3af]">
                               {task.projectName}
                             </span>
                             <span
-                              className="whitespace-nowrap font-body text-[12px] tabular-nums"
+                              className="w-[100px] min-w-[100px] shrink-0 whitespace-nowrap text-right font-body text-[12px] tabular-nums"
                               style={{ color: dl.color }}
                             >
                               {dl.label}
                             </span>
-                            <span
-                              className={`${BADGE_CHIP_CLASS} shrink-0 scale-90 py-0 text-[10px] ${priorityBadgeClass(task.priority)}`}
-                            >
-                              {priorityLabelDa(task.priority)}
-                            </span>
-                          </div>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
+                            <div className="ml-3 flex w-[80px] min-w-[80px] shrink-0 justify-end">
+                              <span
+                                className={`${BADGE_CHIP_CLASS} shrink-0 scale-90 py-0 text-[10px] ${priorityBadgeClass(task.priority)}`}
+                              >
+                                {priorityLabelDa(task.priority)}
+                              </span>
+                            </div>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </>
               )}
             </div>
           </section>

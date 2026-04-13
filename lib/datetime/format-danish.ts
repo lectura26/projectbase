@@ -7,6 +7,21 @@ export function formatDanishDate(date: Date | string): string {
   });
 }
 
+/**
+ * Oversigt task deadlines — full date, always visible (never truncated mid-year).
+ * e.g. "13. apr. 2026"
+ */
+export function formatOversigtTaskDeadline(iso: string): string {
+  const d = new Date(iso);
+  return new Intl.DateTimeFormat("da-DK", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  })
+    .format(d)
+    .replace(/\u00a0/g, " ");
+}
+
 /** yyyy-MM-dd → DD-MM-YYYY for the date picker text field. */
 export function isoYmdToDanishDisplay(iso: string): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec((iso ?? "").trim());
