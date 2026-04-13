@@ -43,6 +43,7 @@ async function ProjekterPageContent() {
     status: r.status,
     priority: r.priority,
     deadline: r.deadline ? r.deadline.toISOString() : null,
+    startDate: r.startDate ? r.startDate.toISOString() : null,
     isRoutine: r.isRoutine,
     routineInterval: r.routineInterval,
     createdAt: r.createdAt.toISOString(),

@@ -91,6 +91,10 @@ export const updateProjectStatusSchema = z.object({
   status: projectStatusZ,
 });
 
+export const ganttTasksForProjectSchema = z.object({
+  projectId: cuidLikeSchema,
+});
+
 const trimmedTaskTitle = z
   .string()
   .transform((s) => s.trim())

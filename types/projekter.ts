@@ -1,4 +1,19 @@
-import type { Priority, ProjectStatus, RoutineInterval, TaskStatus } from "@prisma/client";
+import type {
+  Priority,
+  ProjectStatus,
+  RoutineInterval,
+  TaskStatus,
+} from "@prisma/client";
+
+/** Minimal task row for Gantt (level 2). */
+export type GanttTaskRow = {
+  id: string;
+  title: string;
+  status: TaskStatus;
+  startDate: string | null;
+  deadline: string | null;
+  createdAt: string;
+};
 
 /** Serializable project row for Projekter list/kanban */
 export type ProjectListItem = {
@@ -7,6 +22,8 @@ export type ProjectListItem = {
   status: ProjectStatus;
   priority: Priority;
   deadline: string | null;
+  /** ISO; project schedule start (Gantt). */
+  startDate: string | null;
   isRoutine: boolean;
   routineInterval: RoutineInterval | null;
   createdAt: string;

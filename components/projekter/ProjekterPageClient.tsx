@@ -1,15 +1,17 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronRight, LayoutGrid, List } from "lucide-react";
+import { CalendarRange, ChevronRight, LayoutGrid, List } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Priority, ProjectStatus } from "@prisma/client";
 import type { ProjectListItem } from "@/types/projekter";
+import { getGanttTasksForProject } from "@/app/(dashboard)/projekter/actions";
+import GanttView from "./GanttView";
 import { NytProjektModal } from "./NytProjektModal";
 import { ProjekterCompletedListView, ProjekterListView } from "./ProjectCard";
 import { ProjekterKanban } from "./ProjekterKanban";
 
-type ViewMode = "liste" | "kanban";
+type ViewMode = "liste" | "kanban" | "gantt";
 
 type StatusFilter = "alle" | ProjectStatus;
 type PriorityFilter = "alle" | Priority;
@@ -268,6 +270,10 @@ export default function ProjekterPageClient({
               <LayoutGrid className="h-4 w-4 shrink-0" aria-hidden />
               Kanban
             </button>
+            <button type="button" onClick={() => setView("gantt")} className={segBtn(view === "gantt")}>
+              <CalendarRange className="h-4 w-4 shrink-0" aria-hidden />
+              Gantt
+            </button>
           </div>
 
           <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-1 sm:gap-2">
@@ -473,7 +479,9 @@ export default function ProjekterPageClient({
       </div>
 
       <div className="px-8 pb-8 pt-6">
-        {view === "liste" ? (
+        {view === "gantt" ? (
+          <GanttView projects={filtered} fetchTasks={getGanttTasksForProject} />
+        ) : view === "liste" ? (
           <>
             <div className="overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white">
               <ProjekterListView projects={paged} onNytProjekt={() => setCreateOpen(true)} />
