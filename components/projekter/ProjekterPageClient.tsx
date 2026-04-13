@@ -1,71 +1,94 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import type { Priority, ProjectStatus } from "@prisma/client";
 import type { ProjectListItem } from "@/types/projekter";
 import { NytProjektModal } from "./NytProjektModal";
-import {
-  ProjekterListView,
-  type ProjekterQuickFilter,
-} from "./ProjectCard";
+import { ProjekterListView } from "./ProjectCard";
 import { ProjekterKanban } from "./ProjekterKanban";
 
-type ViewMode = "liste" | "kanban" | "kalender" | "tabel";
+type ViewMode = "liste" | "kanban";
 
-const QUICK_FILTER_PILLS: { id: ProjekterQuickFilter; label: string }[] = [
-  { id: "alle", label: "Alle" },
-  { id: "mine", label: "Mine" },
-  { id: "hoj_prioritet", label: "Høj prioritet" },
-  { id: "overskredet", label: "Overskredet" },
-];
+type StatusFilter = "alle" | ProjectStatus;
+type PriorityFilter = "alle" | Priority;
+type FristFilter = "alle" | "overskredet" | "uden" | "med";
 
-function applyQuickFilter(
+const PAGE_SIZE = 10;
+
+function applyTableFilters(
   projects: ProjectListItem[],
-  q: ProjekterQuickFilter,
-  currentUserId: string,
+  statusFilter: StatusFilter,
+  priorityFilter: PriorityFilter,
+  fristFilter: FristFilter,
 ): ProjectListItem[] {
-  if (q === "alle") return projects;
   const now = new Date();
-  switch (q) {
-    case "mine":
-      return projects.filter((p) => p.owner.id === currentUserId);
-    case "hoj_prioritet":
-      return projects.filter((p) => p.priority === "HIGH");
-    case "overskredet":
-      return projects.filter(
-        (p) =>
-          p.deadline != null &&
-          new Date(p.deadline) < now &&
-          p.status !== "COMPLETED",
-      );
-    default:
-      return projects;
-  }
+  return projects.filter((p) => {
+    if (statusFilter !== "alle" && p.status !== statusFilter) return false;
+    if (priorityFilter !== "alle" && p.priority !== priorityFilter) return false;
+    const deadline = p.deadline ? new Date(p.deadline) : null;
+    if (fristFilter === "overskredet") {
+      if (deadline === null || deadline >= now || p.status === "COMPLETED") {
+        return false;
+      }
+    } else if (fristFilter === "uden") {
+      if (p.deadline != null) return false;
+    } else if (fristFilter === "med") {
+      if (p.deadline == null) return false;
+    }
+    return true;
+  });
 }
 
 export default function ProjekterPageClient({
   initialProjects,
   usersForCreate,
-  currentUserId,
+  currentUserId: _currentUserId,
 }: {
   initialProjects: ProjectListItem[];
   usersForCreate: { id: string; name: string; email: string }[];
   currentUserId: string;
 }) {
+  void _currentUserId;
   const [view, setView] = useState<ViewMode>("liste");
   const [createOpen, setCreateOpen] = useState(false);
   const [projects, setProjects] = useState<ProjectListItem[]>(initialProjects);
-  const [quickFilter, setQuickFilter] = useState<ProjekterQuickFilter>("alle");
-  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
-  const [showCompleted, setShowCompleted] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("alle");
+  const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>("alle");
+  const [fristFilter, setFristFilter] = useState<FristFilter>("alle");
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     setProjects(initialProjects);
   }, [initialProjects]);
 
-  const quickFiltered = useMemo(
-    () => applyQuickFilter(projects, quickFilter, currentUserId),
-    [projects, quickFilter, currentUserId],
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter, priorityFilter, fristFilter]);
+
+  const filtered = useMemo(
+    () => applyTableFilters(projects, statusFilter, priorityFilter, fristFilter),
+    [projects, statusFilter, priorityFilter, fristFilter],
   );
+
+  const total = filtered.length;
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const pageSafe = Math.min(page, pageCount);
+
+  const paged = useMemo(
+    () => filtered.slice((pageSafe - 1) * PAGE_SIZE, pageSafe * PAGE_SIZE),
+    [filtered, pageSafe],
+  );
+
+  const pageNumbers = useMemo(() => {
+    const maxButtons = 5;
+    if (pageCount <= maxButtons) {
+      return Array.from({ length: pageCount }, (_, i) => i + 1);
+    }
+    let from = Math.max(1, pageSafe - 2);
+    const to = Math.min(pageCount, from + maxButtons - 1);
+    if (to - from < maxButtons - 1) from = Math.max(1, to - maxButtons + 1);
+    return Array.from({ length: to - from + 1 }, (_, i) => from + i);
+  }, [pageCount, pageSafe]);
 
   const onProjectsUpdate = useCallback(
     (updater: (prev: ProjectListItem[]) => ProjectListItem[]) => {
@@ -74,109 +97,176 @@ export default function ProjekterPageClient({
     [],
   );
 
+  const hasActiveFilters =
+    statusFilter !== "alle" || priorityFilter !== "alle" || fristFilter !== "alle";
+
+  const clearFilters = () => {
+    setStatusFilter("alle");
+    setPriorityFilter("alle");
+    setFristFilter("alle");
+  };
+
   const segBtn = (active: boolean) =>
     `flex items-center gap-2 rounded-md px-4 py-1.5 text-xs font-semibold transition-colors ${
       active
-        ? "bg-white text-primary shadow-sm"
-        : "font-medium text-on-surface-variant hover:text-on-surface"
+        ? "bg-white text-[#001533] shadow-sm"
+        : "font-medium text-[#6b7280] hover:text-[#0f1923]"
     }`;
+
+  const selectClass =
+    "h-9 min-w-[118px] rounded-md border border-[#e8e8e8] bg-white px-2.5 font-body text-xs text-[#0f1923] focus:border-[#001533] focus:outline-none focus:ring-1 focus:ring-[#001533]";
+
+  const start = total === 0 ? 0 : (pageSafe - 1) * PAGE_SIZE + 1;
+  const end = Math.min(pageSafe * PAGE_SIZE, total);
 
   return (
     <div className="-mx-8">
-      <div className="sticky top-0 z-30 border-b border-slate-200 bg-white">
-        <div className="flex h-16 min-h-16 items-center justify-between px-8">
-          <h1 className="text-base font-extrabold tracking-tight text-primary-container">Projekter</h1>
+      <div className="px-8 pt-8">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold tracking-tight text-[#001533]">Projekter</h1>
+            <p className="mt-1 font-body text-[13px] leading-snug text-[#6b7280]">
+              Administrer og overvåg dine aktive arbejdsprocesser.
+            </p>
+          </div>
           <button
             type="button"
             onClick={() => setCreateOpen(true)}
-            className="flex shrink-0 items-center gap-2 rounded-md bg-primary px-4 py-2 font-body text-xs font-medium text-on-primary hover:opacity-90"
+            className="flex shrink-0 items-center gap-2 rounded-md bg-[#001533] px-4 py-2.5 font-body text-xs font-semibold text-white shadow-sm hover:opacity-90"
           >
-            <span className="material-symbols-outlined text-sm">add</span>
+            <span aria-hidden className="text-base font-semibold leading-none">
+              +
+            </span>
             Nyt projekt
           </button>
         </div>
-        <div className="flex min-h-14 flex-wrap items-center justify-between gap-4 px-8 py-3">
-          <div className="flex min-w-0 flex-wrap items-center rounded-lg border border-[#e8e8e8] bg-white p-1">
+
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex min-w-0 flex-wrap items-center rounded-lg border border-[#e8e8e8] bg-[#f8f9fa] p-1">
             <button type="button" onClick={() => setView("liste")} className={segBtn(view === "liste")}>
-              <span className="material-symbols-outlined text-sm">list</span>
+              <span className="material-symbols-outlined text-sm leading-none">list</span>
               Liste
             </button>
             <button type="button" onClick={() => setView("kanban")} className={segBtn(view === "kanban")}>
-              <span className="material-symbols-outlined text-sm">view_kanban</span>
+              <span className="material-symbols-outlined text-sm leading-none">view_kanban</span>
               Kanban
             </button>
-            <button type="button" onClick={() => setView("kalender")} className={segBtn(view === "kalender")}>
-              <span className="material-symbols-outlined text-sm">calendar_month</span>
-              Kalender
-            </button>
-            <button type="button" onClick={() => setView("tabel")} className={segBtn(view === "tabel")}>
-              <span className="material-symbols-outlined text-sm">table_rows</span>
-              Tabel
+          </div>
+
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <label className="sr-only" htmlFor="filter-status">
+              Status
+            </label>
+            <select
+              id="filter-status"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+              className={selectClass}
+            >
+              <option value="alle">Alle</option>
+              <option value="NOT_STARTED">Ikke startet</option>
+              <option value="IN_PROGRESS">I gang</option>
+              <option value="WAITING">Stoppet</option>
+              <option value="COMPLETED">Fuldført</option>
+            </select>
+
+            <label className="sr-only" htmlFor="filter-priority">
+              Prioritet
+            </label>
+            <select
+              id="filter-priority"
+              value={priorityFilter}
+              onChange={(e) => setPriorityFilter(e.target.value as PriorityFilter)}
+              className={selectClass}
+            >
+              <option value="alle">Alle</option>
+              <option value="HIGH">Høj</option>
+              <option value="MEDIUM">Mellem</option>
+              <option value="LOW">Lav</option>
+            </select>
+
+            <label className="sr-only" htmlFor="filter-frist">
+              Frist
+            </label>
+            <select
+              id="filter-frist"
+              value={fristFilter}
+              onChange={(e) => setFristFilter(e.target.value as FristFilter)}
+              className={selectClass}
+            >
+              <option value="alle">Alle</option>
+              <option value="overskredet">Overskredet</option>
+              <option value="uden">Uden frist</option>
+              <option value="med">Med frist</option>
+            </select>
+
+            <button
+              type="button"
+              onClick={clearFilters}
+              className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md border px-3 font-body text-xs font-semibold transition-colors ${
+                hasActiveFilters
+                  ? "border-[#001533] bg-white text-[#001533] hover:bg-[#f8f9fa]"
+                  : "border-[#e8e8e8] bg-white text-[#6b7280] hover:bg-[#f8f9fa]"
+              }`}
+              title="Ryd filtre"
+            >
+              <span className="text-[14px] leading-none" aria-hidden>
+                ≡
+              </span>
+              Filtrer
             </button>
           </div>
-          <button
-            type="button"
-            onClick={() => setFilterPanelOpen((o) => !o)}
-            className="inline-flex shrink-0 items-center gap-1.5 font-body text-xs font-semibold text-primary hover:opacity-90"
-          >
-            <span className="material-symbols-outlined text-sm">filter_list</span>
-            Filtrer{quickFilter !== "alle" ? " (1)" : ""}
-          </button>
         </div>
-        {filterPanelOpen ? (
-          <div className="border-t border-slate-100 px-8 pb-3 pt-0">
-            <div className="rounded-[8px] border border-[#e8e8e8] bg-white px-4 py-3">
-              <div className="flex min-w-0 flex-wrap gap-2">
-                {QUICK_FILTER_PILLS.map((p) => {
-                  const active = quickFilter === p.id;
-                  return (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => setQuickFilter(p.id)}
-                      className="rounded-[6px] border px-[14px] py-[6px] font-body text-[13px] font-medium transition-colors"
-                      style={
-                        active
-                          ? {
-                              backgroundColor: "#1a3167",
-                              color: "#fff",
-                              borderColor: "#1a3167",
-                            }
-                          : {
-                              backgroundColor: "#fff",
-                              color: "#0f1923",
-                              borderColor: "#e8e8e8",
-                            }
-                      }
-                    >
-                      {p.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        ) : null}
       </div>
 
-      <div className="px-8 py-8">
+      <div className="px-8 pb-8 pt-6">
         {view === "liste" ? (
-          <ProjekterListView
-            projects={quickFiltered}
-            showCompleted={showCompleted}
-            onShowCompleted={() => setShowCompleted(true)}
-            onNytProjekt={() => setCreateOpen(true)}
-          />
-        ) : view === "kanban" ? (
-          <ProjekterKanban projects={quickFiltered} onProjectsUpdate={onProjectsUpdate} />
-        ) : view === "kalender" ? (
-          <div className="rounded-xl bg-surface-container-lowest p-12 text-center font-body text-sm text-on-surface-variant shadow-sm ring-1 ring-black/5">
-            Kalendervisning kommer snart.
-          </div>
+          <>
+            <ProjekterListView projects={paged} onNytProjekt={() => setCreateOpen(true)} />
+            {total > 0 ? (
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-[#e8e8e8] pt-4">
+                <p className="font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
+                  Viser {start} – {end} af {total} projekter
+                </p>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    aria-label="Forrige side"
+                    disabled={pageSafe <= 1}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    className="flex h-8 w-8 items-center justify-center rounded border border-[#e8e8e8] text-sm text-[#001533] hover:bg-[#f8f9fa] disabled:pointer-events-none disabled:opacity-40"
+                  >
+                    ‹
+                  </button>
+                  {pageNumbers.map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setPage(n)}
+                      className={`flex h-8 min-w-[2rem] items-center justify-center rounded px-2 text-xs font-semibold ${
+                        n === pageSafe
+                          ? "bg-[#001533] text-white"
+                          : "border border-transparent text-[#001533] hover:bg-[#f8f9fa]"
+                      }`}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    aria-label="Næste side"
+                    disabled={pageSafe >= pageCount}
+                    onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                    className="flex h-8 w-8 items-center justify-center rounded border border-[#e8e8e8] text-sm text-[#001533] hover:bg-[#f8f9fa] disabled:pointer-events-none disabled:opacity-40"
+                  >
+                    ›
+                  </button>
+                </div>
+              </div>
+            ) : null}
+          </>
         ) : (
-          <div className="rounded-xl bg-surface-container-lowest p-12 text-center font-body text-sm text-on-surface-variant shadow-sm ring-1 ring-black/5">
-            Tabelvisning kommer snart.
-          </div>
+          <ProjekterKanban projects={filtered} onProjectsUpdate={onProjectsUpdate} />
         )}
       </div>
 

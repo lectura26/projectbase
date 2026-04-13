@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { useMemo } from "react";
-import type { ProjectStatus } from "@prisma/client";
+import { useRouter } from "next/navigation";
+import type { Priority, ProjectStatus } from "@prisma/client";
 import type { ProjectListItem } from "@/types/projekter";
 import {
   BADGE_CHIP_CLASS,
@@ -14,164 +13,199 @@ import {
   taskProgress,
 } from "./project-helpers";
 
-export type ProjekterQuickFilter = "alle" | "mine" | "hoj_prioritet" | "overskredet";
-
-const SECTION_ORDER: ProjectStatus[] = [
-  "IN_PROGRESS",
-  "NOT_STARTED",
-  "WAITING",
-  "COMPLETED",
-];
-
-const SECTION_TITLE: Record<ProjectStatus, string> = {
-  IN_PROGRESS: "I GANG",
-  NOT_STARTED: "IKKE STARTET",
-  WAITING: "AFVENTER",
-  COMPLETED: "FULDFØRT",
-};
-
-function groupByStatus(projects: ProjectListItem[]): Map<ProjectStatus, ProjectListItem[]> {
-  const map = new Map<ProjectStatus, ProjectListItem[]>();
-  for (const s of SECTION_ORDER) {
-    map.set(s, []);
+function tableStatusBadgeClass(status: ProjectStatus): string {
+  switch (status) {
+    case "NOT_STARTED":
+      return "bg-[#f3f4f6] text-[#6b7280]";
+    case "IN_PROGRESS":
+      return "bg-[#dbeafe] text-[#1e40af]";
+    case "WAITING":
+      return "bg-[#fee2e2] text-[#b91c1c]";
+    case "COMPLETED":
+      return "bg-[#dcfce7] text-[#15803d]";
+    default:
+      return "bg-[#f3f4f6] text-[#6b7280]";
   }
-  for (const p of projects) {
-    map.get(p.status)!.push(p);
-  }
-  return map;
 }
 
+function tableStatusLabelUpper(status: ProjectStatus): string {
+  switch (status) {
+    case "NOT_STARTED":
+      return "PLANLAGT";
+    case "IN_PROGRESS":
+      return "I GANG";
+    case "WAITING":
+      return "STOPPET";
+    case "COMPLETED":
+      return "FÆRDIG";
+  }
+}
+
+function priorityDotClass(priority: Priority): string {
+  switch (priority) {
+    case "HIGH":
+      return "bg-[#ef4444]";
+    case "MEDIUM":
+      return "bg-amber-400";
+    case "LOW":
+      return "bg-[#9ca3af]";
+  }
+}
+
+function progressBarFillClass(status: ProjectStatus): string {
+  switch (status) {
+    case "IN_PROGRESS":
+      return "bg-[#001533]";
+    case "COMPLETED":
+      return "bg-[#15803d]";
+    case "WAITING":
+      return "bg-[#dc2626]";
+    case "NOT_STARTED":
+      return "bg-[#6b7280]";
+    default:
+      return "bg-[#001533]";
+  }
+}
+
+function formatFristDate(d: Date): string {
+  const day = d.getDate();
+  const month = d.toLocaleDateString("en-GB", { month: "short" });
+  const year = d.getFullYear();
+  return `${day}. ${month}, ${year}`;
+}
+
+const BADGE_TABLE_CLASS =
+  "inline-flex max-w-full items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase leading-tight tracking-wide";
+
 function ProjectListRow({ project }: { project: ProjectListItem }) {
+  const router = useRouter();
   const progress = taskProgress(project.tasks);
   const pct = progress ?? 0;
   const deadline = project.deadline ? new Date(project.deadline) : null;
-  const now = new Date();
-  const isOverdue =
-    deadline !== null && deadline < now && project.status !== "COMPLETED";
+
+  const go = () => router.push(`/projekter/${project.id}`);
 
   return (
-    <Link
-      href={`/projekter/${project.id}`}
-      className="flex h-[52px] min-h-[52px] w-full items-center gap-3 border-b border-[#e8e8e8] px-1 transition-colors hover:bg-[#f8f9fa]"
+    <tr
+      className="h-[52px] cursor-pointer border-b border-[#e8e8e8] transition-colors hover:bg-[#f8f9fa]"
+      onClick={go}
+      role="link"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          go();
+        }
+      }}
     >
-      <span className="min-w-0 flex-1 truncate font-body text-[14px] font-medium text-[#0f1923]">
-        {project.name}
-      </span>
-      <span
-        className={`${BADGE_CHIP_CLASS} shrink-0 whitespace-nowrap ${statusBadgeClass(project.status)}`}
-      >
-        {statusLabelDa(project.status)}
-      </span>
-      <span
-        className={`${BADGE_CHIP_CLASS} shrink-0 whitespace-nowrap ${priorityBadgeClass(project.priority)}`}
-      >
-        {priorityLabelDa(project.priority)}
-      </span>
-      <div className="flex shrink-0 items-center gap-2">
-        <div className="h-1 w-20 overflow-hidden rounded-[2px] bg-[#e8e8e8]">
-          <div
-            className="h-full rounded-[2px] bg-[#1a3167]"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-        <span className="w-9 shrink-0 font-body text-[12px] tabular-nums text-[#6b7280]">
-          {progress === null ? "—" : `${pct}%`}
-        </span>
-      </div>
-      <div className="w-[120px] shrink-0 text-right font-body text-[12px]">
-        {isOverdue ? (
-          <span className="font-medium text-red-600">Overskredet</span>
-        ) : deadline ? (
-          <span className="text-[#6b7280]">
-            {deadline.toLocaleDateString("da-DK", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-            })}
+      <td className="px-3 py-0 align-middle">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <span className="min-w-0 truncate font-body text-[14px] font-medium text-[#0f1923]">
+            {project.name}
           </span>
-        ) : (
-          <span className="text-[#6b7280]">—</span>
-        )}
-      </div>
-      <span
-        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#1a3167] text-[11px] font-semibold text-white"
-        title={project.owner.name}
-      >
-        {contactInitials(project.owner.name)}
-      </span>
-    </Link>
+          {project.isRoutine ? (
+            <span className="shrink-0 text-[14px] font-medium text-[#1e40af]" title="Rutine" aria-label="Rutine">
+              ↻
+            </span>
+          ) : null}
+        </div>
+      </td>
+      <td className="px-3 py-0 align-middle">
+        <span
+          className={`${BADGE_TABLE_CLASS} whitespace-nowrap ${tableStatusBadgeClass(project.status)}`}
+        >
+          {tableStatusLabelUpper(project.status)}
+        </span>
+      </td>
+      <td className="px-3 py-0 align-middle">
+        <span className="inline-flex items-center gap-2 font-body text-[13px] text-[#0f1923]">
+          <span
+            className={`h-2 w-2 shrink-0 rounded-full ${priorityDotClass(project.priority)}`}
+            aria-hidden
+          />
+          {priorityLabelDa(project.priority)}
+        </span>
+      </td>
+      <td className="px-3 py-0 align-middle">
+        <span className="whitespace-nowrap font-body text-[13px] text-[#6b7280]">
+          {deadline ? formatFristDate(deadline) : "—"}
+        </span>
+      </td>
+      <td className="px-3 py-0 align-middle">
+        <div className="flex w-[140px] max-w-full items-center justify-end gap-2">
+          <div className="h-[4px] w-[120px] shrink-0 overflow-hidden rounded-full bg-[#e8e8e8]">
+            <div
+              className={`h-full rounded-full ${progressBarFillClass(project.status)}`}
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <span className="w-9 shrink-0 text-right font-body text-[12px] tabular-nums text-[#6b7280]">
+            {progress === null ? "—" : `${pct}%`}
+          </span>
+        </div>
+      </td>
+      <td className="px-3 py-0 align-middle text-right">
+        <span
+          className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#001533] text-[11px] font-semibold text-white"
+          title={project.owner.name}
+        >
+          {contactInitials(project.owner.name)}
+        </span>
+      </td>
+    </tr>
   );
 }
 
 export function ProjekterListView({
   projects,
-  showCompleted,
-  onShowCompleted,
   onNytProjekt,
 }: {
   projects: ProjectListItem[];
-  showCompleted: boolean;
-  onShowCompleted: () => void;
   onNytProjekt: () => void;
 }) {
-  const completedCount = useMemo(
-    () => projects.filter((p) => p.status === "COMPLETED").length,
-    [projects],
-  );
-
-  const visibleProjects = useMemo(() => {
-    if (showCompleted) return projects;
-    return projects.filter((p) => p.status !== "COMPLETED");
-  }, [projects, showCompleted]);
-
-  const grouped = useMemo(() => groupByStatus(visibleProjects), [visibleProjects]);
-
   return (
-    <div className="w-full min-w-0">
+    <div className="w-full min-w-0 overflow-x-auto">
       {projects.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <p className="font-body text-sm text-[#6b7280]">Ingen projekter matcher filteret.</p>
           <button
             type="button"
             onClick={onNytProjekt}
-            className="mt-3 font-body text-sm font-medium text-[#1a3167] underline decoration-[#1a3167]/30 underline-offset-2 hover:opacity-90"
+            className="mt-3 font-body text-sm font-medium text-[#001533] underline decoration-[#001533]/30 underline-offset-2 hover:opacity-90"
           >
             + Nyt projekt
           </button>
         </div>
       ) : (
-        <>
-          {visibleProjects.length > 0
-            ? SECTION_ORDER.map((status) => {
-                const rows = grouped.get(status)!;
-                if (rows.length === 0) return null;
-                return (
-                  <section key={status} className="mb-1">
-                    <h3 className="px-1 pb-2 pt-3 font-body text-[11px] font-semibold uppercase tracking-[0.06em] text-[#9ca3af]">
-                      {SECTION_TITLE[status]} ({rows.length})
-                    </h3>
-                    <div>
-                      {rows.map((project) => (
-                        <ProjectListRow key={project.id} project={project} />
-                      ))}
-                    </div>
-                  </section>
-                );
-              })
-            : null}
-
-          {!showCompleted && completedCount > 0 ? (
-            <div className={visibleProjects.length > 0 ? "pt-4" : "py-8"}>
-              <button
-                type="button"
-                onClick={onShowCompleted}
-                className="font-body text-[13px] font-medium text-[#1a3167] underline decoration-[#1a3167]/30 underline-offset-2 hover:opacity-90"
-              >
-                Vis fuldførte ({completedCount})
-              </button>
-            </div>
-          ) : null}
-        </>
+        <table className="w-full min-w-[720px] table-fixed border-collapse">
+          <thead>
+            <tr className="border-b border-[#e8e8e8]">
+              <th className="w-[28%] px-3 py-3 text-left font-body text-[11px] font-semibold uppercase tracking-[0.06em] text-[#9ca3af]">
+                Projekt navn
+              </th>
+              <th className="w-[14%] px-3 py-3 text-left font-body text-[11px] font-semibold uppercase tracking-[0.06em] text-[#9ca3af]">
+                Status
+              </th>
+              <th className="w-[14%] px-3 py-3 text-left font-body text-[11px] font-semibold uppercase tracking-[0.06em] text-[#9ca3af]">
+                Prioritet
+              </th>
+              <th className="w-[14%] px-3 py-3 text-left font-body text-[11px] font-semibold uppercase tracking-[0.06em] text-[#9ca3af]">
+                Frist
+              </th>
+              <th className="w-[22%] px-3 py-3 text-left font-body text-[11px] font-semibold uppercase tracking-[0.06em] text-[#9ca3af]">
+                Fremdrift
+              </th>
+              <th className="w-[8%] px-3 py-3 text-right font-body text-[11px] font-semibold uppercase tracking-[0.06em] text-[#9ca3af]">
+                Ejer
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {projects.map((project) => (
+              <ProjectListRow key={project.id} project={project} />
+            ))}
+          </tbody>
+        </table>
       )}
     </div>
   );
