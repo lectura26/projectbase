@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { LogOut } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -27,6 +28,7 @@ export function Sidebar({ userLabel }: { userLabel: string }) {
       <nav className="flex flex-1 flex-col gap-2 px-3">
         {NAV_ITEMS.map((item) => {
           const isActive = activeId === item.id;
+          const Icon = item.Icon;
           return (
             <Link
               key={item.href}
@@ -38,7 +40,7 @@ export function Sidebar({ userLabel }: { userLabel: string }) {
                   : "text-slate-500 hover:bg-slate-50",
               ].join(" ")}
             >
-              <span className="material-symbols-outlined text-[20px] leading-none">{item.icon}</span>
+              <Icon className="h-5 w-5 shrink-0" aria-hidden />
               {item.label}
             </Link>
           );
@@ -66,7 +68,7 @@ export function Sidebar({ userLabel }: { userLabel: string }) {
           onClick={handleLogout}
           className="flex w-full items-center gap-3 rounded-md py-3 pl-7 pr-4 text-left text-slate-500 transition-colors hover:bg-slate-50"
         >
-          <span className="material-symbols-outlined text-[20px] leading-none">logout</span>
+          <LogOut className="h-5 w-5 shrink-0" aria-hidden />
           Log ud
         </button>
       </div>

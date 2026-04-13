@@ -1,5 +1,6 @@
 "use client";
 
+import { Repeat } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { Priority, ProjectStatus } from "@prisma/client";
 import type { ProjectListItem } from "@/types/projekter";
@@ -235,12 +236,11 @@ export function ProjectCardBody({
           {priorityLabelDa(project.priority)}
         </span>
         {project.isRoutine ? (
-          <span
-            className="material-symbols-outlined text-[16px] leading-none text-on-primary-container"
-            aria-label="Rutine"
-            title="Rutine"
-          >
-            repeat
+          <span title="Rutine">
+            <Repeat
+              className="h-4 w-4 text-on-primary-container"
+              aria-label="Rutine"
+            />
           </span>
         ) : null}
       </div>

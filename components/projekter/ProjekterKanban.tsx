@@ -7,6 +7,7 @@ import {
   type DropResult,
 } from "@hello-pangea/dnd";
 import type { ProjectStatus } from "@prisma/client";
+import { GripVertical } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
@@ -120,9 +121,10 @@ export function ProjekterKanban({
                             className="flex cursor-grab items-center gap-1 rounded-t-lg border border-b-0 border-outline-variant/20 bg-surface-container-lowest px-2 py-1 active:cursor-grabbing"
                             aria-label="Træk kort"
                           >
-                            <span className="material-symbols-outlined text-base text-on-surface-variant/50">
-                              drag_indicator
-                            </span>
+                            <GripVertical
+                              className="h-4 w-4 text-on-surface-variant/50"
+                              aria-hidden
+                            />
                           </div>
                           <Link
                             href={`/projekter/${project.id}`}

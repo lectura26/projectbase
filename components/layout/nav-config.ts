@@ -1,11 +1,14 @@
+import type { LucideIcon } from "lucide-react";
+import { Calendar, ClipboardList, LayoutDashboard, Settings, Users } from "lucide-react";
+
 export type AppNavId = "oversigt" | "projekter" | "kalender" | "team" | "indstillinger";
 
-export const NAV_ITEMS: { id: AppNavId; href: string; label: string; icon: string }[] = [
-  { id: "oversigt", href: "/oversigt", label: "Oversigt", icon: "dashboard" },
-  { id: "projekter", href: "/projekter", label: "Projekter", icon: "assignment" },
-  { id: "kalender", href: "/kalender", label: "Kalender", icon: "calendar_month" },
-  { id: "team", href: "/team", label: "Mit team", icon: "groups" },
-  { id: "indstillinger", href: "/indstillinger", label: "Indstillinger", icon: "settings" },
+export const NAV_ITEMS: { id: AppNavId; href: string; label: string; Icon: LucideIcon }[] = [
+  { id: "oversigt", href: "/oversigt", label: "Oversigt", Icon: LayoutDashboard },
+  { id: "projekter", href: "/projekter", label: "Projekter", Icon: ClipboardList },
+  { id: "kalender", href: "/kalender", label: "Kalender", Icon: Calendar },
+  { id: "team", href: "/team", label: "Mit team", Icon: Users },
+  { id: "indstillinger", href: "/indstillinger", label: "Indstillinger", Icon: Settings },
 ];
 
 export const PAGE_TITLES: Record<string, string> = {

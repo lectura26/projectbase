@@ -1,6 +1,7 @@
 "use client";
 
 import type { AppRole } from "@prisma/client";
+import { X } from "lucide-react";
 import Image from "next/image";
 import { useRef, useState, useTransition } from "react";
 import { getTeamMemberDetail } from "@/app/(dashboard)/team/actions";
@@ -160,7 +161,7 @@ export default function TeamPageClient({ rows }: Props) {
                 className="shrink-0 rounded-full p-1 text-on-surface-variant hover:bg-surface-container-low"
                 aria-label="Luk"
               >
-                <span className="material-symbols-outlined">close</span>
+                <X className="h-5 w-5" aria-hidden />
               </button>
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">

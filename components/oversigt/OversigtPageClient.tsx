@@ -1,5 +1,6 @@
 "use client";
 
+import { Check } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useState, useTransition } from "react";
@@ -116,9 +117,11 @@ export default function OversigtPageClient({
                           }`}
                         >
                           {done ? (
-                            <span className="material-symbols-outlined text-[14px] leading-none">
-                              check
-                            </span>
+                            <Check
+                              className="h-3.5 w-3.5 text-on-primary"
+                              strokeWidth={2.5}
+                              aria-hidden
+                            />
                           ) : null}
                         </button>
                         <div className="min-w-0 flex-1">

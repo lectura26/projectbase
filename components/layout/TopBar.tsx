@@ -1,6 +1,7 @@
 "use client";
 
 import type { NotificationType } from "@prisma/client";
+import { Bell } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { markNotificationRead } from "@/app/(dashboard)/notifications/actions";
@@ -86,7 +87,7 @@ export function TopBar({
             setOpen((v) => !v);
           }}
         >
-          <span className="material-symbols-outlined text-[22px]">notifications</span>
+          <Bell className="h-[22px] w-[22px]" aria-hidden />
           {unread > 0 ? (
             <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-error px-1 text-[10px] font-bold text-white">
               {unread > 9 ? "9+" : unread}

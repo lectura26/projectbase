@@ -2,6 +2,7 @@
 
 import type { ActivityType, Priority, ProjectStatus, TaskStatus } from "@prisma/client";
 import { AnimatePresence, motion } from "framer-motion";
+import { Check, Pencil, Plus, Repeat, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import {
@@ -114,16 +115,16 @@ function TaskCycleButton({
       >
         <AnimatePresence initial={false}>
           {done ? (
-            <motion.span
+            <motion.div
               key="check"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.15, ease: EASE_STANDARD }}
-              className="material-symbols-outlined text-lg leading-none text-white"
+              className="flex items-center justify-center"
             >
-              check
-            </motion.span>
+              <Check className="h-5 w-5 text-white" strokeWidth={2.5} aria-hidden />
+            </motion.div>
           ) : null}
         </AnimatePresence>
       </motion.div>
@@ -370,7 +371,7 @@ export default function ProjectDetailClient({
             </div>
             {initial.isRoutine && initial.routineInterval ? (
               <p className="mt-2 flex items-center gap-1 font-body text-xs text-on-surface-variant/80">
-                <span className="material-symbols-outlined text-base">repeat</span>
+                <Repeat className="h-4 w-4 shrink-0" aria-hidden />
                 {routineIntervalLabel(initial.routineInterval)}
               </p>
             ) : null}
@@ -397,7 +398,7 @@ export default function ProjectDetailClient({
               className="flex h-10 w-10 items-center justify-center rounded-lg border border-outline-variant/20 text-on-surface-variant hover:bg-surface-container-low hover:text-primary"
               aria-label="Rediger projekt"
             >
-              <span className="material-symbols-outlined text-xl">edit</span>
+              <Pencil className="h-5 w-5" aria-hidden />
             </button>
           </div>
         </div>
@@ -667,7 +668,7 @@ function OpgaverTab({
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-outline-variant/40 text-on-surface-variant"
               aria-hidden
             >
-              <span className="material-symbols-outlined text-[20px] leading-none">add</span>
+              <Plus className="h-5 w-5" aria-hidden />
             </span>
             <span className="font-body text-sm font-medium text-on-surface-variant">Tilføj opgave...</span>
           </button>
@@ -1178,7 +1179,7 @@ function AktivitetTab({
                   className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-low text-on-surface hover:bg-surface-container-high"
                   aria-label="Bekræft"
                 >
-                  <span className="material-symbols-outlined text-lg">check</span>
+                  <Check className="h-5 w-5" aria-hidden />
                 </button>
                 <button
                   type="button"
@@ -1186,7 +1187,7 @@ function AktivitetTab({
                   className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-low text-on-surface hover:bg-surface-container-high"
                   aria-label="Slet"
                 >
-                  <span className="material-symbols-outlined text-lg">close</span>
+                  <X className="h-5 w-5" aria-hidden />
                 </button>
               </div>
             ) : null}
@@ -1473,7 +1474,7 @@ function FilerTab({
                 className="text-error"
                 aria-label="Slet fil"
               >
-                <span className="material-symbols-outlined">delete</span>
+                <Trash2 className="h-5 w-5" aria-hidden />
               </button>
             ) : null}
           </li>

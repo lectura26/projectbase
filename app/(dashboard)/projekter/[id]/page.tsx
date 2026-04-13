@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import ProjectDetailClient from "@/components/projekter/project-detail/ProjectDetailClient";
@@ -171,7 +172,7 @@ export default async function ProjectDetailPage({ params }: Props) {
         href="/projekter"
         className="inline-flex items-center gap-1 font-body text-sm font-medium text-primary hover:underline"
       >
-        <span className="material-symbols-outlined text-lg">arrow_back</span>
+        <ArrowLeft className="h-5 w-5 shrink-0" aria-hidden />
         Tilbage til projekter
       </Link>
       <ProjectDetailClient

@@ -1,5 +1,6 @@
 "use client";
 
+import { X } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { projectColorForId } from "@/lib/calendar-palette";
 import type {
@@ -387,7 +388,7 @@ export default function KalenderPageClient({
             aria-label="Luk"
             onClick={() => setPopover(null)}
           >
-            <span className="material-symbols-outlined text-lg">close</span>
+            <X className="h-5 w-5" aria-hidden />
           </button>
           {popover.kind === "event" ? (
             <>

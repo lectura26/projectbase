@@ -1,5 +1,6 @@
 "use client";
 
+import { LayoutGrid, List } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Priority, ProjectStatus } from "@prisma/client";
 import type { ProjectListItem } from "@/types/projekter";
@@ -199,11 +200,11 @@ export default function ProjekterPageClient({
         <div className="mt-8 flex w-full flex-wrap items-center justify-between gap-4">
           <div className="flex min-w-0 flex-wrap items-center rounded-lg border border-[#e8e8e8] bg-[#f8f9fa] p-1">
             <button type="button" onClick={() => setView("liste")} className={segBtn(view === "liste")}>
-              <span className="material-symbols-outlined text-sm leading-none">list</span>
+              <List className="h-4 w-4 shrink-0" aria-hidden />
               Liste
             </button>
             <button type="button" onClick={() => setView("kanban")} className={segBtn(view === "kanban")}>
-              <span className="material-symbols-outlined text-sm leading-none">view_kanban</span>
+              <LayoutGrid className="h-4 w-4 shrink-0" aria-hidden />
               Kanban
             </button>
           </div>

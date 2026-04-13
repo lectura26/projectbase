@@ -1,6 +1,15 @@
 "use client";
 
 import type { Priority, ProjectVisibility, RoutineInterval } from "@prisma/client";
+import {
+  ArrowRight,
+  Calendar,
+  ChevronDown,
+  Lock,
+  Plus,
+  Unlock,
+  X,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -252,7 +261,7 @@ export function NytProjektModal({
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-primary"
             aria-label="Luk"
           >
-            <span className="material-symbols-outlined">close</span>
+            <X className="h-6 w-6" aria-hidden />
           </button>
         </div>
 
@@ -306,9 +315,10 @@ export function NytProjektModal({
                       ))
                     )}
                   </select>
-                  <span className="pointer-events-none absolute right-1 top-3 text-primary/40 material-symbols-outlined text-xl">
-                    expand_more
-                  </span>
+                  <ChevronDown
+                    className="pointer-events-none absolute right-1 top-3 h-6 w-6 text-primary/40"
+                    aria-hidden
+                  />
                 </div>
               </div>
               <div>
@@ -325,9 +335,10 @@ export function NytProjektModal({
                     onChange={setStartDate}
                     className={`${inputUnderlineClass} bg-surface-container-low`}
                   />
-                  <span className="pointer-events-none absolute right-1 top-2.5 text-primary/40 material-symbols-outlined">
-                    calendar_today
-                  </span>
+                  <Calendar
+                    className="pointer-events-none absolute right-1 top-2.5 h-5 w-5 text-primary/40"
+                    aria-hidden
+                  />
                 </div>
               </div>
               <div>
@@ -341,9 +352,10 @@ export function NytProjektModal({
                     onChange={setDeadline}
                     className={`${inputUnderlineClass} bg-surface-container-low`}
                   />
-                  <span className="pointer-events-none absolute right-1 top-2.5 text-primary/40 material-symbols-outlined">
-                    calendar_today
-                  </span>
+                  <Calendar
+                    className="pointer-events-none absolute right-1 top-2.5 h-5 w-5 text-primary/40"
+                    aria-hidden
+                  />
                 </div>
               </div>
             </section>
@@ -359,11 +371,10 @@ export function NytProjektModal({
                 <h3 className="text-sm font-bold uppercase tracking-widest text-primary">
                   Flere indstillinger
                 </h3>
-                <span
-                  className={`material-symbols-outlined text-primary/40 transition-transform ${moreOpen ? "rotate-180" : ""}`}
-                >
-                  keyboard_arrow_down
-                </span>
+                <ChevronDown
+                  className={`h-6 w-6 text-primary/40 transition-transform ${moreOpen ? "rotate-180" : ""}`}
+                  aria-hidden
+                />
               </button>
 
               {moreOpen ? (
@@ -394,9 +405,11 @@ export function NytProjektModal({
                   <div className="md:col-span-2">
                     <span className={labelClass}>Synlighed</span>
                     <div className="flex items-center gap-4 rounded-lg bg-surface-container-low p-3">
-                      <span className="material-symbols-outlined text-primary/60">
-                        {teamVisible ? "lock_open" : "lock"}
-                      </span>
+                      {teamVisible ? (
+                        <Unlock className="h-5 w-5 text-primary/60" aria-hidden />
+                      ) : (
+                        <Lock className="h-5 w-5 text-primary/60" aria-hidden />
+                      )}
                       <div className="flex min-w-0 flex-1 flex-col">
                         <span className="text-sm font-semibold text-primary">
                           {teamVisible ? "Synlig for teamet" : "Kun synlig for ejer"}
@@ -440,7 +453,7 @@ export function NytProjektModal({
                             className="text-primary/70 hover:text-primary"
                             aria-label={`Fjern ${t}`}
                           >
-                            <span className="material-symbols-outlined text-sm">close</span>
+                            <X className="h-3.5 w-3.5" aria-hidden />
                           </button>
                         </span>
                       ))}
@@ -462,7 +475,7 @@ export function NytProjektModal({
                           onClick={addTag}
                           className="flex items-center gap-0.5 rounded-full px-1 text-[11px] font-bold text-primary hover:underline"
                         >
-                          <span className="material-symbols-outlined text-sm">add</span>
+                          <Plus className="h-3.5 w-3.5" aria-hidden />
                         </button>
                       </div>
                     </div>
@@ -535,9 +548,10 @@ export function NytProjektModal({
                           <option value="MONTHLY">Månedlig</option>
                           <option value="CUSTOM">Tilpasset (månedlig frist)</option>
                         </select>
-                        <span className="pointer-events-none absolute right-1 top-3 text-primary/40 material-symbols-outlined text-xl">
-                          expand_more
-                        </span>
+                        <ChevronDown
+                          className="pointer-events-none absolute right-1 top-3 h-6 w-6 text-primary/40"
+                          aria-hidden
+                        />
                       </div>
                     </div>
                   ) : null}
@@ -590,7 +604,7 @@ export function NytProjektModal({
                 : mode === "edit"
                   ? "Gem ændringer"
                   : "Opret projekt"}
-              <span className="material-symbols-outlined text-sm">arrow_forward</span>
+              <ArrowRight className="h-4 w-4" aria-hidden />
             </button>
           </div>
         </form>
