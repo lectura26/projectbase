@@ -4,7 +4,11 @@ import { NextResponse, type NextRequest } from "next/server";
 import { jsonError, logServerError } from "@/lib/api/safe-response";
 import { prisma } from "@/lib/prisma";
 import { projectAccessWhere } from "@/lib/projekter/project-access";
+import { clientIpFromRequest, rateLimitAllow } from "@/lib/rate-limit";
 import { createSignedStorageUrl } from "@/lib/supabase/storage-signed";
+
+const SIGNED_GET_WINDOW_MS = 60_000;
+const SIGNED_GET_MAX = 60;
 
 async function supabaseFromCookies() {
   const cookieStore = await cookies();
@@ -29,7 +33,7 @@ async function supabaseFromCookies() {
 const SIGNED_URL_TTL_SEC = 600;
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
@@ -41,6 +45,11 @@ export async function GET(
 
     if (!user) {
       return jsonError(401, "Unauthorized");
+    }
+
+    const ip = clientIpFromRequest(request);
+    if (!rateLimitAllow(`api-file-signed:${ip}:${user.id}`, SIGNED_GET_MAX, SIGNED_GET_WINDOW_MS)) {
+      return jsonError(429, "Too many requests");
     }
 
     const file = await prisma.file.findFirst({

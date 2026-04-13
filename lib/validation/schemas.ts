@@ -1,0 +1,178 @@
+import {
+  AppRole,
+  NotifyPreference,
+  Priority,
+  ProjectStatus,
+  ProjectVisibility,
+  RoutineInterval,
+  TaskStatus,
+} from "@prisma/client";
+import { z } from "zod";
+import { MAX_FILE_BYTES } from "@/lib/storage/file-validation";
+
+/** Project / task / comment text limits (defense-in-depth with DB). */
+export const MAX_PROJECT_NAME = 200;
+export const MAX_PROJECT_DESCRIPTION = 5000;
+export const MAX_TASK_TITLE = 200;
+export const MAX_COMMENT = 5000;
+export const MAX_TAG_LEN = 64;
+export const MAX_TAGS = 50;
+export const MAX_CONTACT_LEN = 320;
+export const MAX_ACCOUNT_NAME = 200;
+export const MAX_CALENDAR_TITLE = 200;
+
+const priorityZ = z.nativeEnum(Priority);
+const visibilityZ = z.nativeEnum(ProjectVisibility);
+const routineZ = z.nativeEnum(RoutineInterval);
+const taskStatusZ = z.nativeEnum(TaskStatus);
+const projectStatusZ = z.nativeEnum(ProjectStatus);
+const appRoleZ = z.nativeEnum(AppRole);
+const notifyPrefZ = z.nativeEnum(NotifyPreference);
+
+/** Supabase Auth user id = application User.id */
+export const uuidSchema = z.string().uuid();
+
+/** @default(cuid()) — projects, tasks, files, notifications, … */
+export const cuidLikeSchema = z.string().regex(/^c[a-z0-9]{8,35}$/);
+
+const trimmedName = z
+  .string()
+  .transform((s) => s.trim())
+  .pipe(z.string().min(1).max(MAX_PROJECT_NAME));
+
+export const projectNameSchema = trimmedName;
+
+/** POST /api/projects JSON body */
+export const apiProjectCreateSchema = z.object({
+  name: trimmedName,
+  description: z.union([z.string().max(MAX_PROJECT_DESCRIPTION), z.null()]).optional(),
+  deadline: z.union([z.string(), z.null()]).optional(),
+  priority: priorityZ,
+  visibility: visibilityZ,
+  tags: z.array(z.string().max(MAX_TAG_LEN)).max(MAX_TAGS).default([]),
+  isRoutine: z.boolean().optional(),
+  contactName: z.string().max(MAX_CONTACT_LEN).optional(),
+  contactEmail: z.string().max(MAX_CONTACT_LEN).optional(),
+});
+
+export type ApiProjectCreate = z.infer<typeof apiProjectCreateSchema>;
+
+/** Server action: create project */
+export const createProjectActionSchema = z.object({
+  name: trimmedName,
+  description: z.string().max(MAX_PROJECT_DESCRIPTION).optional(),
+  startDate: z.string().nullable().optional(),
+  deadline: z.string().nullable().optional(),
+  priority: priorityZ,
+  visibility: visibilityZ,
+  tags: z.array(z.string().max(MAX_TAG_LEN)).max(MAX_TAGS).default([]),
+  isRoutine: z.boolean(),
+  routineInterval: routineZ.nullable().optional(),
+  contactName: z.string().max(MAX_CONTACT_LEN).optional(),
+  contactEmail: z.string().max(MAX_CONTACT_LEN).optional(),
+  saveAsTemplate: z.boolean().optional(),
+});
+
+export const updateProjectActionSchema = createProjectActionSchema.extend({
+  projectId: cuidLikeSchema,
+});
+
+export const updateProjectScheduleSchema = z.object({
+  startDate: z.string().nullable().optional(),
+  deadline: z.string().nullable().optional(),
+});
+
+export const updateProjectScheduleActionSchema = updateProjectScheduleSchema.extend({
+  projectId: cuidLikeSchema,
+});
+
+export const updateProjectStatusSchema = z.object({
+  projectId: cuidLikeSchema,
+  status: projectStatusZ,
+});
+
+const trimmedTaskTitle = z
+  .string()
+  .transform((s) => s.trim())
+  .pipe(z.string().min(1).max(MAX_TASK_TITLE));
+
+export const createTaskActionSchema = z.object({
+  title: trimmedTaskTitle,
+  description: z.string().max(MAX_PROJECT_DESCRIPTION).optional().nullable(),
+  startDate: z.string().nullable().optional(),
+  deadline: z.string().nullable().optional(),
+  userId: z.union([uuidSchema, z.null()]).optional(),
+  priority: priorityZ.optional(),
+});
+
+export const updateTaskFieldsSchema = z.object({
+  taskId: cuidLikeSchema,
+  description: z.string().max(MAX_PROJECT_DESCRIPTION).optional().nullable(),
+  startDate: z.string().nullable().optional(),
+  deadline: z.string().nullable().optional(),
+  userId: z.union([uuidSchema, z.null()]).optional(),
+  priority: priorityZ.optional(),
+});
+
+export const commentContentSchema = z
+  .string()
+  .transform((s) => s.trim())
+  .pipe(z.string().min(1).max(MAX_COMMENT));
+
+export const calendarEventCreateSchema = z.object({
+  projectId: cuidLikeSchema,
+  title: z
+    .string()
+    .transform((s) => s.trim())
+    .pipe(z.string().min(1).max(MAX_CALENDAR_TITLE)),
+  date: z.string().min(1),
+  time: z.string().max(32).nullable().optional(),
+});
+
+const allowedFileType = z.enum([
+  "application/pdf",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+]);
+
+export const projectFileRecordSchema = z.object({
+  projectId: cuidLikeSchema,
+  name: z
+    .string()
+    .transform((s) => s.trim())
+    .pipe(z.string().min(1).max(255)),
+  fileType: allowedFileType,
+  storagePath: z.string().min(1).max(512),
+});
+
+export const updateMyAccountSchema = z.object({
+  name: z
+    .string()
+    .transform((s) => s.trim())
+    .pipe(z.string().min(1).max(MAX_ACCOUNT_NAME)),
+  notifyPreference: notifyPrefZ,
+});
+
+export const inviteTeamMemberSchema = z.object({
+  email: z
+    .string()
+    .transform((s) => s.trim().toLowerCase())
+    .pipe(z.string().email().max(320)),
+  name: z
+    .string()
+    .transform((s) => s.trim())
+    .pipe(z.string().min(1).max(200)),
+  appRole: appRoleZ,
+});
+
+export const notificationIdSchema = cuidLikeSchema;
+
+export const setTaskStatusSchema = z.object({
+  taskId: cuidLikeSchema,
+  status: taskStatusZ,
+});
+
+export { MAX_FILE_BYTES };

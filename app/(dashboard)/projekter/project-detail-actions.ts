@@ -10,6 +10,16 @@ import { PRIVATE_FILE_PLACEHOLDER } from "@/lib/files/private-file-url";
 import { ymdStringToDateOrNull } from "@/lib/datetime/ymd";
 import { projectAccessWhere } from "@/lib/projekter/project-access";
 import { removeStorageObject } from "@/lib/supabase/storage-remove";
+import { parseOrThrow } from "@/lib/validation/parse";
+import {
+  calendarEventCreateSchema,
+  commentContentSchema,
+  createTaskActionSchema,
+  cuidLikeSchema,
+  projectFileRecordSchema,
+  setTaskStatusSchema,
+  updateTaskFieldsSchema,
+} from "@/lib/validation/schemas";
 import type { TaskDetailDTO } from "@/types/project-detail";
 
 async function assertProjectMember(projectId: string, userId: string) {
@@ -23,6 +33,8 @@ async function assertProjectMember(projectId: string, userId: string) {
 export async function cycleTaskStatus(taskId: string) {
   const user = await getSessionUser();
   if (!user) throw new Error("Ikke logget ind.");
+
+  parseOrThrow(cuidLikeSchema, taskId);
 
   const task = await prisma.task.findFirst({
     where: {
@@ -42,6 +54,8 @@ export async function cycleTaskStatus(taskId: string) {
 export async function setTaskStatus(taskId: string, status: TaskStatus) {
   const user = await getSessionUser();
   if (!user) throw new Error("Ikke logget ind.");
+
+  parseOrThrow(setTaskStatusSchema, { taskId, status });
 
   const task = await prisma.task.findFirst({
     where: {
@@ -66,8 +80,10 @@ export async function updateTaskFields(input: {
   const user = await getSessionUser();
   if (!user) throw new Error("Ikke logget ind.");
 
+  const parsed = parseOrThrow(updateTaskFieldsSchema, input);
+
   const task = await prisma.task.findFirst({
-    where: { id: input.taskId, project: projectAccessWhere(user.id) },
+    where: { id: parsed.taskId, project: projectAccessWhere(user.id) },
     select: {
       id: true,
       projectId: true,
@@ -78,10 +94,10 @@ export async function updateTaskFields(input: {
   });
   if (!task) throw new Error("Opgave ikke fundet.");
 
-  if (input.userId) {
+  if (parsed.userId) {
     const allowed = await prisma.user.findFirst({
       where: {
-        id: input.userId,
+        id: parsed.userId,
         OR: [
           {
             ownedProjects: {
@@ -100,10 +116,10 @@ export async function updateTaskFields(input: {
   }
 
   if (
-    input.userId !== undefined &&
-    input.userId &&
-    input.userId !== task.userId &&
-    input.userId !== user.id
+    parsed.userId !== undefined &&
+    parsed.userId &&
+    parsed.userId !== task.userId &&
+    parsed.userId !== user.id
   ) {
     const assigner = await prisma.user.findUnique({
       where: { id: user.id },
@@ -112,7 +128,7 @@ export async function updateTaskFields(input: {
     const label =
       assigner?.name?.trim() || assigner?.email || "En bruger";
     await createNotification({
-      userId: input.userId,
+      userId: parsed.userId!,
       type: "TASK_ASSIGNED",
       message: `${label} har tildelt dig en opgave på ${task.project.name}`,
       relatedProjectId: task.projectId,
@@ -121,19 +137,19 @@ export async function updateTaskFields(input: {
   }
 
   await prisma.task.update({
-    where: { id: input.taskId },
+    where: { id: parsed.taskId },
     data: {
-      ...(input.description !== undefined && { description: input.description }),
-      ...(input.startDate !== undefined && {
-        startDate: ymdStringToDateOrNull(input.startDate),
+      ...(parsed.description !== undefined && { description: parsed.description }),
+      ...(parsed.startDate !== undefined && {
+        startDate: ymdStringToDateOrNull(parsed.startDate),
       }),
-      ...(input.deadline !== undefined && {
-        deadline: ymdStringToDateOrNull(input.deadline),
+      ...(parsed.deadline !== undefined && {
+        deadline: ymdStringToDateOrNull(parsed.deadline),
       }),
-      ...(input.userId !== undefined && {
-        userId: input.userId || null,
+      ...(parsed.userId !== undefined && {
+        userId: parsed.userId || null,
       }),
-      ...(input.priority !== undefined && { priority: input.priority }),
+      ...(parsed.priority !== undefined && { priority: parsed.priority }),
     },
   });
   revalidatePath(`/projekter/${task.projectId}`);
@@ -152,15 +168,15 @@ export async function createTask(projectId: string, input: CreateTaskInput): Pro
   const user = await getSessionUser();
   if (!user) throw new Error("Ikke logget ind.");
 
-  const t = input.title.trim();
-  if (!t) throw new Error("Titel påkrævet.");
+  parseOrThrow(cuidLikeSchema, projectId);
+  const parsed = parseOrThrow(createTaskActionSchema, input);
 
   await assertProjectMember(projectId, user.id);
 
-  if (input.userId) {
+  if (parsed.userId) {
     const allowed = await prisma.user.findFirst({
       where: {
-        id: input.userId,
+        id: parsed.userId,
         OR: [
           { ownedProjects: { some: { id: projectId } } },
           { projectMembers: { some: { projectId } } },
@@ -173,19 +189,19 @@ export async function createTask(projectId: string, input: CreateTaskInput): Pro
   const row = await prisma.task.create({
     data: {
       projectId,
-      title: t,
-      description: input.description?.trim() || null,
-      startDate: ymdStringToDateOrNull(input.startDate ?? ""),
-      deadline: ymdStringToDateOrNull(input.deadline ?? ""),
-      userId: input.userId || null,
-      priority: input.priority ?? "MEDIUM",
+      title: parsed.title,
+      description: parsed.description?.trim() || null,
+      startDate: ymdStringToDateOrNull(parsed.startDate ?? ""),
+      deadline: ymdStringToDateOrNull(parsed.deadline ?? ""),
+      userId: parsed.userId || null,
+      priority: parsed.priority ?? "MEDIUM",
     },
     include: {
       user: { select: { id: true, name: true, email: true, image: true } },
     },
   });
 
-  if (input.userId && input.userId !== user.id) {
+  if (parsed.userId && parsed.userId !== user.id) {
     const project = await prisma.project.findUnique({
       where: { id: projectId },
       select: { name: true },
@@ -196,7 +212,7 @@ export async function createTask(projectId: string, input: CreateTaskInput): Pro
     });
     const label = assigner?.name?.trim() || assigner?.email || "En bruger";
     await createNotification({
-      userId: input.userId,
+      userId: parsed.userId!,
       type: "TASK_ASSIGNED",
       message: `${label} har tildelt dig en opgave på ${project?.name ?? "projekt"}`,
       relatedProjectId: projectId,
@@ -228,8 +244,9 @@ export async function createTask(projectId: string, input: CreateTaskInput): Pro
 export async function addProjectComment(projectId: string, content: string) {
   const user = await getSessionUser();
   if (!user?.email) throw new Error("Ikke logget ind.");
-  const text = content.trim();
-  if (!text) throw new Error("Kommentar tom.");
+
+  parseOrThrow(cuidLikeSchema, projectId);
+  const text = parseOrThrow(commentContentSchema, content);
 
   await assertProjectMember(projectId, user.id);
   await ensureAppUser(user);
@@ -247,8 +264,9 @@ export async function addProjectComment(projectId: string, content: string) {
 export async function addTaskComment(taskId: string, content: string) {
   const user = await getSessionUser();
   if (!user?.email) throw new Error("Ikke logget ind.");
-  const text = content.trim();
-  if (!text) throw new Error("Kommentar tom.");
+
+  parseOrThrow(cuidLikeSchema, taskId);
+  const text = parseOrThrow(commentContentSchema, content);
 
   const task = await prisma.task.findFirst({
     where: { id: taskId, project: projectAccessWhere(user.id) },
@@ -271,6 +289,8 @@ export async function confirmActivity(activityId: string) {
   const user = await getSessionUser();
   if (!user) throw new Error("Ikke logget ind.");
 
+  parseOrThrow(cuidLikeSchema, activityId);
+
   const row = await prisma.activity.findFirst({
     where: { id: activityId, project: projectAccessWhere(user.id) },
     select: { projectId: true },
@@ -287,6 +307,8 @@ export async function confirmActivity(activityId: string) {
 export async function deleteActivity(activityId: string) {
   const user = await getSessionUser();
   if (!user) throw new Error("Ikke logget ind.");
+
+  parseOrThrow(cuidLikeSchema, activityId);
 
   const row = await prisma.activity.findFirst({
     where: { id: activityId, project: projectAccessWhere(user.id) },
@@ -307,22 +329,22 @@ export async function createCalendarEvent(input: {
   const user = await getSessionUser();
   if (!user) throw new Error("Ikke logget ind.");
 
-  await assertProjectMember(input.projectId, user.id);
+  const parsed = parseOrThrow(calendarEventCreateSchema, input);
 
-  const title = input.title.trim();
-  if (!title) throw new Error("Titel påkrævet.");
-  const d = new Date(input.date);
+  await assertProjectMember(parsed.projectId, user.id);
+
+  const d = new Date(parsed.date);
   if (Number.isNaN(d.getTime())) throw new Error("Ugyldig dato.");
 
   await prisma.calendarEvent.create({
     data: {
-      projectId: input.projectId,
-      title,
+      projectId: parsed.projectId,
+      title: parsed.title,
       date: d,
-      eventTime: input.time?.trim() || null,
+      eventTime: parsed.time?.trim() || null,
     },
   });
-  revalidatePath(`/projekter/${input.projectId}`);
+  revalidatePath(`/projekter/${parsed.projectId}`);
 }
 
 export async function createProjectFileRecord(input: {
@@ -334,25 +356,29 @@ export async function createProjectFileRecord(input: {
   const user = await getSessionUser();
   if (!user?.email) throw new Error("Ikke logget ind.");
 
-  await assertProjectMember(input.projectId, user.id);
+  const parsed = parseOrThrow(projectFileRecordSchema, input);
+
+  await assertProjectMember(parsed.projectId, user.id);
   await ensureAppUser(user);
 
   await prisma.file.create({
     data: {
-      projectId: input.projectId,
-      name: input.name,
-      fileType: input.fileType,
+      projectId: parsed.projectId,
+      name: parsed.name,
+      fileType: parsed.fileType,
       url: PRIVATE_FILE_PLACEHOLDER,
-      storagePath: input.storagePath,
+      storagePath: parsed.storagePath,
       uploadedById: user.id,
     },
   });
-  revalidatePath(`/projekter/${input.projectId}`);
+  revalidatePath(`/projekter/${parsed.projectId}`);
 }
 
 export async function deleteProjectFile(fileId: string) {
   const user = await getSessionUser();
   if (!user) throw new Error("Ikke logget ind.");
+
+  parseOrThrow(cuidLikeSchema, fileId);
 
   const file = await prisma.file.findFirst({
     where: { id: fileId, project: projectAccessWhere(user.id) },

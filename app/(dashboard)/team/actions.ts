@@ -3,18 +3,22 @@
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth/session-user";
 import { getSharedProjectIdsForUserPair } from "@/lib/team/shared-project-users";
+import { parseOrThrow } from "@/lib/validation/parse";
+import { uuidSchema } from "@/lib/validation/schemas";
 
 export async function getTeamMemberDetail(memberId: string) {
   const user = await getSessionUser();
   if (!user) throw new Error("Ikke logget ind.");
 
-  const sharedIds = await getSharedProjectIdsForUserPair(user.id, memberId);
+  const mid = parseOrThrow(uuidSchema, memberId);
+
+  const sharedIds = await getSharedProjectIdsForUserPair(user.id, mid);
   if (sharedIds.length === 0) {
     throw new Error("Ingen adgang til denne bruger.");
   }
 
   const member = await prisma.user.findUnique({
-    where: { id: memberId },
+    where: { id: mid },
     select: {
       id: true,
       name: true,
@@ -27,7 +31,7 @@ export async function getTeamMemberDetail(memberId: string) {
 
   const openTasks = await prisma.task.findMany({
     where: {
-      userId: memberId,
+      userId: mid,
       status: { not: "DONE" },
       projectId: { in: sharedIds },
       project: { isTemplate: false },

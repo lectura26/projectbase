@@ -14,6 +14,13 @@ import { createNotification } from "@/lib/notifications/service";
 import { projectAccessWhere } from "@/lib/projekter/project-access";
 import { ymdStringToDateOrNull } from "@/lib/datetime/ymd";
 import { deadlineFromRoutineInterval } from "@/lib/projekter/routine";
+import { parseOrThrow } from "@/lib/validation/parse";
+import {
+  createProjectActionSchema,
+  updateProjectActionSchema,
+  updateProjectScheduleActionSchema,
+  updateProjectStatusSchema,
+} from "@/lib/validation/schemas";
 
 export async function updateProjectStatus(
   projectId: string,
@@ -24,6 +31,8 @@ export async function updateProjectStatus(
 }> {
   const user = await getSessionUser();
   if (!user) throw new Error("Ikke logget ind.");
+
+  parseOrThrow(updateProjectStatusSchema, { projectId, status });
 
   const project = await prisma.project.findFirst({
     where: { id: projectId, ...projectAccessWhere(user.id) },
@@ -143,40 +152,39 @@ export async function updateProject(input: UpdateProjectInput) {
   const user = await getSessionUser();
   if (!user?.email) throw new Error("Ikke logget ind.");
 
-  const name = input.name.trim();
-  if (!name) throw new Error("Projektnavn er påkrævet.");
+  const parsed = parseOrThrow(updateProjectActionSchema, input);
 
   const project = await prisma.project.findFirst({
-    where: { id: input.projectId, userId: user.id },
+    where: { id: parsed.projectId, userId: user.id },
   });
   if (!project) throw new Error("Projekt ikke fundet eller ingen adgang.");
 
   await ensureAppUser(user);
 
-  const description = input.description?.trim() || null;
-  const contactName = input.contactName?.trim();
-  const contactEmail = input.contactEmail?.trim();
+  const description = parsed.description?.trim() || null;
+  const contactName = parsed.contactName?.trim();
+  const contactEmail = parsed.contactEmail?.trim();
 
   await prisma.$transaction(async (tx) => {
     await tx.project.update({
-      where: { id: input.projectId },
+      where: { id: parsed.projectId },
       data: {
-        name,
+        name: parsed.name,
         description,
-        startDate: ymdStringToDateOrNull(input.startDate ?? ""),
-        deadline: ymdStringToDateOrNull(input.deadline ?? ""),
-        priority: input.priority,
-        visibility: input.visibility,
-        tags: input.tags.filter(Boolean),
-        isRoutine: input.isRoutine,
-        routineInterval: input.isRoutine ? input.routineInterval ?? "MONTHLY" : null,
+        startDate: ymdStringToDateOrNull(parsed.startDate ?? ""),
+        deadline: ymdStringToDateOrNull(parsed.deadline ?? ""),
+        priority: parsed.priority,
+        visibility: parsed.visibility,
+        tags: parsed.tags.filter(Boolean),
+        isRoutine: parsed.isRoutine,
+        routineInterval: parsed.isRoutine ? parsed.routineInterval ?? "MONTHLY" : null,
       },
     });
-    await tx.contact.deleteMany({ where: { projectId: input.projectId } });
+    await tx.contact.deleteMany({ where: { projectId: parsed.projectId } });
     if (contactName && contactEmail) {
       await tx.contact.create({
         data: {
-          projectId: input.projectId,
+          projectId: parsed.projectId,
           name: contactName,
           email: contactEmail,
         },
@@ -185,7 +193,7 @@ export async function updateProject(input: UpdateProjectInput) {
   });
 
   revalidatePath("/projekter");
-  revalidatePath(`/projekter/${input.projectId}`);
+  revalidatePath(`/projekter/${parsed.projectId}`);
 }
 
 export async function updateProjectSchedule(
@@ -195,52 +203,53 @@ export async function updateProjectSchedule(
   const user = await getSessionUser();
   if (!user?.email) throw new Error("Ikke logget ind.");
 
+  const parsed = parseOrThrow(updateProjectScheduleActionSchema, { projectId, ...data });
+
   const project = await prisma.project.findFirst({
-    where: { id: projectId, userId: user.id },
+    where: { id: parsed.projectId, userId: user.id },
   });
   if (!project) throw new Error("Projekt ikke fundet eller ingen adgang.");
 
   await prisma.project.update({
-    where: { id: projectId },
+    where: { id: parsed.projectId },
     data: {
-      ...(data.startDate !== undefined && {
-        startDate: ymdStringToDateOrNull(data.startDate),
+      ...(parsed.startDate !== undefined && {
+        startDate: ymdStringToDateOrNull(parsed.startDate),
       }),
-      ...(data.deadline !== undefined && {
-        deadline: ymdStringToDateOrNull(data.deadline),
+      ...(parsed.deadline !== undefined && {
+        deadline: ymdStringToDateOrNull(parsed.deadline),
       }),
     },
   });
 
   revalidatePath("/projekter");
-  revalidatePath(`/projekter/${projectId}`);
+  revalidatePath(`/projekter/${parsed.projectId}`);
 }
 
 export async function createProject(input: CreateProjectInput) {
   const user = await getSessionUser();
   if (!user?.email) throw new Error("Ikke logget ind.");
 
-  const name = input.name.trim();
-  if (!name) throw new Error("Projektnavn er påkrævet.");
+  const parsed = parseOrThrow(createProjectActionSchema, input);
 
   await ensureAppUser(user);
 
-  const description = input.description?.trim() || null;
-  const contactName = input.contactName?.trim();
-  const contactEmail = input.contactEmail?.trim();
+  const description = parsed.description?.trim() || null;
+  const contactName = parsed.contactName?.trim();
+  const contactEmail = parsed.contactEmail?.trim();
 
   await prisma.project.create({
     data: {
-      name,
+      name: parsed.name,
       userId: user.id,
       description,
-      startDate: ymdStringToDateOrNull(input.startDate ?? ""),
-      deadline: ymdStringToDateOrNull(input.deadline ?? ""),
-      priority: input.priority,
-      visibility: input.visibility,
-      tags: input.tags.filter(Boolean),
-      isRoutine: input.isRoutine,
-      routineInterval: input.isRoutine ? input.routineInterval ?? "MONTHLY" : null,
+      startDate: ymdStringToDateOrNull(parsed.startDate ?? ""),
+      deadline: ymdStringToDateOrNull(parsed.deadline ?? ""),
+      priority: parsed.priority,
+      visibility: parsed.visibility,
+      tags: parsed.tags.filter(Boolean),
+      isRoutine: parsed.isRoutine,
+      routineInterval: parsed.isRoutine ? parsed.routineInterval ?? "MONTHLY" : null,
       ...(contactName && contactEmail
         ? {
             contacts: {
@@ -251,17 +260,17 @@ export async function createProject(input: CreateProjectInput) {
     },
   });
 
-  if (input.saveAsTemplate) {
+  if (parsed.saveAsTemplate) {
     await prisma.project.create({
       data: {
-        name: `${name} (skabelon)`,
+        name: `${parsed.name} (skabelon)`,
         userId: user.id,
         description,
         startDate: null,
         deadline: null,
-        priority: input.priority,
-        visibility: input.visibility,
-        tags: input.tags.filter(Boolean),
+        priority: parsed.priority,
+        visibility: parsed.visibility,
+        tags: parsed.tags.filter(Boolean),
         isRoutine: false,
         routineInterval: null,
         isTemplate: true,

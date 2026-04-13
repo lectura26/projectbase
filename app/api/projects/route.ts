@@ -6,18 +6,13 @@ import { jsonError, logServerError } from "@/lib/api/safe-response";
 import { prisma } from "@/lib/prisma";
 import { ensureAppUser } from "@/lib/auth/ensure-app-user";
 import { clientIpFromRequest, rateLimitAllow } from "@/lib/rate-limit";
-
-const PRIORITIES = new Set<Priority>(["LOW", "MEDIUM", "HIGH"]);
-const VISIBILITIES = new Set<ProjectVisibility>(["ONLY_ME", "TEAM", "ALL"]);
-
-const MAX_NAME_LEN = 500;
-const MAX_DESC_LEN = 10_000;
-const MAX_TAG_LEN = 64;
-const MAX_TAGS = 50;
-const MAX_CONTACT_LEN = 320;
+import { parseOrThrow } from "@/lib/validation/parse";
+import { apiProjectCreateSchema } from "@/lib/validation/schemas";
 
 const POST_WINDOW_MS = 60_000;
 const POST_MAX_PER_WINDOW = 60;
+const GET_WINDOW_MS = 60_000;
+const GET_MAX_PER_WINDOW = 120;
 
 async function supabaseFromCookies() {
   const cookieStore = await cookies();
@@ -39,7 +34,7 @@ async function supabaseFromCookies() {
   );
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const supabase = await supabaseFromCookies();
     const {
@@ -48,6 +43,11 @@ export async function GET() {
 
     if (!user) {
       return jsonError(401, "Unauthorized");
+    }
+
+    const ip = clientIpFromRequest(request);
+    if (!rateLimitAllow(`api-projects-get:${ip}:${user.id}`, GET_MAX_PER_WINDOW, GET_WINDOW_MS)) {
+      return jsonError(429, "Too many requests");
     }
 
     const projects = await prisma.project.findMany({
@@ -67,18 +67,6 @@ export async function GET() {
   }
 }
 
-type CreateBody = {
-  name: string;
-  description?: string;
-  deadline?: string | null;
-  priority: string;
-  visibility: string;
-  tags?: unknown;
-  isRoutine?: boolean;
-  contactName?: string;
-  contactEmail?: string;
-};
-
 export async function POST(request: Request) {
   try {
     const supabase = await supabaseFromCookies();
@@ -91,54 +79,45 @@ export async function POST(request: Request) {
     }
 
     const ip = clientIpFromRequest(request);
-    if (!rateLimitAllow(`api-projects:${ip}:${user.id}`, POST_MAX_PER_WINDOW, POST_WINDOW_MS)) {
+    if (!rateLimitAllow(`api-projects-post:${ip}:${user.id}`, POST_MAX_PER_WINDOW, POST_WINDOW_MS)) {
       return jsonError(429, "Too many requests");
     }
 
-    let body: CreateBody;
+    let body: unknown;
     try {
-      body = (await request.json()) as CreateBody;
+      body = await request.json();
     } catch {
       return jsonError(400, "Invalid request");
     }
 
-    const name = typeof body.name === "string" ? body.name.trim() : "";
-    if (!name || name.length > MAX_NAME_LEN) {
+    let parsed;
+    try {
+      parsed = parseOrThrow(apiProjectCreateSchema, body);
+    } catch {
       return jsonError(400, "Invalid request");
     }
 
-    if (!PRIORITIES.has(body.priority as Priority)) {
-      return jsonError(400, "Invalid request");
-    }
-    if (!VISIBILITIES.has(body.visibility as ProjectVisibility)) {
-      return jsonError(400, "Invalid request");
-    }
-
+    const name = parsed.name;
     const description =
-      typeof body.description === "string" ? body.description.trim().slice(0, MAX_DESC_LEN) || null : null;
+      parsed.description === undefined || parsed.description === null
+        ? null
+        : parsed.description.trim() || null;
 
     let deadline: Date | null = null;
-    if (body.deadline) {
-      const d = new Date(body.deadline);
+    if (parsed.deadline) {
+      const d = new Date(parsed.deadline);
       if (Number.isNaN(d.getTime())) {
         return jsonError(400, "Invalid request");
       }
       deadline = d;
     }
 
-    let tags: string[] = [];
-    if (Array.isArray(body.tags)) {
-      tags = body.tags
-        .filter((t): t is string => typeof t === "string")
-        .map((t) => t.trim().slice(0, MAX_TAG_LEN))
-        .filter(Boolean)
-        .slice(0, MAX_TAGS);
-    }
+    const tags = parsed.tags ?? [];
 
     const contactName =
-      typeof body.contactName === "string" ? body.contactName.trim().slice(0, MAX_CONTACT_LEN) : "";
+      typeof parsed.contactName === "string" ? parsed.contactName.trim().slice(0, 320) : "";
     const contactEmail =
-      typeof body.contactEmail === "string" ? body.contactEmail.trim().slice(0, MAX_CONTACT_LEN) : "";
+      typeof parsed.contactEmail === "string" ? parsed.contactEmail.trim().slice(0, 320) : "";
 
     await ensureAppUser(user);
 
@@ -148,10 +127,10 @@ export async function POST(request: Request) {
         userId: user.id,
         description,
         deadline,
-        priority: body.priority as Priority,
-        visibility: body.visibility as ProjectVisibility,
+        priority: parsed.priority as Priority,
+        visibility: parsed.visibility as ProjectVisibility,
         tags,
-        isRoutine: Boolean(body.isRoutine),
+        isRoutine: Boolean(parsed.isRoutine),
         ...(contactName && contactEmail
           ? {
               contacts: {

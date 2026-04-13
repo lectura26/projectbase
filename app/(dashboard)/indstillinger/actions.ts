@@ -4,6 +4,17 @@ import type { AppRole, NotifyPreference } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth/session-user";
+import { rateLimitAllow } from "@/lib/rate-limit";
+import { parseOrThrow } from "@/lib/validation/parse";
+import {
+  cuidLikeSchema,
+  inviteTeamMemberSchema,
+  updateMyAccountSchema,
+  uuidSchema,
+} from "@/lib/validation/schemas";
+
+const INVITE_WINDOW_MS = 3_600_000;
+const INVITE_MAX = 40;
 
 export async function updateMyAccount(input: {
   name: string;
@@ -12,14 +23,13 @@ export async function updateMyAccount(input: {
   const user = await getSessionUser();
   if (!user) throw new Error("Ikke logget ind.");
 
-  const name = input.name.trim();
-  if (!name) throw new Error("Navn er påkrævet.");
+  const parsed = parseOrThrow(updateMyAccountSchema, input);
 
   await prisma.user.update({
     where: { id: user.id },
     data: {
-      name,
-      notifyPreference: input.notifyPreference,
+      name: parsed.name,
+      notifyPreference: parsed.notifyPreference,
     },
   });
 
@@ -30,16 +40,18 @@ export async function updateMemberRole(memberId: string, appRole: AppRole) {
   const user = await getSessionUser();
   if (!user) throw new Error("Ikke logget ind.");
 
+  const mid = parseOrThrow(cuidLikeSchema, memberId);
+
   const admin = await prisma.user.findUnique({
     where: { id: user.id },
     select: { appRole: true },
   });
   if (admin?.appRole !== "ADMIN") throw new Error("Kun administratorer kan ændre roller.");
 
-  if (memberId === user.id) throw new Error("Du kan ikke ændre din egen rolle her.");
+  if (mid === user.id) throw new Error("Du kan ikke ændre din egen rolle her.");
 
   await prisma.user.update({
-    where: { id: memberId },
+    where: { id: mid },
     data: { appRole },
   });
 
@@ -50,16 +62,18 @@ export async function removeTeamMember(memberId: string) {
   const user = await getSessionUser();
   if (!user) throw new Error("Ikke logget ind.");
 
+  const mid = parseOrThrow(uuidSchema, memberId);
+
   const admin = await prisma.user.findUnique({
     where: { id: user.id },
     select: { appRole: true },
   });
   if (admin?.appRole !== "ADMIN") throw new Error("Kun administratorer.");
 
-  if (memberId === user.id) throw new Error("Du kan ikke fjerne dig selv.");
+  if (mid === user.id) throw new Error("Du kan ikke fjerne dig selv.");
 
   const target = await prisma.user.findUnique({
-    where: { id: memberId },
+    where: { id: mid },
     select: {
       _count: {
         select: { ownedProjects: true, uploadedFiles: true, comments: true },
@@ -74,7 +88,7 @@ export async function removeTeamMember(memberId: string) {
     throw new Error("Brugeren har uploadede filer og kan ikke slettes.");
   }
 
-  await prisma.user.delete({ where: { id: memberId } });
+  await prisma.user.delete({ where: { id: mid } });
 
   revalidatePath("/indstillinger");
 }
@@ -87,39 +101,39 @@ export async function inviteTeamMember(input: {
   const user = await getSessionUser();
   if (!user) throw new Error("Ikke logget ind.");
 
+  if (!rateLimitAllow(`team-invite:${user.id}`, INVITE_MAX, INVITE_WINDOW_MS)) {
+    throw new Error("For mange invitationer. Prøv igen senere.");
+  }
+
   const admin = await prisma.user.findUnique({
     where: { id: user.id },
     select: { appRole: true },
   });
   if (admin?.appRole !== "ADMIN") throw new Error("Kun administratorer.");
 
-  const email = input.email.trim().toLowerCase();
-  const name = input.name.trim();
-  if (!email) throw new Error("E-mail er påkrævet.");
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Ugyldig e-mail.");
-  if (!name) throw new Error("Navn er påkrævet.");
+  const parsed = parseOrThrow(inviteTeamMemberSchema, input);
 
-  const existing = await prisma.user.findUnique({ where: { email } });
+  const existing = await prisma.user.findUnique({ where: { email: parsed.email } });
   if (existing) {
     await prisma.user.update({
       where: { id: existing.id },
-      data: { appRole: input.appRole, name: name || existing.name },
+      data: { appRole: parsed.appRole, name: parsed.name || existing.name },
     });
     revalidatePath("/indstillinger");
     return { ok: true as const, mode: "updated" as const };
   }
 
   await prisma.pendingTeamMember.upsert({
-    where: { email },
+    where: { email: parsed.email },
     create: {
-      email,
-      name,
-      appRole: input.appRole,
+      email: parsed.email,
+      name: parsed.name,
+      appRole: parsed.appRole,
       invitedById: user.id,
     },
     update: {
-      name,
-      appRole: input.appRole,
+      name: parsed.name,
+      appRole: parsed.appRole,
       invitedById: user.id,
     },
   });
@@ -132,15 +146,18 @@ export async function deleteProjectTemplate(templateId: string) {
   const user = await getSessionUser();
   if (!user) throw new Error("Ikke logget ind.");
 
+  const tid = parseOrThrow(cuidLikeSchema, templateId);
+
   const admin = await prisma.user.findUnique({
     where: { id: user.id },
     select: { appRole: true },
   });
   if (admin?.appRole !== "ADMIN") throw new Error("Kun administratorer.");
 
-  await prisma.project.deleteMany({
-    where: { id: templateId, isTemplate: true },
+  const result = await prisma.project.deleteMany({
+    where: { id: tid, isTemplate: true },
   });
+  if (result.count === 0) throw new Error("Skabelon ikke fundet.");
 
   revalidatePath("/indstillinger");
 }
