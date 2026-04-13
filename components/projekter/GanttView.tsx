@@ -10,17 +10,14 @@ import {
   endOfMonth,
   format,
   getISOWeek,
+  isMonday,
   isSameDay,
   startOfDay,
   startOfMonth,
   startOfWeek,
 } from "date-fns";
 import { da } from "date-fns/locale";
-import {
-  ChevronLeft,
-  ChevronRight,
-  FileText,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, FileText } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -51,7 +48,108 @@ type Zoom = "day" | "week" | "month";
 const LEFT_W = 240;
 const ROW_H = 44;
 const BAR_H = 20;
-const HEADER_H = 44;
+const HEADER_H = 52;
+
+const DAY_COL_W = 40;
+const WEEK_COL_W = 120;
+const MONTH_COL_W = 160;
+
+/** 60 days: 30 before + 30 after center (center at day index 30). */
+const DAY_RANGE_BEFORE = 30;
+const DAY_RANGE_AFTER = 29;
+const DAY_TOTAL = 60;
+
+const WEEK_HALF = 13;
+const WEEK_TOTAL = 26;
+
+const MONTH_HALF = 12;
+const MONTH_TOTAL = 24;
+
+const PX_PER_DAY_IN_WEEK = WEEK_COL_W / 7;
+
+function monthPixelAtDayStart(sod: Date, firstMonthInTimeline: Date): number {
+  let px = 0;
+  let monthIter = startOfMonth(firstMonthInTimeline);
+  const targetMonth = startOfMonth(sod);
+  while (monthIter < targetMonth) {
+    px += MONTH_COL_W;
+    monthIter = addMonths(monthIter, 1);
+  }
+  const dim =
+    differenceInCalendarDays(endOfMonth(sod), startOfMonth(sod)) + 1;
+  const dayNum = sod.getDate();
+  px += ((dayNum - 1) / dim) * MONTH_COL_W;
+  return px;
+}
+
+/** Exclusive end pixel (start of day after `be`). */
+function monthPixelAfterLastDay(be: Date, firstMonthInTimeline: Date): number {
+  return monthPixelAtDayStart(addDays(startOfDay(be), 1), firstMonthInTimeline);
+}
+
+function clampBar(
+  left: number,
+  width: number,
+  totalWidth: number,
+): { left: number; width: number } | null {
+  const right = left + width;
+  if (right <= 0 || left >= totalWidth) return null;
+  const clampedLeft = Math.max(0, left);
+  const clampedRight = Math.min(totalWidth, right);
+  const w = Math.max(4, clampedRight - clampedLeft);
+  return { left: clampedLeft, width: w };
+}
+
+function barLayoutForZoom(
+  barStart: Date,
+  barEnd: Date,
+  zoom: Zoom,
+  centerDate: Date,
+  totalWidth: number,
+  firstMonth: Date,
+  weekViewStartMonday: Date,
+): { left: number; width: number } | null {
+  const bs = startOfDay(barStart);
+  const be = startOfDay(barEnd);
+  const c = startOfDay(centerDate);
+
+  if (zoom === "day") {
+    const vs = addDays(c, -DAY_RANGE_BEFORE);
+    const left = differenceInCalendarDays(bs, vs) * DAY_COL_W;
+    const w = (differenceInCalendarDays(be, bs) + 1) * DAY_COL_W;
+    return clampBar(left, w, totalWidth);
+  }
+
+  if (zoom === "week") {
+    const vs = weekViewStartMonday;
+    const left = differenceInCalendarDays(bs, vs) * PX_PER_DAY_IN_WEEK;
+    const w = (differenceInCalendarDays(be, bs) + 1) * PX_PER_DAY_IN_WEEK;
+    return clampBar(left, w, totalWidth);
+  }
+
+  const left = monthPixelAtDayStart(bs, firstMonth);
+  const endPx = monthPixelAfterLastDay(be, firstMonth);
+  return clampBar(left, endPx - left, totalWidth);
+}
+
+function pixelForDateOnTimeline(
+  d: Date,
+  zoom: Zoom,
+  centerDate: Date,
+  firstMonth: Date,
+  weekViewStartMonday: Date,
+): number {
+  const sod = startOfDay(d);
+  const c = startOfDay(centerDate);
+  if (zoom === "day") {
+    const vs = addDays(c, -DAY_RANGE_BEFORE);
+    return differenceInCalendarDays(sod, vs) * DAY_COL_W;
+  }
+  if (zoom === "week") {
+    return differenceInCalendarDays(sod, weekViewStartMonday) * PX_PER_DAY_IN_WEEK;
+  }
+  return monthPixelAtDayStart(sod, firstMonth);
+}
 
 function taskStatusBadgeClass(status: TaskStatus): string {
   switch (status) {
@@ -121,56 +219,27 @@ function taskDateRange(t: GanttTaskRow): { start: Date; end: Date } {
   return { start, end };
 }
 
-function barLayout(
-  barStart: Date,
-  barEnd: Date,
-  rangeStart: Date,
-  pixelsPerDay: number,
-  totalWidth: number,
-): { left: number; width: number } | null {
-  const rs = startOfDay(rangeStart);
-  const bs = startOfDay(barStart);
-  const be = startOfDay(barEnd);
-  const leftDays = differenceInCalendarDays(bs, rs);
-  const spanDays = differenceInCalendarDays(be, bs) + 1;
-  const left = leftDays * pixelsPerDay;
-  const width = Math.max(4, spanDays * pixelsPerDay);
-  const right = left + width;
-  if (right <= 0 || left >= totalWidth) return null;
-  const clampedLeft = Math.max(0, left);
-  const clampedRight = Math.min(totalWidth, right);
-  const w = Math.max(4, clampedRight - clampedLeft);
-  return { left: clampedLeft, width: w };
-}
-
-function chunkWeeks(days: Date[]): Date[][] {
-  const chunks: Date[][] = [];
-  for (let i = 0; i < days.length; i += 7) {
-    chunks.push(days.slice(i, i + 7));
-  }
-  return chunks;
-}
-
-function chunkMonths(days: Date[]): { label: string; days: Date[] }[] {
-  const groups: { label: string; days: Date[] }[] = [];
-  for (const d of days) {
-    const label = format(d, "MMMM yyyy", { locale: da });
-    const last = groups[groups.length - 1];
-    if (!last || last.label !== label) {
-      groups.push({ label, days: [d] });
-    } else {
-      last.days.push(d);
-    }
-  }
-  return groups;
-}
-
 function zoomSeg(active: boolean): string {
   return `rounded-md px-4 py-1.5 text-xs font-semibold transition-colors ${
     active
       ? "bg-white text-[#001533] shadow-sm"
       : "font-medium text-[#6b7280] hover:text-[#0f1923]"
   }`;
+}
+
+/** Mondays strictly inside (monthStart, monthEnd] that need a divider line. */
+function mondaysForMonthOverlay(monthStart: Date): Date[] {
+  const monthEnd = endOfMonth(monthStart);
+  const out: Date[] = [];
+  let d = monthStart;
+  if (!isMonday(d)) {
+    d = addDays(d, ((8 - d.getDay()) % 7) || 7);
+  }
+  while (d <= monthEnd) {
+    if (d > monthStart) out.push(d);
+    d = addWeeks(d, 1);
+  }
+  return out;
 }
 
 export default function GanttView({
@@ -187,85 +256,95 @@ export default function GanttView({
   const [tasksError, setTasksError] = useState<string | null>(null);
 
   const [zoom, setZoom] = useState<Zoom>("week");
-  const [anchor, setAnchor] = useState(() => new Date());
-  const gotoTodayScrollRef = useRef(false);
+  const [centerDate, setCenterDate] = useState(() => startOfDay(new Date()));
 
   const leftBodyRef = useRef<HTMLDivElement>(null);
   const rightBodyRef = useRef<HTMLDivElement>(null);
   const rightScrollRef = useRef<HTMLDivElement>(null);
   const scrollLock = useRef(false);
-  const initialScrollDone = useRef(false);
 
-  const { rangeStart, days, pixelsPerDay } = useMemo(() => {
-    const t = startOfDay(anchor);
-    if (zoom === "day") {
-      const rs = addDays(t, -30);
-      const re = addDays(t, 29);
-      return {
-        rangeStart: rs,
-        days: eachDayOfInterval({ start: rs, end: re }),
-        pixelsPerDay: 40,
-      };
+  const dayViewStart = useMemo(
+    () => addDays(centerDate, -DAY_RANGE_BEFORE),
+    [centerDate],
+  );
+  const dayColumns = useMemo(
+    () =>
+      eachDayOfInterval({
+        start: dayViewStart,
+        end: addDays(dayViewStart, DAY_TOTAL - 1),
+      }),
+    [dayViewStart],
+  );
+
+  const weekViewStartMonday = useMemo(
+    () => addWeeks(startOfWeek(centerDate, { weekStartsOn: 1 }), -WEEK_HALF),
+    [centerDate],
+  );
+
+  const firstMonthInTimeline = useMemo(
+    () => addMonths(startOfMonth(centerDate), -MONTH_HALF),
+    [centerDate],
+  );
+
+  const monthColumns = useMemo(() => {
+    const cols: { monthStart: Date; label: string }[] = [];
+    let m = startOfMonth(firstMonthInTimeline);
+    for (let i = 0; i < MONTH_TOTAL; i++) {
+      cols.push({
+        monthStart: m,
+        label: format(m, "MMMM yyyy", { locale: da }),
+      });
+      m = addMonths(m, 1);
     }
-    if (zoom === "week") {
-      const monday = startOfWeek(t, { weekStartsOn: 1 });
-      const rs = addWeeks(monday, -6);
-      const re = addDays(rs, 83);
-      return {
-        rangeStart: rs,
-        days: eachDayOfInterval({ start: rs, end: re }),
-        pixelsPerDay: 40,
-      };
-    }
-    const first = startOfMonth(addMonths(t, -2));
-    const last = endOfMonth(addMonths(t, 3));
-    return {
-      rangeStart: startOfDay(first),
-      days: eachDayOfInterval({ start: startOfDay(first), end: startOfDay(last) }),
-      pixelsPerDay: 28,
-    };
-  }, [zoom, anchor]);
+    return cols;
+  }, [firstMonthInTimeline]);
 
-  const totalWidth = days.length * pixelsPerDay;
+  const totalWidth = useMemo(() => {
+    if (zoom === "day") return DAY_TOTAL * DAY_COL_W;
+    if (zoom === "week") return WEEK_TOTAL * WEEK_COL_W;
+    return MONTH_TOTAL * MONTH_COL_W;
+  }, [zoom]);
 
-  const todayIdx = useMemo(() => {
-    const now = new Date();
-    return days.findIndex((d) => isSameDay(d, now));
-  }, [days]);
+  const todayPx = useMemo(() => {
+    return pixelForDateOnTimeline(
+      new Date(),
+      zoom,
+      centerDate,
+      firstMonthInTimeline,
+      weekViewStartMonday,
+    );
+  }, [zoom, centerDate, firstMonthInTimeline, weekViewStartMonday]);
 
   const periodLabel = useMemo(() => {
     if (zoom === "day") {
-      return format(anchor, "MMMM yyyy", { locale: da });
+      return format(centerDate, "MMMM yyyy", { locale: da });
     }
     if (zoom === "week") {
-      return `Uge ${getISOWeek(anchor)}, ${format(anchor, "yyyy")}`;
+      return `Uge ${getISOWeek(centerDate)}, ${format(centerDate, "yyyy")}`;
     }
-    return format(anchor, "MMMM yyyy", { locale: da });
-  }, [zoom, anchor]);
+    return format(centerDate, "MMMM yyyy", { locale: da });
+  }, [zoom, centerDate]);
 
   useLayoutEffect(() => {
     const el = rightScrollRef.current;
-    if (!el || days.length === 0) return;
-    const ti = days.findIndex((d) => isSameDay(d, new Date()));
-    if (ti < 0) return;
-    const todayPx = ti * pixelsPerDay;
-    const target = Math.max(0, todayPx - el.clientWidth / 2 + pixelsPerDay / 2);
-
-    if (gotoTodayScrollRef.current) {
-      gotoTodayScrollRef.current = false;
-      requestAnimationFrame(() => {
-        el.scrollLeft = target;
-      });
-      return;
-    }
-
-    if (!initialScrollDone.current) {
-      initialScrollDone.current = true;
-      requestAnimationFrame(() => {
-        el.scrollLeft = target;
-      });
-    }
-  }, [days, pixelsPerDay, anchor]);
+    if (!el || totalWidth <= 0) return;
+    const px = pixelForDateOnTimeline(
+      centerDate,
+      zoom,
+      centerDate,
+      firstMonthInTimeline,
+      weekViewStartMonday,
+    );
+    requestAnimationFrame(() => {
+      el.scrollLeft = Math.max(0, px - el.clientWidth / 2);
+    });
+  }, [
+    zoom,
+    centerDate,
+    totalWidth,
+    firstMonthInTimeline,
+    weekViewStartMonday,
+  ]);
 
   const onLeftScroll = useCallback(() => {
     if (scrollLock.current) return;
@@ -312,41 +391,180 @@ export default function GanttView({
   const projectLayouts = useMemo(() => {
     return projects.map((p) => {
       const { start, end } = projectDateRange(p);
-      const layout = barLayout(start, end, rangeStart, pixelsPerDay, totalWidth);
+      const layout = barLayoutForZoom(
+        start,
+        end,
+        zoom,
+        centerDate,
+        totalWidth,
+        firstMonthInTimeline,
+        weekViewStartMonday,
+      );
       return { project: p, layout, color: projectBarColor(p.status) };
     });
-  }, [projects, rangeStart, pixelsPerDay, totalWidth]);
+  }, [
+    projects,
+    zoom,
+    centerDate,
+    totalWidth,
+    firstMonthInTimeline,
+    weekViewStartMonday,
+  ]);
 
   const taskLayouts = useMemo(() => {
     return tasks.map((t) => {
       const { start, end } = taskDateRange(t);
-      const layout = barLayout(start, end, rangeStart, pixelsPerDay, totalWidth);
+      const layout = barLayoutForZoom(
+        start,
+        end,
+        zoom,
+        centerDate,
+        totalWidth,
+        firstMonthInTimeline,
+        weekViewStartMonday,
+      );
       return { task: t, layout, color: taskBarColor(t.status) };
     });
-  }, [tasks, rangeStart, pixelsPerDay, totalWidth]);
-
-  const weekChunks = useMemo(() => chunkWeeks(days), [days]);
-  const monthChunks = useMemo(() => chunkMonths(days), [days]);
+  }, [
+    tasks,
+    zoom,
+    centerDate,
+    totalWidth,
+    firstMonthInTimeline,
+    weekViewStartMonday,
+  ]);
 
   const handleGotoToday = () => {
-    setAnchor(new Date());
-    gotoTodayScrollRef.current = true;
+    setCenterDate(startOfDay(new Date()));
   };
 
   const navPrev = () => {
-    if (zoom === "day") setAnchor((a) => addDays(a, -7));
-    else if (zoom === "week") setAnchor((a) => addWeeks(a, -1));
-    else setAnchor((a) => addMonths(a, -1));
+    if (zoom === "day") setCenterDate((d) => addDays(d, -30));
+    else if (zoom === "week") setCenterDate((d) => addWeeks(d, -13));
+    else setCenterDate((d) => addMonths(d, -12));
   };
 
   const navNext = () => {
-    if (zoom === "day") setAnchor((a) => addDays(a, 7));
-    else if (zoom === "week") setAnchor((a) => addWeeks(a, 1));
-    else setAnchor((a) => addMonths(a, 1));
+    if (zoom === "day") setCenterDate((d) => addDays(d, 30));
+    else if (zoom === "week") setCenterDate((d) => addWeeks(d, 13));
+    else setCenterDate((d) => addMonths(d, 12));
   };
 
-  const leftHeader =
-    level === 1 ? "PROJEKT NAVN" : "OPGAVE NAVN";
+  const onZoomChange = (z: Zoom) => {
+    if (z !== zoom) setZoom(z);
+  };
+
+  const leftHeader = level === 1 ? "PROJEKT NAVN" : "OPGAVE NAVN";
+
+  const weekHeaderCells = useMemo(() => {
+    const cells: { key: string; weekLabel: string; rangeLabel: string }[] = [];
+    for (let i = 0; i < WEEK_TOTAL; i++) {
+      const wkStart = addWeeks(weekViewStartMonday, i);
+      const wkEnd = addDays(wkStart, 6);
+      cells.push({
+        key: wkStart.toISOString(),
+        weekLabel: `Uge ${getISOWeek(wkStart)}`,
+        rangeLabel: `${format(wkStart, "d. MMM", { locale: da })} – ${format(wkEnd, "d. MMM", { locale: da })}`,
+      });
+    }
+    return cells;
+  }, [weekViewStartMonday]);
+
+  const renderTimelineBackground = (keyPrefix: string) => {
+    if (zoom === "day") {
+      return (
+        <div className="absolute inset-0 flex">
+          {dayColumns.map((d) => (
+            <div
+              key={`${keyPrefix}-${d.toISOString()}`}
+              className={`shrink-0 border-r border-[#e8e8e8] ${
+                isSameDay(d, new Date()) ? "bg-[#f0f6ff]" : ""
+              }`}
+              style={{ width: DAY_COL_W }}
+            />
+          ))}
+        </div>
+      );
+    }
+
+    if (zoom === "week") {
+      return (
+        <div className="absolute inset-0 flex">
+          {Array.from({ length: WEEK_TOTAL }).map((_, i) => (
+            <div
+              key={`${keyPrefix}-w-${i}`}
+              className="relative shrink-0 border-r border-[#e8e8e8]"
+              style={{ width: WEEK_COL_W }}
+            >
+              <div className="absolute inset-0 flex">
+                {Array.from({ length: 7 }).map((__, j) => (
+                  <div
+                    key={j}
+                    className={`h-full shrink-0 border-r border-[#f3f4f6] ${
+                      (() => {
+                        const cellDay = addDays(addWeeks(weekViewStartMonday, i), j);
+                        return isSameDay(cellDay, new Date())
+                          ? "bg-[#f0f6ff]"
+                          : "";
+                      })()
+                    }`}
+                    style={{ width: PX_PER_DAY_IN_WEEK }}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <div className="absolute inset-0 flex">
+        {monthColumns.map(({ monthStart, label }) => {
+          const monthEnd = endOfMonth(monthStart);
+          const dim =
+            differenceInCalendarDays(monthEnd, monthStart) + 1;
+          const mondays = mondaysForMonthOverlay(monthStart);
+          return (
+            <div
+              key={`${keyPrefix}-${label}`}
+              className="relative shrink-0 border-r border-[#e8e8e8]"
+              style={{ width: MONTH_COL_W }}
+            >
+              {Array.from({ length: dim }).map((_, dayIdx) => {
+                const d = addDays(monthStart, dayIdx);
+                return (
+                  <div
+                    key={dayIdx}
+                    className={`absolute top-0 bottom-0 border-r border-[#f3f4f6] ${
+                      isSameDay(d, new Date()) ? "bg-[#f0f6ff]" : ""
+                    }`}
+                    style={{
+                      left: (dayIdx / dim) * MONTH_COL_W,
+                      width: MONTH_COL_W / dim,
+                    }}
+                  />
+                );
+              })}
+              {mondays.map((m) => {
+                const offsetDays = differenceInCalendarDays(m, monthStart);
+                const left = (offsetDays / dim) * MONTH_COL_W;
+                return (
+                  <div
+                    key={m.toISOString()}
+                    className="pointer-events-none absolute bottom-0 top-0 z-[1] w-px bg-[#f3f4f6]"
+                    style={{ left }}
+                  />
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const todayLineLeft = todayPx;
 
   return (
     <div className="overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white">
@@ -372,21 +590,21 @@ export default function GanttView({
           <button
             type="button"
             className={zoomSeg(zoom === "day")}
-            onClick={() => setZoom("day")}
+            onClick={() => onZoomChange("day")}
           >
             Dag
           </button>
           <button
             type="button"
             className={zoomSeg(zoom === "week")}
-            onClick={() => setZoom("week")}
+            onClick={() => onZoomChange("week")}
           >
             Uge
           </button>
           <button
             type="button"
             className={zoomSeg(zoom === "month")}
-            onClick={() => setZoom("month")}
+            onClick={() => onZoomChange("month")}
           >
             Måned
           </button>
@@ -527,17 +745,19 @@ export default function GanttView({
           <div style={{ width: totalWidth, minWidth: totalWidth }}>
             <div
               className="sticky top-0 z-20 shrink-0 border-b border-[#e8e8e8] bg-white"
-              style={{ width: totalWidth }}
+              style={{ width: totalWidth, minHeight: HEADER_H }}
             >
               {zoom === "day" ? (
-                <div className="flex" style={{ height: HEADER_H }}>
-                  {days.map((d) => (
+                <div className="flex" style={{ minHeight: HEADER_H }}>
+                  {dayColumns.map((d) => (
                     <div
                       key={d.toISOString()}
-                      className="flex shrink-0 flex-col items-center justify-center border-r border-[#e8e8e8] text-[11px] font-medium text-[#9ca3af]"
-                      style={{ width: pixelsPerDay, height: HEADER_H }}
+                      className="flex shrink-0 flex-col items-center justify-center border-r border-[#e8e8e8] px-0.5 text-center leading-tight text-[11px] font-medium text-[#9ca3af]"
+                      style={{ width: DAY_COL_W, minHeight: HEADER_H }}
                     >
-                      <span>{format(d, "EEE", { locale: da })}</span>
+                      <span>
+                        {format(d, "EEE", { locale: da }).toLowerCase()}.
+                      </span>
                       <span>{format(d, "d.", { locale: da })}</span>
                     </div>
                   ))}
@@ -545,56 +765,33 @@ export default function GanttView({
               ) : null}
 
               {zoom === "week" ? (
-                <div className="flex flex-col" style={{ height: HEADER_H }}>
-                  <div className="flex h-[22px]">
-                    {weekChunks.map((wk) => (
-                      <div
-                        key={wk[0]!.toISOString()}
-                        className="flex shrink-0 items-center justify-center border-b border-r border-[#e8e8e8] text-[11px] font-medium uppercase tracking-wide text-[#9ca3af]"
-                        style={{ width: wk.length * pixelsPerDay }}
-                      >
-                        Uge {getISOWeek(wk[0]!)}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex h-[22px]">
-                    {days.map((d) => (
-                      <div
-                        key={d.toISOString()}
-                        className="flex shrink-0 items-center justify-center border-r border-[#e8e8e8] text-[11px] text-[#9ca3af]"
-                        style={{ width: pixelsPerDay }}
-                      >
-                        {format(d, "d.", { locale: da })}
-                      </div>
-                    ))}
-                  </div>
+                <div className="flex" style={{ minHeight: HEADER_H }}>
+                  {weekHeaderCells.map((cell) => (
+                    <div
+                      key={cell.key}
+                      className="flex shrink-0 flex-col items-center justify-center border-r border-[#e8e8e8] px-1 text-center text-[11px] font-medium leading-snug text-[#9ca3af]"
+                      style={{ width: WEEK_COL_W, minHeight: HEADER_H }}
+                    >
+                      <span>{cell.weekLabel}</span>
+                      <span className="mt-0.5 whitespace-nowrap text-[10px]">
+                        {cell.rangeLabel}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               ) : null}
 
               {zoom === "month" ? (
-                <div className="flex flex-col" style={{ height: HEADER_H }}>
-                  <div className="flex h-[22px]">
-                    {monthChunks.map((m) => (
-                      <div
-                        key={m.label + m.days[0]!.toISOString()}
-                        className="flex shrink-0 items-center justify-center border-b border-r border-[#e8e8e8] text-[11px] font-medium capitalize text-[#9ca3af]"
-                        style={{ width: m.days.length * pixelsPerDay }}
-                      >
-                        {m.label}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex h-[22px]">
-                    {days.map((d) => (
-                      <div
-                        key={d.toISOString()}
-                        className="flex shrink-0 items-center justify-center border-r border-[#e8e8e8] text-[11px] text-[#9ca3af]"
-                        style={{ width: pixelsPerDay }}
-                      >
-                        {format(d, "d.", { locale: da })}
-                      </div>
-                    ))}
-                  </div>
+                <div className="flex" style={{ minHeight: HEADER_H }}>
+                  {monthColumns.map(({ monthStart, label }) => (
+                    <div
+                      key={monthStart.toISOString()}
+                      className="flex shrink-0 items-center justify-center border-r border-[#e8e8e8] px-1 text-center text-[11px] font-medium capitalize leading-tight text-[#9ca3af]"
+                      style={{ width: MONTH_COL_W, minHeight: HEADER_H }}
+                    >
+                      {label}
+                    </div>
+                  ))}
                 </div>
               ) : null}
             </div>
@@ -603,7 +800,7 @@ export default function GanttView({
               ref={rightBodyRef}
               onScroll={onRightScroll}
               className="overflow-y-auto"
-              style={{ maxHeight: "min(516px, calc(100vh - 280px))" }}
+              style={{ maxHeight: "min(508px, calc(100vh - 280px))" }}
             >
               {level === 1 &&
                 projectLayouts.map(({ project: p, layout, color }) => (
@@ -612,30 +809,13 @@ export default function GanttView({
                     className="relative border-b border-[#e8e8e8]"
                     style={{ height: ROW_H, width: totalWidth }}
                   >
-                    <div className="absolute inset-0 flex">
-                      {days.map((d) => (
-                        <div
-                          key={d.toISOString()}
-                          className={`shrink-0 border-r border-[#f3f4f6] ${
-                            isSameDay(d, new Date())
-                              ? "bg-[#f0f6ff]"
-                              : ""
-                          }`}
-                          style={{ width: pixelsPerDay }}
-                        />
-                      ))}
-                    </div>
-                    {todayIdx >= 0 ? (
-                      <div
-                        className="pointer-events-none absolute bottom-0 top-0 z-[1] w-px bg-[#1a3167]"
-                        style={{ left: todayIdx * pixelsPerDay }}
-                      />
-                    ) : null}
+                    {renderTimelineBackground(`p-${p.id}`)}
+                    <div
+                      className="pointer-events-none absolute bottom-0 top-0 z-[2] w-px bg-[#1a3167]"
+                      style={{ left: todayLineLeft }}
+                    />
                     {layout ? (
-                      <div
-                        className="pointer-events-none absolute inset-0 z-[2] flex items-center"
-                        style={{ paddingLeft: 0 }}
-                      >
+                      <div className="pointer-events-none absolute inset-0 z-[3] flex items-center">
                         <div
                           className="absolute flex max-w-full items-center overflow-hidden text-[11px] font-semibold text-white"
                           style={{
@@ -665,27 +845,13 @@ export default function GanttView({
                     className="relative border-b border-[#e8e8e8]"
                     style={{ height: ROW_H, width: totalWidth }}
                   >
-                    <div className="absolute inset-0 flex">
-                      {days.map((d) => (
-                        <div
-                          key={d.toISOString()}
-                          className={`shrink-0 border-r border-[#f3f4f6] ${
-                            isSameDay(d, new Date())
-                              ? "bg-[#f0f6ff]"
-                              : ""
-                          }`}
-                          style={{ width: pixelsPerDay }}
-                        />
-                      ))}
-                    </div>
-                    {todayIdx >= 0 ? (
-                      <div
-                        className="pointer-events-none absolute bottom-0 top-0 z-[1] w-px bg-[#1a3167]"
-                        style={{ left: todayIdx * pixelsPerDay }}
-                      />
-                    ) : null}
+                    {renderTimelineBackground(`t-${t.id}`)}
+                    <div
+                      className="pointer-events-none absolute bottom-0 top-0 z-[2] w-px bg-[#1a3167]"
+                      style={{ left: todayLineLeft }}
+                    />
                     {layout ? (
-                      <div className="pointer-events-none absolute inset-0 z-[2] flex items-center">
+                      <div className="pointer-events-none absolute inset-0 z-[3] flex items-center">
                         <div
                           className="absolute flex max-w-full items-center overflow-hidden text-[11px] font-semibold text-white"
                           style={{
@@ -715,19 +881,11 @@ export default function GanttView({
                       className="relative border-b border-[#e8e8e8]"
                       style={{ height: ROW_H, width: totalWidth }}
                     >
-                      <div className="absolute inset-0 flex">
-                        {days.map((d) => (
-                          <div
-                            key={d.toISOString()}
-                            className={`shrink-0 border-r border-[#f3f4f6] ${
-                              isSameDay(d, new Date())
-                                ? "bg-[#f0f6ff]"
-                                : ""
-                            }`}
-                            style={{ width: pixelsPerDay }}
-                          />
-                        ))}
-                      </div>
+                      {renderTimelineBackground(`sk-${i}`)}
+                      <div
+                        className="pointer-events-none absolute bottom-0 top-0 z-[2] w-px bg-[#1a3167]"
+                        style={{ left: todayLineLeft }}
+                      />
                     </div>
                   ))
                 : null}
