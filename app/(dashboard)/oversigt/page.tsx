@@ -65,15 +65,16 @@ export default async function OversigtPage() {
   const data = await getCachedOversigtDashboardData(user.id);
   if (!data) redirect("/login");
 
-  const { user: row, now, todayTasks, pulseRaw, deadlineTasks, meetingRows } = data;
+  const { user: row, now, upcomingTasks, pulseRaw, deadlineTasks, meetingRows } = data;
 
   const displayName = (row.name?.trim() || row.email).trim();
 
-  const tasks: OversigtTaskRow[] = todayTasks.map((t) => ({
+  const tasks: OversigtTaskRow[] = upcomingTasks.map((t) => ({
     id: t.id,
     title: t.title,
     projectId: t.projectId,
     projectName: t.project.name,
+    projectColor: t.project.color,
     priority: t.priority,
     status: t.status,
     deadline: t.deadline ? t.deadline.toISOString() : null,

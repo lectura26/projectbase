@@ -5,6 +5,7 @@ export type OversigtTaskRow = {
   title: string;
   projectId: string;
   projectName: string;
+  projectColor: string;
   priority: Priority;
   status: TaskStatus;
   deadline: string | null;
