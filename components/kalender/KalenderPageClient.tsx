@@ -3,6 +3,7 @@
 import { X } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { projectColorForId } from "@/lib/calendar-palette";
+import { formatDanishDate } from "@/lib/datetime/format-danish";
 import type {
   KalenderEvent,
   KalenderProject,
@@ -213,17 +214,7 @@ export default function KalenderPageClient({
                 ←
               </button>
               <span className="text-sm text-on-surface-variant">
-                Uge{" "}
-                {weekDays[0].toLocaleDateString("da-DK", {
-                  day: "numeric",
-                  month: "short",
-                })}{" "}
-                –{" "}
-                {weekDays[6].toLocaleDateString("da-DK", {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                })}
+                Uge {formatDanishDate(weekDays[0])} – {formatDanishDate(weekDays[6])}
               </span>
               <button
                 type="button"
@@ -399,12 +390,7 @@ export default function KalenderPageClient({
                 Projekt: {popover.item.projectName}
               </p>
               <p className="mt-1 text-xs text-on-surface-variant">
-                {new Date(popover.item.date).toLocaleDateString("da-DK", {
-                  weekday: "long",
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
+                {formatDanishDate(popover.item.date)}
                 {popover.item.eventTime ? ` · ${popover.item.eventTime}` : ""}
               </p>
               <a
@@ -423,12 +409,7 @@ export default function KalenderPageClient({
                 Projekt: {popover.item.projectName}
               </p>
               <p className="mt-1 text-xs text-on-surface-variant">
-                Frist:{" "}
-                {new Date(popover.item.deadline).toLocaleString("da-DK", {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                })}
+                Frist: {formatDanishDate(popover.item.deadline)}
               </p>
               <a
                 href={`/projekter/${popover.item.projectId}`}

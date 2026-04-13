@@ -12,6 +12,7 @@ import {
   statusBadgeClass,
   statusLabelDa,
 } from "@/components/projekter/project-helpers";
+import { formatDanishDate } from "@/lib/datetime/format-danish";
 import type {
   OversigtDeadlineItem,
   OversigtMeetingItem,
@@ -191,14 +192,7 @@ export default function OversigtPageClient({
                           </div>
                         </div>
                         <span className="w-24 shrink-0 text-right font-body text-[11px] text-on-surface-variant">
-                          {p.deadline
-                            ? new Date(p.deadline).toLocaleDateString("da-DK", {
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                                timeZone: "Europe/Copenhagen",
-                              })
-                            : "—"}
+                          {p.deadline ? formatDanishDate(p.deadline) : "—"}
                         </span>
                       </Link>
                     </li>
@@ -229,12 +223,7 @@ export default function OversigtPageClient({
                       />
                       <div className="min-w-0 flex-1">
                         <p className="font-body text-sm font-semibold text-on-surface">
-                          {new Date(d.deadline).toLocaleDateString("da-DK", {
-                            weekday: "short",
-                            day: "numeric",
-                            month: "short",
-                            timeZone: "Europe/Copenhagen",
-                          })}
+                          {formatDanishDate(d.deadline)}
                         </p>
                         <p className="mt-0.5 font-body text-[13px] text-on-surface-variant">
                           {d.title}

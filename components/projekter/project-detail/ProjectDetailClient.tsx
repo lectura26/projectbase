@@ -46,7 +46,8 @@ import {
 import { routineIntervalLabel } from "@/lib/projekter/routine";
 import type { ProjectDetailPayload, TaskDetailDTO } from "@/types/project-detail";
 import { NytProjektModal } from "@/components/projekter/NytProjektModal";
-import { DateInputYmd } from "@/components/ui/DateInputYmd";
+import { DatePicker } from "@/components/ui/DatePicker";
+import { formatDanishDate } from "@/lib/datetime/format-danish";
 import {
   commitYmdString,
   isoToYmd,
@@ -165,14 +166,6 @@ function activityBadge(type: ActivityType) {
     default:
       return { letter: "F", className: "bg-surface-container-high text-on-surface" };
   }
-}
-
-function formatDaDate(iso: string) {
-  return new Date(iso).toLocaleDateString("da-DK", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
 }
 
 function formatDaTime(iso: string) {
@@ -343,7 +336,7 @@ export default function ProjectDetailClient({
                 {scheduleStart ? (
                   <>
                     <span>Startdato</span>
-                    <DateInputYmd
+                    <DatePicker
                       value={scheduleStart}
                       onChange={setScheduleStart}
                       onBlurCommit={(c) => void saveScheduleField("startDate", c)}
@@ -357,7 +350,7 @@ export default function ProjectDetailClient({
                   </>
                 ) : null}
                 <span>Frist</span>
-                <DateInputYmd
+                <DatePicker
                   value={scheduleDeadline}
                   onChange={setScheduleDeadline}
                   onBlurCommit={(c) => void saveScheduleField("deadline", c)}
@@ -640,7 +633,7 @@ function OpgaverTab({
                 ) : null}
                 {task.deadline ? (
                   <span className="hidden text-xs text-on-surface-variant sm:inline">
-                    {formatDaDate(task.deadline)}
+                    {formatDanishDate(task.deadline)}
                   </span>
                 ) : null}
                 <PriorityBadge priority={task.priority} />
@@ -707,7 +700,7 @@ function OpgaverTab({
                 <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
                   Startdato
                 </label>
-                <DateInputYmd
+                <DatePicker
                   value={draftStartDate}
                   onChange={setDraftStartDate}
                   className="mt-1 w-full rounded-lg border border-outline-variant/30 px-3 py-2 font-body text-sm"
@@ -717,7 +710,7 @@ function OpgaverTab({
                 <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
                   Frist
                 </label>
-                <DateInputYmd
+                <DatePicker
                   value={draftDeadline}
                   onChange={setDraftDeadline}
                   className="mt-1 w-full rounded-lg border border-outline-variant/30 px-3 py-2 font-body text-sm"
@@ -917,7 +910,7 @@ function TaskExpanded({
           <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
             Startdato
           </label>
-          <DateInputYmd
+          <DatePicker
             value={startYmd}
             onChange={setStartYmd}
             onBlurCommit={(c) => void saveStartDate(c)}
@@ -928,7 +921,7 @@ function TaskExpanded({
           <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
             Frist
           </label>
-          <DateInputYmd
+          <DatePicker
             value={deadlineYmd}
             onChange={setDeadlineYmd}
             onBlurCommit={(c) => void saveDeadline(c)}
@@ -984,7 +977,7 @@ function TaskExpanded({
               <div>
                 <p className="text-on-surface">{c.content}</p>
                 <p className="text-[11px] text-on-surface-variant">
-                  {formatDaDate(c.createdAt)} · {formatDaTime(c.createdAt)}
+                  {formatDanishDate(c.createdAt)} · {formatDaTime(c.createdAt)}
                 </p>
               </div>
             </div>
@@ -1058,7 +1051,7 @@ function KommentarerTab({
                   {displayName(c.author)}
                 </span>
                 <span className="text-[11px] text-on-surface-variant">
-                  {formatDaDate(c.createdAt)} {formatDaTime(c.createdAt)}
+                  {formatDanishDate(c.createdAt)} {formatDaTime(c.createdAt)}
                 </span>
               </div>
               <p className="mt-1 text-[13px] text-on-surface">{c.content}</p>
@@ -1163,7 +1156,7 @@ function AktivitetTab({
               </span>
               <p className="text-xs text-on-surface-variant">
                 {(a.organizerName || a.source) && `${a.organizerName || a.source} · `}
-                {formatDaDate(a.date)}
+                {formatDanishDate(a.date)}
               </p>
             </div>
             {a.autoMatched ? (
@@ -1239,7 +1232,7 @@ function KalenderTab({
     }
     const ymd = commitYmdString(eventDate);
     if (!ymd) {
-      setDateError("Dato er påkrævet (YYYY-MM-DD).");
+      setDateError("Dato er påkrævet (DD-MM-YYYY).");
       ok = false;
     }
     if (!ok) return;
@@ -1294,7 +1287,7 @@ function KalenderTab({
             ) : null}
           </div>
           <div>
-            <DateInputYmd
+            <DatePicker
               value={eventDate}
               onChange={(v) => {
                 setEventDate(v);
@@ -1338,7 +1331,7 @@ function KalenderTab({
         {calendarGroups.map(([day, events]) => (
           <div key={day}>
             <p className="mb-2 text-xs font-bold uppercase tracking-widest text-on-surface-variant">
-              {formatDaDate(`${day}T12:00:00.000Z`)}
+              {formatDanishDate(`${day}T12:00:00.000Z`)}
             </p>
             <ul className="space-y-2">
               {events.map((e) => (
@@ -1463,7 +1456,7 @@ function FilerTab({
                 {f.name}
               </a>
               <p className="text-xs text-on-surface-variant">
-                {f.fileType} · {formatDaDate(f.createdAt)} ·{" "}
+                {f.fileType} · {formatDanishDate(f.createdAt)} ·{" "}
                 {displayName(f.uploadedBy)}
               </p>
             </div>

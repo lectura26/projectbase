@@ -7,6 +7,7 @@ import { useRef, useState, useTransition } from "react";
 import { getTeamMemberDetail } from "@/app/(dashboard)/team/actions";
 import type { TeamListRow } from "@/app/(dashboard)/team/page";
 import { displayName, initialsFromUser } from "@/lib/projekter/display";
+import { formatDanishDate } from "@/lib/datetime/format-danish";
 
 type PanelData = Awaited<ReturnType<typeof getTeamMemberDetail>>;
 
@@ -192,7 +193,7 @@ export default function TeamPageClient({ rows }: Props) {
                                 >
                                   • {t.title}
                                   {t.deadline
-                                    ? ` — ${new Date(t.deadline).toLocaleDateString("da-DK")}`
+                                    ? ` — ${formatDanishDate(t.deadline)}`
                                     : ""}
                                 </li>
                               ))}
@@ -221,11 +222,7 @@ export default function TeamPageClient({ rows }: Props) {
                               {" "}
                               — {e.projectName}
                               <br />
-                              {new Date(e.date).toLocaleDateString("da-DK", {
-                                weekday: "short",
-                                day: "numeric",
-                                month: "short",
-                              })}
+                              {formatDanishDate(e.date)}
                               {e.eventTime ? ` · ${e.eventTime}` : ""}
                             </span>
                           </li>

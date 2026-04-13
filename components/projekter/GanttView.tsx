@@ -27,6 +27,7 @@ import {
   useState,
 } from "react";
 import { getGanttTasksForProject } from "@/app/(dashboard)/projekter/gantt-actions";
+import { formatDanishDate } from "@/lib/datetime/format-danish";
 import type { GanttTaskRow, ProjectListItem } from "@/types/projekter";
 import { BADGE_CHIP_CLASS, statusBadgeClass, statusLabelDa } from "./project-helpers";
 
@@ -464,7 +465,7 @@ export default function GanttView({
       cells.push({
         key: wkStart.toISOString(),
         weekLabel: `Uge ${getISOWeek(wkStart)}`,
-        rangeLabel: `${format(wkStart, "d. MMM", { locale: da })} – ${format(wkEnd, "d. MMM", { locale: da })}`,
+        rangeLabel: `${formatDanishDate(wkStart)} – ${formatDanishDate(wkEnd)}`,
       });
     }
     return cells;

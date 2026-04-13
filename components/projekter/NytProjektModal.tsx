@@ -3,7 +3,6 @@
 import type { Priority, ProjectVisibility, RoutineInterval } from "@prisma/client";
 import {
   ArrowRight,
-  Calendar,
   ChevronDown,
   Lock,
   Plus,
@@ -20,7 +19,7 @@ import {
   type EditProjectInitial,
 } from "@/app/(dashboard)/projekter/actions";
 import { commitYmdString } from "@/lib/datetime/ymd";
-import { DateInputYmd } from "@/components/ui/DateInputYmd";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 type UserOption = { id: string; name: string; email: string };
 
@@ -328,35 +327,23 @@ export function NytProjektModal({
                     (valgfri)
                   </span>
                 </label>
-                <div className="relative">
-                  <DateInputYmd
-                    id="np-start"
-                    value={startDate}
-                    onChange={setStartDate}
-                    className={`${inputUnderlineClass} bg-surface-container-low`}
-                  />
-                  <Calendar
-                    className="pointer-events-none absolute right-1 top-2.5 h-5 w-5 text-primary/40"
-                    aria-hidden
-                  />
-                </div>
+                <DatePicker
+                  id="np-start"
+                  value={startDate}
+                  onChange={setStartDate}
+                  className={`${inputUnderlineClass} bg-surface-container-low border-0 border-b-2 border-outline-variant/70 pr-10`}
+                />
               </div>
               <div>
                 <label htmlFor="np-deadline" className={labelClass}>
                   Frist
                 </label>
-                <div className="relative">
-                  <DateInputYmd
-                    id="np-deadline"
-                    value={deadline}
-                    onChange={setDeadline}
-                    className={`${inputUnderlineClass} bg-surface-container-low`}
-                  />
-                  <Calendar
-                    className="pointer-events-none absolute right-1 top-2.5 h-5 w-5 text-primary/40"
-                    aria-hidden
-                  />
-                </div>
+                <DatePicker
+                  id="np-deadline"
+                  value={deadline}
+                  onChange={setDeadline}
+                  className={`${inputUnderlineClass} bg-surface-container-low border-0 border-b-2 border-outline-variant/70 pr-10`}
+                />
               </div>
             </section>
 

@@ -3,6 +3,7 @@
 import { Repeat } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { Priority, ProjectStatus } from "@prisma/client";
+import { formatDanishDate } from "@/lib/datetime/format-danish";
 import type { ProjectListItem } from "@/types/projekter";
 import {
   BADGE_CHIP_CLASS,
@@ -59,13 +60,6 @@ function progressBarFillClass(status: ProjectStatus, pct: number): string {
   return "bg-[#1a3167]";
 }
 
-function formatFristDate(d: Date): string {
-  const day = d.getDate();
-  const month = d.toLocaleDateString("en-GB", { month: "short" });
-  const year = d.getFullYear();
-  return `${day}. ${month}, ${year}`;
-}
-
 const BADGE_TABLE_CLASS =
   "inline-flex max-w-full items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase leading-tight tracking-wide";
 
@@ -120,7 +114,7 @@ function ProjectListRow({ project }: { project: ProjectListItem }) {
       </td>
       <td className="px-4 py-[14px] align-middle">
         <span className="whitespace-nowrap font-body text-[12px] text-[#6b7280]">
-          {deadline ? formatFristDate(deadline) : "—"}
+          {deadline ? formatDanishDate(deadline) : "—"}
         </span>
       </td>
       <td className="px-4 py-[14px] align-middle">
@@ -199,7 +193,7 @@ function CompletedProjectListRow({ project }: { project: ProjectListItem }) {
       </td>
       <td className="px-4 py-[14px] align-middle">
         <span className="whitespace-nowrap font-body text-[12px] text-[#9ca3af]">
-          {deadline ? formatFristDate(deadline) : "—"}
+          {deadline ? formatDanishDate(deadline) : "—"}
         </span>
       </td>
       <td className="px-4 py-[14px] align-middle">
@@ -363,11 +357,7 @@ export function ProjectCardBody({
       {hasDeadline ? (
         <p className="mt-2 text-[11px] text-on-surface-variant/75">
           Frist:{" "}
-          {new Date(project.deadline!).toLocaleDateString("da-DK", {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-          })}
+          {formatDanishDate(project.deadline!)}
         </p>
       ) : null}
       {progress !== null ? (

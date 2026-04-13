@@ -1,3 +1,5 @@
+import { formatDanishDate } from "@/lib/datetime/format-danish";
+
 /** Calendar date as YYYY-MM-DD using UTC date parts (stable for stored ISO timestamps). */
 export function isoToYmd(iso: string | null | undefined): string {
   if (!iso) return "";
@@ -30,14 +32,11 @@ export function ymdToIsoDate(ymd: string | null | undefined): string | null {
   return dt.toISOString();
 }
 
-/** Display like "12. Apr, 2026" (English short month, UTC). */
+/** Display like "13. apr. 2026" (da-DK). */
 export function formatProjectHeaderDate(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
-  const day = d.getUTCDate();
-  const month = d.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" });
-  const year = d.getUTCFullYear();
-  return `${day}. ${month}, ${year}`;
+  return formatDanishDate(d);
 }
 
 const DIGIT_MAX = 8;
