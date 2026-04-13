@@ -3,7 +3,8 @@
 import { Check } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { setFocusProject as persistFocusProject } from "@/app/(dashboard)/oversigt/focus-actions";
 import { setTaskStatus } from "@/app/(dashboard)/projekter/project-detail-actions";
 import {
   BADGE_CHIP_CLASS,
@@ -15,10 +16,14 @@ import {
 import { formatDanishDate } from "@/lib/datetime/format-danish";
 import type {
   OversigtDeadlineItem,
+  OversigtFocusProjectCard,
+  OversigtFocusSuggestion,
   OversigtMeetingItem,
   OversigtPulseProject,
   OversigtTaskRow,
 } from "@/types/oversigt";
+import { DagensFocusCard } from "@/components/oversigt/DagensFocusCard";
+import { FocusPicker } from "@/components/oversigt/FocusPicker";
 
 function taskTimeLabel(iso: string | null): string {
   if (!iso) return "—";
@@ -37,6 +42,12 @@ type Props = {
   pulseProjects: OversigtPulseProject[];
   deadlines: OversigtDeadlineItem[];
   meetings: OversigtMeetingItem[];
+  focusProject: OversigtFocusProjectCard | null;
+  focusSuggestions: OversigtFocusSuggestion[];
+  focusAutoSelectedId: string | null;
+  isFocusSetToday: boolean;
+  focusPickerTodayLabel: string;
+  focusPickerDisplayName: string;
 };
 
 export default function OversigtPageClient({
@@ -46,10 +57,48 @@ export default function OversigtPageClient({
   pulseProjects,
   deadlines,
   meetings,
+  focusProject: initialFocusProject,
+  focusSuggestions,
+  focusAutoSelectedId,
+  isFocusSetToday,
+  focusPickerTodayLabel,
+  focusPickerDisplayName,
 }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [completingId, setCompletingId] = useState<string | null>(null);
+  const [focusProject, setFocusProject] = useState<OversigtFocusProjectCard | null>(
+    initialFocusProject,
+  );
+  const morningPickerDismissedRef = useRef(false);
+  const [pickerOpen, setPickerOpen] = useState(
+    () => !isFocusSetToday && focusSuggestions.length > 0,
+  );
+
+  useEffect(() => {
+    setFocusProject(initialFocusProject);
+  }, [initialFocusProject]);
+
+  useEffect(() => {
+    if (!isFocusSetToday && focusSuggestions.length > 0 && !morningPickerDismissedRef.current) {
+      setPickerOpen(true);
+    }
+  }, [isFocusSetToday, focusSuggestions.length]);
+
+  const applyFocus = useCallback(
+    async (projectId: string) => {
+      await persistFocusProject(projectId);
+      setPickerOpen(false);
+      morningPickerDismissedRef.current = false;
+      router.refresh();
+    },
+    [router],
+  );
+
+  const handleSkipFocusPicker = useCallback(() => {
+    morningPickerDismissedRef.current = true;
+    setPickerOpen(false);
+  }, []);
 
   const onToggleTask = useCallback(
     (task: OversigtTaskRow, nextDone: boolean) => {
@@ -69,6 +118,18 @@ export default function OversigtPageClient({
 
   return (
     <div className="min-w-0 pb-10">
+      <FocusPicker
+        open={pickerOpen}
+        displayName={focusPickerDisplayName}
+        todayLabel={focusPickerTodayLabel}
+        suggestions={focusSuggestions}
+        autoSelectedId={focusAutoSelectedId}
+        onClose={() => setPickerOpen(false)}
+        onConfirm={applyFocus}
+        onSkip={handleSkipFocusPicker}
+        onAutoSelect={applyFocus}
+      />
+
       <header className="mb-8">
         <h1 className="font-headline text-[20px] font-semibold leading-tight text-primary">
           {greeting}
@@ -79,6 +140,11 @@ export default function OversigtPageClient({
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[3fr_2fr] lg:gap-10">
         {/* Left 60% */}
         <div className="min-w-0 space-y-10">
+          <DagensFocusCard
+            focusProject={focusProject}
+            onShiftFocus={() => setPickerOpen(true)}
+          />
+
           <section>
             <div className="mb-3 flex items-center justify-between gap-4">
               <h2 className="font-label text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">

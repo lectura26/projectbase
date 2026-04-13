@@ -5,6 +5,11 @@ import { contactInitials, taskProgress } from "@/components/projekter/project-he
 import { ensureAppUser } from "@/lib/auth/ensure-app-user";
 import { getSessionUser } from "@/lib/auth/session-user";
 import { projectCalendarColor } from "@/lib/projekter/display";
+import {
+  formatFocusPickerDate,
+  getFocusProjectCardData,
+  selectAutoFocusProject,
+} from "@/lib/focus/get-focus-project";
 import { getCachedOversigtDashboardData } from "@/lib/data/cached-queries";
 import type {
   OversigtDeadlineItem,
@@ -105,6 +110,14 @@ export default async function OversigtPage() {
     projectName: e.project.name,
   }));
 
+  const [focusProject, focusPick] = await Promise.all([
+    getFocusProjectCardData(user.id),
+    selectAutoFocusProject(user.id),
+  ]);
+
+  const focusPickerFirstName =
+    displayName.split(/\s+/).filter(Boolean)[0] ?? displayName;
+
   return (
     <OversigtPageClient
       greeting={`${daGreeting(now)}, ${displayName}`}
@@ -113,6 +126,12 @@ export default async function OversigtPage() {
       pulseProjects={pulseProjects}
       deadlines={deadlines}
       meetings={meetings}
+      focusProject={focusProject}
+      focusSuggestions={focusPick.suggestions}
+      focusAutoSelectedId={focusPick.autoSelectedId}
+      isFocusSetToday={focusProject !== null}
+      focusPickerTodayLabel={formatFocusPickerDate(now)}
+      focusPickerDisplayName={focusPickerFirstName}
     />
   );
 }

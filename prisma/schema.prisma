@@ -88,6 +88,10 @@ model User {
   uploadedFiles  File[]
   notifications  Notification[]
   teamInvitesSent PendingTeamMember[] @relation("TeamInviteInviter")
+
+  focusProjectId String?
+  focusDate      DateTime?
+  focusProject   Project? @relation("UserFocusProject", fields: [focusProjectId], references: [id], onDelete: SetNull)
 }
 
 model Project {
@@ -116,6 +120,8 @@ model Project {
   activities     Activity[]
   files          File[]
   calendarEvents CalendarEvent[]
+
+  userFocusSelections User[] @relation("UserFocusProject")
 
   @@index([userId])
 }
