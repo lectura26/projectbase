@@ -144,16 +144,6 @@ export default function ProjekterPageClient({
     [],
   );
 
-  const hasActiveFilters =
-    statusFilter !== "alle" || priorityFilter !== "alle" || fristFilter !== "alle";
-
-  const clearFilters = () => {
-    setStatusFilter("alle");
-    setPriorityFilter("alle");
-    setFristFilter("alle");
-    setOpenFilter(null);
-  };
-
   const statusFilterRef = useRef<HTMLDivElement>(null);
   const priorityFilterRef = useRef<HTMLDivElement>(null);
   const fristFilterRef = useRef<HTMLDivElement>(null);
@@ -427,20 +417,6 @@ export default function ProjekterPageClient({
                 </div>
               ) : null}
             </div>
-
-            <button
-              type="button"
-              onClick={clearFilters}
-              className={`inline-flex items-center gap-1.5 rounded-md border-0 bg-transparent px-1 py-1.5 font-body text-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1a3167]/30 ${
-                hasActiveFilters ? "font-semibold text-[#1a3167]" : "text-[#6b7280] hover:text-[#0f1923]"
-              }`}
-              title="Ryd filtre"
-            >
-              <span className="text-[14px] leading-none" aria-hidden>
-                ≡
-              </span>
-              Filtrer
-            </button>
           </div>
         </div>
       </div>
