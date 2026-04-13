@@ -35,10 +35,9 @@ async function ProjekterPageContent() {
     redirect("/login");
   }
 
-  const rows = bundle.ownedProjects;
   const selfLabel = bundle.name?.trim() || bundle.email || user.email;
 
-  const initialProjects: ProjectListItem[] = rows.map((r) => ({
+  const mapProject = (r: (typeof bundle.activeOwnedProjects)[0]): ProjectListItem => ({
     id: r.id,
     name: r.name,
     status: r.status,
@@ -50,7 +49,10 @@ async function ProjekterPageContent() {
     owner: { id: r.user.id, name: r.user.name ?? r.user.email },
     contacts: r.contacts,
     tasks: r.tasks,
-  }));
+  });
+
+  const initialProjects: ProjectListItem[] = bundle.activeOwnedProjects.map(mapProject);
+  const initialCompletedProjects: ProjectListItem[] = bundle.completedOwnedProjects.map(mapProject);
 
   const usersForCreate = [
     {
@@ -63,6 +65,7 @@ async function ProjekterPageContent() {
   return (
     <ProjekterPageClient
       initialProjects={initialProjects}
+      initialCompletedProjects={initialCompletedProjects}
       usersForCreate={usersForCreate}
       currentUserId={user.id}
     />

@@ -1,11 +1,12 @@
 "use client";
 
-import { LayoutGrid, List } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ChevronRight, LayoutGrid, List } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Priority, ProjectStatus } from "@prisma/client";
 import type { ProjectListItem } from "@/types/projekter";
 import { NytProjektModal } from "./NytProjektModal";
-import { ProjekterListView } from "./ProjectCard";
+import { ProjekterCompletedListView, ProjekterListView } from "./ProjectCard";
 import { ProjekterKanban } from "./ProjekterKanban";
 
 type ViewMode = "liste" | "kanban";
@@ -88,10 +89,12 @@ function menuItemClass(active: boolean): string {
 
 export default function ProjekterPageClient({
   initialProjects,
+  initialCompletedProjects,
   usersForCreate,
   currentUserId: _currentUserId,
 }: {
   initialProjects: ProjectListItem[];
+  initialCompletedProjects: ProjectListItem[];
   usersForCreate: { id: string; name: string; email: string }[];
   currentUserId: string;
 }) {
@@ -99,6 +102,10 @@ export default function ProjekterPageClient({
   const [view, setView] = useState<ViewMode>("liste");
   const [createOpen, setCreateOpen] = useState(false);
   const [projects, setProjects] = useState<ProjectListItem[]>(initialProjects);
+  const [completedProjects, setCompletedProjects] =
+    useState<ProjectListItem[]>(initialCompletedProjects);
+  const [completedOpen, setCompletedOpen] = useState(false);
+  const [completedPage, setCompletedPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("alle");
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>("alle");
   const [fristFilter, setFristFilter] = useState<FristFilter>("alle");
@@ -110,8 +117,16 @@ export default function ProjekterPageClient({
   }, [initialProjects]);
 
   useEffect(() => {
+    setCompletedProjects(initialCompletedProjects);
+  }, [initialCompletedProjects]);
+
+  useEffect(() => {
     setPage(1);
   }, [statusFilter, priorityFilter, fristFilter]);
+
+  useEffect(() => {
+    if (statusFilter === "COMPLETED") setStatusFilter("alle");
+  }, [statusFilter]);
 
   const filtered = useMemo(
     () => applyTableFilters(projects, statusFilter, priorityFilter, fristFilter),
@@ -127,6 +142,37 @@ export default function ProjekterPageClient({
     [filtered, pageSafe],
   );
 
+  const completedTotal = completedProjects.length;
+  const completedPageCount = Math.max(1, Math.ceil(completedTotal / PAGE_SIZE));
+  const completedPageSafe = Math.min(completedPage, completedPageCount);
+  const completedPaged = useMemo(
+    () =>
+      completedProjects.slice(
+        (completedPageSafe - 1) * PAGE_SIZE,
+        completedPageSafe * PAGE_SIZE,
+      ),
+    [completedProjects, completedPageSafe],
+  );
+
+  const completedPageNumbers = useMemo(() => {
+    const maxButtons = 5;
+    if (completedPageCount <= maxButtons) {
+      return Array.from({ length: completedPageCount }, (_, i) => i + 1);
+    }
+    let from = Math.max(1, completedPageSafe - 2);
+    const to = Math.min(completedPageCount, from + maxButtons - 1);
+    if (to - from < maxButtons - 1) from = Math.max(1, to - maxButtons + 1);
+    return Array.from({ length: to - from + 1 }, (_, i) => from + i);
+  }, [completedPageCount, completedPageSafe]);
+
+  const completedStart =
+    completedTotal === 0 ? 0 : (completedPageSafe - 1) * PAGE_SIZE + 1;
+  const completedEnd = Math.min(completedPageSafe * PAGE_SIZE, completedTotal);
+
+  useEffect(() => {
+    setCompletedPage((p) => Math.min(p, completedPageCount));
+  }, [completedPageCount]);
+
   const pageNumbers = useMemo(() => {
     const maxButtons = 5;
     if (pageCount <= maxButtons) {
@@ -140,7 +186,22 @@ export default function ProjekterPageClient({
 
   const onProjectsUpdate = useCallback(
     (updater: (prev: ProjectListItem[]) => ProjectListItem[]) => {
-      setProjects(updater);
+      setProjects((prev) => {
+        const next = updater(prev);
+        const movedToCompleted = next.filter((p) => p.status === "COMPLETED");
+        const active = next.filter((p) => p.status !== "COMPLETED");
+        if (movedToCompleted.length > 0) {
+          setCompletedProjects((c) => {
+            const existing = new Set(c.map((x) => x.id));
+            const additions = movedToCompleted.filter((p) => !existing.has(p.id));
+            if (additions.length === 0) return c;
+            return [...additions, ...c].sort((a, b) =>
+              b.createdAt.localeCompare(a.createdAt),
+            );
+          });
+        }
+        return active;
+      });
     },
     [],
   );
@@ -271,17 +332,6 @@ export default function ProjekterPageClient({
                     }}
                   >
                     Stoppet
-                  </button>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className={menuItemClass(statusFilter === "COMPLETED")}
-                    onClick={() => {
-                      setStatusFilter("COMPLETED");
-                      setOpenFilter(null);
-                    }}
-                  >
-                    Fuldført
                   </button>
                 </div>
               ) : null}
@@ -467,6 +517,98 @@ export default function ProjekterPageClient({
                     ›
                   </button>
                 </div>
+              </div>
+            ) : null}
+
+            {completedTotal > 0 ? (
+              <div className="mt-8">
+                <button
+                  type="button"
+                  onClick={() => setCompletedOpen((o) => !o)}
+                  className="flex w-full items-center justify-between py-3 text-left"
+                  aria-expanded={completedOpen}
+                >
+                  <span className="flex min-w-0 items-center gap-2">
+                    <ChevronRight
+                      className={`h-4 w-4 shrink-0 text-[#6b7280] transition-transform duration-200 ${
+                        completedOpen ? "rotate-90" : ""
+                      }`}
+                      aria-hidden
+                    />
+                    <span className="font-body text-[13px] font-medium text-[#6b7280]">
+                      Fuldførte projekter
+                    </span>
+                  </span>
+                  <span className="shrink-0 font-body text-[12px] text-[#9ca3af]">
+                    ({completedTotal})
+                  </span>
+                </button>
+
+                <AnimatePresence initial={false}>
+                  {completedOpen ? (
+                    <motion.div
+                      key="completed-panel"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="opacity-90">
+                        <div className="overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white">
+                          <ProjekterCompletedListView projects={completedPaged} />
+                        </div>
+                        <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+                          <p className="font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
+                            Viser {completedStart} – {completedEnd} af {completedTotal} projekter
+                          </p>
+                          {completedPageCount > 1 ? (
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                aria-label="Forrige side fuldførte"
+                                disabled={completedPageSafe <= 1}
+                                onClick={() =>
+                                  setCompletedPage((p) => Math.max(1, p - 1))
+                                }
+                                className="flex h-8 w-8 items-center justify-center rounded-[6px] border border-[#e8e8e8] bg-white text-sm text-[#0f1923] hover:bg-[#f8f9fa] disabled:pointer-events-none disabled:opacity-40"
+                              >
+                                ‹
+                              </button>
+                              {completedPageNumbers.map((n) => (
+                                <button
+                                  key={n}
+                                  type="button"
+                                  onClick={() => setCompletedPage(n)}
+                                  className={`flex h-8 min-w-[2rem] items-center justify-center rounded-[6px] px-2 text-xs font-semibold ${
+                                    n === completedPageSafe
+                                      ? "bg-[#1a3167] text-white"
+                                      : "border border-[#e8e8e8] bg-white text-[#0f1923] hover:bg-[#f8f9fa]"
+                                  }`}
+                                >
+                                  {n}
+                                </button>
+                              ))}
+                              <button
+                                type="button"
+                                aria-label="Næste side fuldførte"
+                                disabled={completedPageSafe >= completedPageCount}
+                                onClick={() =>
+                                  setCompletedPage((p) =>
+                                    Math.min(completedPageCount, p + 1),
+                                  )
+                                }
+                                className="flex h-8 w-8 items-center justify-center rounded-[6px] border border-[#e8e8e8] bg-white text-sm text-[#0f1923] hover:bg-[#f8f9fa] disabled:pointer-events-none disabled:opacity-40"
+                              >
+                                ›
+                              </button>
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
               </div>
             ) : null}
           </>

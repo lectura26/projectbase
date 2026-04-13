@@ -11,25 +11,46 @@ export const getCachedUserBasic = cache(async (userId: string) => {
   });
 });
 
-/** Single round-trip for Projekter list: profile + owned projects with relations. */
+const projekterListInclude = {
+  user: { select: { id: true, name: true, email: true } },
+  contacts: { select: { id: true, name: true } },
+  tasks: { select: { status: true } },
+} as const;
+
+/** Profile + owned active projects + owned completed projects (separate lists). */
 export const getCachedProjekterPageBundle = cache(async (userId: string) => {
-  return prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      ownedProjects: {
-        where: { isTemplate: false },
-        orderBy: { createdAt: "desc" },
-        include: {
-          user: { select: { id: true, name: true, email: true } },
-          contacts: { select: { id: true, name: true } },
-          tasks: { select: { status: true } },
-        },
+  const [row, activeOwnedProjects, completedOwnedProjects] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, name: true, email: true },
+    }),
+    prisma.project.findMany({
+      where: {
+        userId,
+        isTemplate: false,
+        status: { not: "COMPLETED" },
       },
-    },
-  });
+      orderBy: { createdAt: "desc" },
+      include: projekterListInclude,
+    }),
+    prisma.project.findMany({
+      where: {
+        userId,
+        isTemplate: false,
+        status: "COMPLETED",
+      },
+      orderBy: { createdAt: "desc" },
+      include: projekterListInclude,
+    }),
+  ]);
+
+  if (!row) return null;
+
+  return {
+    ...row,
+    activeOwnedProjects,
+    completedOwnedProjects,
+  };
 });
 
 /** Oversigt dashboard: shared user row + parallel domain queries (cached per request). */

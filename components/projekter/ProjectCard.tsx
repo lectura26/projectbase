@@ -148,6 +148,122 @@ function ProjectListRow({ project }: { project: ProjectListItem }) {
   );
 }
 
+function CompletedProjectListRow({ project }: { project: ProjectListItem }) {
+  const router = useRouter();
+  const progress = taskProgress(project.tasks);
+  const pct = progress ?? 0;
+  const deadline = project.deadline ? new Date(project.deadline) : null;
+
+  const go = () => router.push(`/projekter/${project.id}`);
+
+  return (
+    <tr
+      className="cursor-pointer border-b border-[#e8e8e8] bg-white opacity-80 transition-colors last:border-b-0 hover:bg-[#f8f9fa]"
+      onClick={go}
+      role="link"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          go();
+        }
+      }}
+    >
+      <td className="px-4 py-[14px] align-middle">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <span className="min-w-0 truncate font-body text-[14px] font-medium text-[#9ca3af]">
+            {project.name}
+          </span>
+          {project.isRoutine ? (
+            <span className="shrink-0 text-[14px] font-medium text-[#9ca3af]" title="Rutine" aria-label="Rutine">
+              ↻
+            </span>
+          ) : null}
+        </div>
+      </td>
+      <td className="px-4 py-[14px] align-middle">
+        <span
+          className={`${BADGE_TABLE_CLASS} whitespace-nowrap bg-[#dcfce7] text-[#16a34a]`}
+        >
+          FULDFØRT
+        </span>
+      </td>
+      <td className="px-4 py-[14px] align-middle">
+        <span className="inline-flex items-center gap-2 font-body text-[13px] text-[#9ca3af]">
+          <span
+            className={`h-2 w-2 shrink-0 rounded-full ${priorityDotClass(project.priority)}`}
+            aria-hidden
+          />
+          {priorityLabelDa(project.priority)}
+        </span>
+      </td>
+      <td className="px-4 py-[14px] align-middle">
+        <span className="whitespace-nowrap font-body text-[12px] text-[#9ca3af]">
+          {deadline ? formatFristDate(deadline) : "—"}
+        </span>
+      </td>
+      <td className="px-4 py-[14px] align-middle">
+        <div className="flex w-[140px] max-w-full items-center justify-end gap-2">
+          <div className="h-[4px] w-[120px] shrink-0 overflow-hidden rounded-[2px] bg-[#e8e8e8]">
+            <div
+              className={`h-full rounded-[2px] ${progressBarFillClass(project.status, pct)}`}
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <span className="w-9 shrink-0 text-right font-body text-[12px] tabular-nums text-[#9ca3af]">
+            {progress === null ? "—" : `${pct}%`}
+          </span>
+        </div>
+      </td>
+      <td className="px-4 py-[14px] align-middle text-right">
+        <span
+          className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#1a3167] text-[11px] font-semibold text-white opacity-90"
+          title={project.owner.name}
+        >
+          {contactInitials(project.owner.name)}
+        </span>
+      </td>
+    </tr>
+  );
+}
+
+/** Completed projects table — same columns as active list, muted styling. */
+export function ProjekterCompletedListView({ projects }: { projects: ProjectListItem[] }) {
+  return (
+    <div className="w-full min-w-0 overflow-x-auto">
+      <table className="w-full min-w-[720px] table-fixed border-collapse">
+        <thead className="bg-[#f8f9fa]">
+          <tr className="border-b border-[#e8e8e8]">
+            <th className="w-[28%] px-4 py-[10px] text-left font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
+              Projekt navn
+            </th>
+            <th className="w-[14%] px-4 py-[10px] text-left font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
+              Status
+            </th>
+            <th className="w-[14%] px-4 py-[10px] text-left font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
+              Prioritet
+            </th>
+            <th className="w-[14%] px-4 py-[10px] text-left font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
+              Frist
+            </th>
+            <th className="w-[22%] px-4 py-[10px] text-left font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
+              Fremdrift
+            </th>
+            <th className="w-[8%] px-4 py-[10px] text-right font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
+              Ejer
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {projects.map((project) => (
+            <CompletedProjectListRow key={project.id} project={project} />
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export function ProjekterListView({
   projects,
   onNytProjekt,
