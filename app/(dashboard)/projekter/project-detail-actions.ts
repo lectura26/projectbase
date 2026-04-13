@@ -7,6 +7,7 @@ import { ensureAppUser } from "@/lib/auth/ensure-app-user";
 import { getSessionUser } from "@/lib/auth/session-user";
 import { createNotification } from "@/lib/notifications/service";
 import { PRIVATE_FILE_PLACEHOLDER } from "@/lib/files/private-file-url";
+import { ymdStringToDateOrNull } from "@/lib/datetime/ymd";
 import { projectAccessWhere } from "@/lib/projekter/project-access";
 import { removeStorageObject } from "@/lib/supabase/storage-remove";
 import type { TaskDetailDTO } from "@/types/project-detail";
@@ -57,6 +58,7 @@ export async function setTaskStatus(taskId: string, status: TaskStatus) {
 export async function updateTaskFields(input: {
   taskId: string;
   description?: string | null;
+  startDate?: string | null;
   deadline?: string | null;
   userId?: string | null;
   priority?: Priority;
@@ -122,8 +124,11 @@ export async function updateTaskFields(input: {
     where: { id: input.taskId },
     data: {
       ...(input.description !== undefined && { description: input.description }),
+      ...(input.startDate !== undefined && {
+        startDate: ymdStringToDateOrNull(input.startDate),
+      }),
       ...(input.deadline !== undefined && {
-        deadline: input.deadline ? new Date(input.deadline) : null,
+        deadline: ymdStringToDateOrNull(input.deadline),
       }),
       ...(input.userId !== undefined && {
         userId: input.userId || null,
@@ -137,6 +142,7 @@ export async function updateTaskFields(input: {
 export type CreateTaskInput = {
   title: string;
   description?: string | null;
+  startDate?: string | null;
   deadline?: string | null;
   userId?: string | null;
   priority?: Priority;
@@ -164,15 +170,13 @@ export async function createTask(projectId: string, input: CreateTaskInput): Pro
     if (!allowed) throw new Error("Ugyldig ansvarlig.");
   }
 
-  const deadline =
-    input.deadline && input.deadline.trim() !== "" ? new Date(input.deadline.trim()) : null;
-
   const row = await prisma.task.create({
     data: {
       projectId,
       title: t,
       description: input.description?.trim() || null,
-      deadline,
+      startDate: ymdStringToDateOrNull(input.startDate ?? ""),
+      deadline: ymdStringToDateOrNull(input.deadline ?? ""),
       userId: input.userId || null,
       priority: input.priority ?? "MEDIUM",
     },
@@ -207,6 +211,7 @@ export async function createTask(projectId: string, input: CreateTaskInput): Pro
     description: row.description,
     status: row.status,
     priority: row.priority,
+    startDate: row.startDate ? row.startDate.toISOString() : null,
     deadline: row.deadline ? row.deadline.toISOString() : null,
     assignee: row.user
       ? {

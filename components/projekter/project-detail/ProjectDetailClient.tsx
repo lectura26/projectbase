@@ -12,7 +12,11 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { updateProjectStatus, type EditProjectInitial } from "@/app/(dashboard)/projekter/actions";
+import {
+  updateProjectStatus,
+  type EditProjectInitial,
+  updateProjectSchedule,
+} from "@/app/(dashboard)/projekter/actions";
 import {
   addProjectComment,
   addTaskComment,
@@ -41,6 +45,12 @@ import {
 import { routineIntervalLabel } from "@/lib/projekter/routine";
 import type { ProjectDetailPayload, TaskDetailDTO } from "@/types/project-detail";
 import { NytProjektModal } from "@/components/projekter/NytProjektModal";
+import { DateInputYmd } from "@/components/ui/DateInputYmd";
+import {
+  commitYmdString,
+  isoToYmd,
+  ymdToIsoDate,
+} from "@/lib/datetime/ymd";
 
 type UserOption = { id: string; name: string; email: string };
 
@@ -191,6 +201,8 @@ export default function ProjectDetailClient({
   const [eventTitle, setEventTitle] = useState("");
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
+  const [scheduleStart, setScheduleStart] = useState(() => isoToYmd(initial.startDate));
+  const [scheduleDeadline, setScheduleDeadline] = useState(() => isoToYmd(initial.deadline));
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [tasks, setTasks] = useState<TaskDetailDTO[]>(initial.tasks);
@@ -202,6 +214,30 @@ export default function ProjectDetailClient({
     setTasks(initial.tasks);
     setProjectStatusOverride(null);
   }, [initial.id, initial.updatedAt]); // eslint-disable-line react-hooks/exhaustive-deps -- sync when server payload revision changes
+
+  useEffect(() => {
+    setScheduleStart(isoToYmd(initial.startDate));
+    setScheduleDeadline(isoToYmd(initial.deadline));
+  }, [initial.startDate, initial.deadline, initial.updatedAt]);
+
+  const saveScheduleField = async (field: "startDate" | "deadline", ymd: string) => {
+    const prev = field === "startDate" ? scheduleStart : scheduleDeadline;
+    try {
+      if (field === "startDate") {
+        setScheduleStart(ymd);
+      } else {
+        setScheduleDeadline(ymd);
+      }
+      await updateProjectSchedule(initial.id, {
+        [field]: ymd || null,
+      });
+      router.refresh();
+    } catch (e) {
+      if (field === "startDate") setScheduleStart(prev);
+      else setScheduleDeadline(prev);
+      toast.error(e instanceof Error ? e.message : "Kunne ikke gemme dato.");
+    }
+  };
 
   const showAktivitet = initial.activities.length > 0;
   // Always show Kalender/Filer so the first event/file can be added (Kommentarer-style UX).
@@ -242,7 +278,8 @@ export default function ProjectDetailClient({
     () => ({
       name: initial.name,
       description: initial.description ?? "",
-      deadline: initial.deadline ? initial.deadline.slice(0, 10) : "",
+      startDate: isoToYmd(initial.startDate),
+      deadline: isoToYmd(initial.deadline),
       priority: initial.priority,
       visibility: initial.visibility,
       tags: initial.tags,
@@ -301,11 +338,31 @@ export default function ProjectDetailClient({
                   {displayName(initial.owner)}
                 </span>
               </div>
-              {initial.deadline ? (
-                <span className="text-on-surface-variant">
-                  Frist {formatDaDate(initial.deadline)}
-                </span>
-              ) : null}
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-on-surface-variant">
+                {scheduleStart ? (
+                  <>
+                    <span>Startdato</span>
+                    <DateInputYmd
+                      value={scheduleStart}
+                      onChange={setScheduleStart}
+                      onBlurCommit={(c) => void saveScheduleField("startDate", c)}
+                      className="w-[min(100%,152px)] rounded border border-outline-variant/30 bg-white px-2 py-1 font-body text-sm text-on-surface"
+                    />
+                    {scheduleDeadline ? (
+                      <span className="text-on-surface-variant" aria-hidden>
+                        →
+                      </span>
+                    ) : null}
+                  </>
+                ) : null}
+                <span>Frist</span>
+                <DateInputYmd
+                  value={scheduleDeadline}
+                  onChange={setScheduleDeadline}
+                  onBlurCommit={(c) => void saveScheduleField("deadline", c)}
+                  className="w-[min(100%,152px)] rounded border border-outline-variant/30 bg-white px-2 py-1 font-body text-sm text-on-surface"
+                />
+              </div>
               <PriorityBadge priority={initial.priority} />
               <span className="text-on-surface-variant">
                 Fremskridt {progress}%
@@ -466,6 +523,7 @@ function OpgaverTab({
   const [addTaskOpen, setAddTaskOpen] = useState(false);
   const [draftTitle, setDraftTitle] = useState("");
   const [draftDesc, setDraftDesc] = useState("");
+  const [draftStartDate, setDraftStartDate] = useState("");
   const [draftDeadline, setDraftDeadline] = useState("");
   const [draftAssignee, setDraftAssignee] = useState("");
   const [draftPriority, setDraftPriority] = useState<Priority>("MEDIUM");
@@ -475,6 +533,7 @@ function OpgaverTab({
   const resetAddTaskForm = useCallback(() => {
     setDraftTitle("");
     setDraftDesc("");
+    setDraftStartDate("");
     setDraftDeadline("");
     setDraftAssignee("");
     setDraftPriority("MEDIUM");
@@ -533,7 +592,8 @@ function OpgaverTab({
       const created = await createTask(projectId, {
         title: t,
         description: draftDesc.trim() || null,
-        deadline: draftDeadline.trim() || null,
+        startDate: commitYmdString(draftStartDate) || null,
+        deadline: commitYmdString(draftDeadline) || null,
         userId: draftAssignee.trim() || null,
         priority: draftPriority,
       });
@@ -644,12 +704,21 @@ function OpgaverTab({
               </div>
               <div>
                 <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+                  Startdato
+                </label>
+                <DateInputYmd
+                  value={draftStartDate}
+                  onChange={setDraftStartDate}
+                  className="mt-1 w-full rounded-lg border border-outline-variant/30 px-3 py-2 font-body text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
                   Frist
                 </label>
-                <input
-                  type="date"
+                <DateInputYmd
                   value={draftDeadline}
-                  onChange={(e) => setDraftDeadline(e.target.value)}
+                  onChange={setDraftDeadline}
                   className="mt-1 w-full rounded-lg border border-outline-variant/30 px-3 py-2 font-body text-sm"
                 />
               </div>
@@ -724,10 +793,17 @@ function TaskExpanded({
 }) {
   const [desc, setDesc] = useState(task.description ?? "");
   const [comment, setComment] = useState("");
+  const [startYmd, setStartYmd] = useState(() => isoToYmd(task.startDate));
+  const [deadlineYmd, setDeadlineYmd] = useState(() => isoToYmd(task.deadline));
 
   useEffect(() => {
     setDesc(task.description ?? "");
   }, [task.description, task.id]);
+
+  useEffect(() => {
+    setStartYmd(isoToYmd(task.startDate));
+    setDeadlineYmd(isoToYmd(task.deadline));
+  }, [task.id, task.startDate, task.deadline]);
 
   const saveDesc = async () => {
     if (desc === (task.description ?? "")) return;
@@ -746,14 +822,30 @@ function TaskExpanded({
     }
   };
 
-  const saveDeadline = async (v: string) => {
-    const prev = task.deadline;
-    const nextDeadline = v || null;
-    patchTask(task.id, { deadline: nextDeadline });
+  const saveStartDate = async (ymd: string) => {
+    const prev = task.startDate;
+    const nextIso = ymd ? ymdToIsoDate(ymd) : null;
+    patchTask(task.id, { startDate: nextIso });
     try {
       await updateTaskFields({
         taskId: task.id,
-        deadline: nextDeadline,
+        startDate: ymd || null,
+      });
+      onRefresh();
+    } catch (e) {
+      patchTask(task.id, { startDate: prev });
+      toast.error(e instanceof Error ? e.message : "Fejl");
+    }
+  };
+
+  const saveDeadline = async (ymd: string) => {
+    const prev = task.deadline;
+    const nextIso = ymd ? ymdToIsoDate(ymd) : null;
+    patchTask(task.id, { deadline: nextIso });
+    try {
+      await updateTaskFields({
+        taskId: task.id,
+        deadline: ymd || null,
       });
       onRefresh();
     } catch (e) {
@@ -822,13 +914,23 @@ function TaskExpanded({
         </div>
         <div>
           <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+            Startdato
+          </label>
+          <DateInputYmd
+            value={startYmd}
+            onChange={setStartYmd}
+            onBlurCommit={(c) => void saveStartDate(c)}
+            className="mt-1 w-full rounded-lg border border-outline-variant/30 px-3 py-2 font-body text-sm"
+          />
+        </div>
+        <div>
+          <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
             Frist
           </label>
-          <input
-            key={task.deadline ?? "no-deadline"}
-            type="date"
-            defaultValue={task.deadline ? task.deadline.slice(0, 10) : ""}
-            onChange={(e) => void saveDeadline(e.target.value)}
+          <DateInputYmd
+            value={deadlineYmd}
+            onChange={setDeadlineYmd}
+            onBlurCommit={(c) => void saveDeadline(c)}
             className="mt-1 w-full rounded-lg border border-outline-variant/30 px-3 py-2 font-body text-sm"
           />
         </div>
@@ -1134,8 +1236,9 @@ function KalenderTab({
       setTitleError("Titel er påkrævet.");
       ok = false;
     }
-    if (!eventDate) {
-      setDateError("Dato er påkrævet.");
+    const ymd = commitYmdString(eventDate);
+    if (!ymd) {
+      setDateError("Dato er påkrævet (YYYY-MM-DD).");
       ok = false;
     }
     if (!ok) return;
@@ -1143,7 +1246,7 @@ function KalenderTab({
       await createCalendarEvent({
         projectId,
         title,
-        date: eventDate,
+        date: ymd,
         time: eventTime || null,
       });
       setEventTitle("");
@@ -1190,11 +1293,10 @@ function KalenderTab({
             ) : null}
           </div>
           <div>
-            <input
-              type="date"
+            <DateInputYmd
               value={eventDate}
-              onChange={(e) => {
-                setEventDate(e.target.value);
+              onChange={(v) => {
+                setEventDate(v);
                 setDateError("");
               }}
               aria-invalid={Boolean(dateError)}

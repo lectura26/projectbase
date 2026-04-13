@@ -12,6 +12,7 @@ import { ensureAppUser } from "@/lib/auth/ensure-app-user";
 import { getSessionUser } from "@/lib/auth/session-user";
 import { createNotification } from "@/lib/notifications/service";
 import { projectAccessWhere } from "@/lib/projekter/project-access";
+import { ymdStringToDateOrNull } from "@/lib/datetime/ymd";
 import { deadlineFromRoutineInterval } from "@/lib/projekter/routine";
 
 export async function updateProjectStatus(
@@ -76,6 +77,7 @@ export async function updateProjectStatus(
             status: "TODO",
             priority: t.priority,
             userId: t.userId,
+            startDate: null,
             deadline: null,
           })),
         },
@@ -105,6 +107,7 @@ export async function updateProjectStatus(
 export type CreateProjectInput = {
   name: string;
   description?: string;
+  startDate?: string | null;
   deadline?: string | null;
   priority: Priority;
   visibility: ProjectVisibility;
@@ -121,10 +124,11 @@ export type UpdateProjectInput = CreateProjectInput & {
   projectId: string;
 };
 
-/** Pre-fill for edit modal (dates as `YYYY-MM-DD` for `<input type="date">`). */
+/** Pre-fill for edit modal (dates as `YYYY-MM-DD`). */
 export type EditProjectInitial = {
   name: string;
   description: string;
+  startDate: string;
   deadline: string;
   priority: Priority;
   visibility: ProjectVisibility;
@@ -159,7 +163,8 @@ export async function updateProject(input: UpdateProjectInput) {
       data: {
         name,
         description,
-        deadline: input.deadline ? new Date(input.deadline) : null,
+        startDate: ymdStringToDateOrNull(input.startDate ?? ""),
+        deadline: ymdStringToDateOrNull(input.deadline ?? ""),
         priority: input.priority,
         visibility: input.visibility,
         tags: input.tags.filter(Boolean),
@@ -183,6 +188,34 @@ export async function updateProject(input: UpdateProjectInput) {
   revalidatePath(`/projekter/${input.projectId}`);
 }
 
+export async function updateProjectSchedule(
+  projectId: string,
+  data: { startDate?: string | null; deadline?: string | null },
+) {
+  const user = await getSessionUser();
+  if (!user?.email) throw new Error("Ikke logget ind.");
+
+  const project = await prisma.project.findFirst({
+    where: { id: projectId, userId: user.id },
+  });
+  if (!project) throw new Error("Projekt ikke fundet eller ingen adgang.");
+
+  await prisma.project.update({
+    where: { id: projectId },
+    data: {
+      ...(data.startDate !== undefined && {
+        startDate: ymdStringToDateOrNull(data.startDate),
+      }),
+      ...(data.deadline !== undefined && {
+        deadline: ymdStringToDateOrNull(data.deadline),
+      }),
+    },
+  });
+
+  revalidatePath("/projekter");
+  revalidatePath(`/projekter/${projectId}`);
+}
+
 export async function createProject(input: CreateProjectInput) {
   const user = await getSessionUser();
   if (!user?.email) throw new Error("Ikke logget ind.");
@@ -201,7 +234,8 @@ export async function createProject(input: CreateProjectInput) {
       name,
       userId: user.id,
       description,
-      deadline: input.deadline ? new Date(input.deadline) : null,
+      startDate: ymdStringToDateOrNull(input.startDate ?? ""),
+      deadline: ymdStringToDateOrNull(input.deadline ?? ""),
       priority: input.priority,
       visibility: input.visibility,
       tags: input.tags.filter(Boolean),
@@ -223,6 +257,7 @@ export async function createProject(input: CreateProjectInput) {
         name: `${name} (skabelon)`,
         userId: user.id,
         description,
+        startDate: null,
         deadline: null,
         priority: input.priority,
         visibility: input.visibility,

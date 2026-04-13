@@ -27,6 +27,7 @@ export type TaskDetailDTO = {
   description: string | null;
   status: TaskStatus;
   priority: Priority;
+  startDate: string | null;
   deadline: string | null;
   assignee: UserMini | null;
   comments: CommentDTO[];
@@ -67,6 +68,7 @@ export type ProjectDetailPayload = {
   status: ProjectStatus;
   priority: Priority;
   visibility: ProjectVisibility;
+  startDate: string | null;
   deadline: string | null;
   createdAt: string;
   updatedAt: string;

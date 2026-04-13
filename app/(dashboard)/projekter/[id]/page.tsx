@@ -87,6 +87,7 @@ export default async function ProjectDetailPage({ params }: Props) {
     status: row.status,
     priority: row.priority,
     visibility: row.visibility,
+    startDate: row.startDate ? row.startDate.toISOString() : null,
     deadline: row.deadline ? row.deadline.toISOString() : null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
@@ -104,6 +105,7 @@ export default async function ProjectDetailPage({ params }: Props) {
       description: t.description,
       status: t.status,
       priority: t.priority,
+      startDate: t.startDate ? t.startDate.toISOString() : null,
       deadline: t.deadline ? t.deadline.toISOString() : null,
       assignee: t.user,
       comments: t.comments.map((c) => ({

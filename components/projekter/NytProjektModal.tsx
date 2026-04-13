@@ -10,6 +10,8 @@ import {
   updateProject,
   type EditProjectInitial,
 } from "@/app/(dashboard)/projekter/actions";
+import { commitYmdString } from "@/lib/datetime/ymd";
+import { DateInputYmd } from "@/components/ui/DateInputYmd";
 
 type UserOption = { id: string; name: string; email: string };
 
@@ -46,6 +48,7 @@ export function NytProjektModal({
   const [error, setError] = useState<string | null>(null);
 
   const [name, setName] = useState("");
+  const [startDate, setStartDate] = useState("");
   const [deadline, setDeadline] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<Priority>("MEDIUM");
@@ -61,6 +64,7 @@ export function NytProjektModal({
 
   const resetForm = useCallback(() => {
     setName("");
+    setStartDate("");
     setDeadline("");
     setDescription("");
     setPriority("MEDIUM");
@@ -88,6 +92,7 @@ export function NytProjektModal({
     if (mode === "edit" && initialEdit) {
       setName(initialEdit.name);
       setNameError("");
+      setStartDate(initialEdit.startDate);
       setDeadline(initialEdit.deadline);
       setDescription(initialEdit.description);
       setPriority(initialEdit.priority);
@@ -154,7 +159,8 @@ export function NytProjektModal({
           projectId,
           name: trimmedName,
           description: description || undefined,
-          deadline: deadline || null,
+          startDate: commitYmdString(startDate) || null,
+          deadline: commitYmdString(deadline) || null,
           priority,
           visibility,
           tags,
@@ -167,7 +173,8 @@ export function NytProjektModal({
         await createProject({
           name: trimmedName,
           description: description || undefined,
-          deadline: deadline || null,
+          startDate: commitYmdString(startDate) || null,
+          deadline: commitYmdString(deadline) || null,
           priority,
           visibility,
           tags,
@@ -305,15 +312,33 @@ export function NytProjektModal({
                 </div>
               </div>
               <div>
+                <label htmlFor="np-start" className={labelClass}>
+                  Startdato{" "}
+                  <span className="font-normal normal-case tracking-normal text-on-surface-variant/70">
+                    (valgfri)
+                  </span>
+                </label>
+                <div className="relative">
+                  <DateInputYmd
+                    id="np-start"
+                    value={startDate}
+                    onChange={setStartDate}
+                    className={`${inputUnderlineClass} bg-surface-container-low`}
+                  />
+                  <span className="pointer-events-none absolute right-1 top-2.5 text-primary/40 material-symbols-outlined">
+                    calendar_today
+                  </span>
+                </div>
+              </div>
+              <div>
                 <label htmlFor="np-deadline" className={labelClass}>
                   Frist
                 </label>
                 <div className="relative">
-                  <input
+                  <DateInputYmd
                     id="np-deadline"
-                    type="date"
                     value={deadline}
-                    onChange={(e) => setDeadline(e.target.value)}
+                    onChange={setDeadline}
                     className={`${inputUnderlineClass} bg-surface-container-low`}
                   />
                   <span className="pointer-events-none absolute right-1 top-2.5 text-primary/40 material-symbols-outlined">
