@@ -139,17 +139,30 @@ export function TaskSidePanel({
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [viewTick, setViewTick] = useState(0);
   const [noteError, setNoteError] = useState("");
+  const [showChangeLog, setShowChangeLog] = useState(false);
+
+  const latestNoteContent = useMemo(() => {
+    const n = task?.notes ?? [];
+    if (!n.length) return "";
+    const sorted = [...n].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+    return sorted[sorted.length - 1].content;
+  }, [task?.notes]);
 
   useEffect(() => {
     if (!task) return;
     setTitleDraft(task.title);
     setStartYmd(isoToYmd(task.startDate));
     setDeadlineYmd(isoToYmd(task.deadline));
-    setNoteDraft("");
-    setNoteError("");
     setCommentDraft("");
     setCommentsOpen(false);
-  }, [task?.id, task?.title, task?.startDate, task?.deadline, task]);
+    setShowChangeLog(false);
+  }, [task?.id, task?.title, task?.startDate, task?.deadline]);
+
+  useEffect(() => {
+    if (!task) return;
+    setNoteDraft(latestNoteContent);
+    setNoteError("");
+  }, [task?.id, latestNoteContent]);
 
   useEffect(() => {
     if (open && task && typeof window !== "undefined") {
@@ -266,10 +279,13 @@ export function TaskSidePanel({
     }
   };
 
+  const descriptionDirty =
+    noteDraft.trim() !== latestNoteContent.trim();
+
   const saveNote = async () => {
     if (!task) return;
     const t = noteDraft.trim();
-    if (!t) return;
+    if (!t || !descriptionDirty) return;
     setNoteError("");
     const prevNotes = task.notes;
     const optimisticId = `optimistic-${Date.now()}`;
@@ -280,12 +296,12 @@ export function TaskSidePanel({
       author: currentUserMini,
     };
     patchTask(task.id, { notes: [...prevNotes, optimistic] });
-    setNoteDraft("");
     try {
       const created = await createTaskNote(task.id, t);
       patchTask(task.id, {
         notes: [...prevNotes, created].sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
       });
+      setNoteDraft(created.content);
       onRefresh();
     } catch (e) {
       patchTask(task.id, { notes: prevNotes });
@@ -311,6 +327,14 @@ export function TaskSidePanel({
   const panelTitleId = useId();
   const done = task?.status === "DONE";
   const notes = task?.notes ?? [];
+  const notesNewestFirst = useMemo(
+    () => [...notes].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    [notes],
+  );
+
+  const fieldLabelClass =
+    "w-[80px] shrink-0 text-[11px] font-medium text-[#9ca3af]";
+  const fieldValueClass = "min-w-0 flex-1 text-[13px] text-[#0f1923]";
 
   const el = (
     <AnimatePresence>
@@ -332,7 +356,7 @@ export function TaskSidePanel({
             role="dialog"
             aria-modal="true"
             aria-labelledby={panelTitleId}
-            className="fixed bottom-0 right-0 top-0 z-50 flex w-[500px] min-[1280px]:w-[560px] flex-col overflow-hidden border-l border-[#e8e8e8] bg-white shadow-[0_0_24px_rgba(0,0,0,0.06)]"
+            className="fixed bottom-0 right-0 top-0 z-50 flex w-[540px] min-[1280px]:w-[620px] flex-col overflow-hidden border-l border-[#e8e8e8] bg-white shadow-[0_0_24px_rgba(0,0,0,0.06)]"
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
@@ -382,12 +406,10 @@ export function TaskSidePanel({
                     />
                   </div>
 
-                  <div className="px-5 py-[10px]">
-                    <div className="flex min-h-[30px] items-center border-b border-[#f3f4f6] py-0">
-                      <span className="w-[120px] shrink-0 text-[12px] font-medium text-[#9ca3af]">
-                        Status
-                      </span>
-                      <div className="flex min-w-0 flex-1 justify-end">
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-1 px-[20px] py-3">
+                    <div className="flex h-10 min-h-[40px] items-center">
+                      <span className={fieldLabelClass}>Status</span>
+                      <div className={`flex min-w-0 flex-1 justify-end ${fieldValueClass}`}>
                         <select
                           value={task.status}
                           onChange={(e) =>
@@ -406,11 +428,9 @@ export function TaskSidePanel({
                       </div>
                     </div>
 
-                    <div className="flex min-h-[30px] items-center border-b border-[#f3f4f6] py-0">
-                      <span className="w-[120px] shrink-0 text-[12px] font-medium text-[#9ca3af]">
-                        Prioritet
-                      </span>
-                      <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+                    <div className="flex h-10 min-h-[40px] items-center">
+                      <span className={fieldLabelClass}>Prioritet</span>
+                      <div className={`flex min-w-0 flex-1 items-center justify-end gap-2 ${fieldValueClass}`}>
                         <span
                           className={`inline-block h-2 w-2 shrink-0 rounded-full ${priorityDotClass(task.priority)}`}
                           aria-hidden
@@ -431,11 +451,9 @@ export function TaskSidePanel({
                       </div>
                     </div>
 
-                    <div className="flex min-h-[30px] items-center border-b border-[#f3f4f6] py-0.5">
-                      <span className="w-[120px] shrink-0 text-[12px] font-medium text-[#9ca3af]">
-                        Startdato
-                      </span>
-                      <div className="min-w-0 flex-1 [&_input]:py-1 [&_input]:text-right [&_input]:text-[13px]">
+                    <div className="flex h-10 min-h-[40px] items-center">
+                      <span className={fieldLabelClass}>Startdato</span>
+                      <div className={`min-w-0 flex-1 [&_input]:py-1 [&_input]:text-right [&_input]:text-[13px] ${fieldValueClass}`}>
                         <DatePicker
                           value={startYmd}
                           onChange={setStartYmd}
@@ -452,11 +470,9 @@ export function TaskSidePanel({
                       </div>
                     </div>
 
-                    <div className="flex min-h-[30px] items-center border-b border-[#f3f4f6] py-0.5">
-                      <span className="w-[120px] shrink-0 text-[12px] font-medium text-[#9ca3af]">
-                        Deadline
-                      </span>
-                      <div className="min-w-0 flex-1 [&_input]:py-1 [&_input]:text-right [&_input]:text-[13px]">
+                    <div className="flex h-10 min-h-[40px] items-center">
+                      <span className={fieldLabelClass}>Deadline</span>
+                      <div className={`min-w-0 flex-1 [&_input]:py-1 [&_input]:text-right [&_input]:text-[13px] ${fieldValueClass}`}>
                         <DatePicker
                           value={deadlineYmd}
                           onChange={setDeadlineYmd}
@@ -477,11 +493,9 @@ export function TaskSidePanel({
                       </div>
                     </div>
 
-                    <div className="flex min-h-[30px] items-center border-b border-[#f3f4f6] py-0">
-                      <span className="w-[120px] shrink-0 text-[12px] font-medium text-[#9ca3af]">
-                        Projekt
-                      </span>
-                      <div className="min-w-0 flex-1 text-right">
+                    <div className="flex h-10 min-h-[40px] items-center">
+                      <span className={fieldLabelClass}>Projekt</span>
+                      <div className={`min-w-0 flex-1 text-right ${fieldValueClass}`}>
                         <Link
                           href={`/projekter/${projectId}`}
                           className="text-[13px] font-medium text-[#1a3167] hover:underline"
@@ -491,27 +505,48 @@ export function TaskSidePanel({
                         </Link>
                       </div>
                     </div>
+
+                    <div className="flex h-10 min-h-[40px] items-center" aria-hidden />
                   </div>
 
-                  <p className="px-5 pb-2 pt-3 text-[11px] font-medium uppercase tracking-wide text-[#9ca3af]">
-                    BESKRIVELSE
-                  </p>
-                  <div className="px-5 pb-2">
-                    {notes.length === 0 ? (
-                      <p className="text-[13px] text-[#9ca3af]">Ingen beskrivelse endnu.</p>
-                    ) : (
-                      <div className="relative pl-0">
-                        {notes.length > 1 ? (
-                          <div
-                            className="pointer-events-none absolute bottom-2 left-[7px] top-2 w-px bg-[#1a3167]"
-                            aria-hidden
-                          />
-                        ) : null}
-                        <ul className="space-y-4">
-                          {notes.map((n) => (
-                            <li key={n.id} className="relative flex gap-3">
-                              <div className="relative z-10 mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#1a3167]" />
-                              <div className="min-w-0 flex-1">
+                  <div className="mx-5 mb-3 border-t border-[#f3f4f6]" />
+
+                  <div className="pb-2">
+                    <div className="flex items-center justify-between px-[20px] pb-[6px] pt-[10px]">
+                      <span className="text-[11px] font-medium uppercase tracking-wide text-[#9ca3af]">
+                        BESKRIVELSE
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowChangeLog((v) => !v)}
+                        className="inline-flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-[11px] text-[#6b7280] hover:text-[#0f1923]"
+                      >
+                        {showChangeLog ? (
+                          <>
+                            Skjul ændringslog
+                            <ChevronUp className="h-3 w-3 shrink-0" aria-hidden />
+                          </>
+                        ) : (
+                          <>
+                            Se ændringslog
+                            <ChevronDown className="h-3 w-3 shrink-0" aria-hidden />
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {showChangeLog ? (
+                      <div className="mb-4 px-[20px]">
+                        {notesNewestFirst.length === 0 ? (
+                          <p className="text-[13px] text-[#9ca3af]">Ingen beskrivelse endnu.</p>
+                        ) : (
+                          <ul className="relative list-none space-y-3 border-l border-[#e8e8e8] pl-0">
+                            {notesNewestFirst.map((n) => (
+                              <li key={n.id} className="relative pb-0 pl-5 last:pb-0">
+                                <span
+                                  className="absolute -left-[5px] top-1.5 h-2 w-2 rounded-full bg-[#1a3167]"
+                                  aria-hidden
+                                />
                                 <div className="flex items-start justify-between gap-2">
                                   <span className="text-[12px] font-medium text-[#0f1923]">
                                     {displayName(n.author)}
@@ -520,40 +555,46 @@ export function TaskSidePanel({
                                     {formatNoteDetailTimestamp(n.createdAt)}
                                   </span>
                                 </div>
-                                <p className="mt-1 whitespace-pre-wrap text-[13px] leading-[1.6] text-[#0f1923]">
+                                <p className="ml-4 mt-1 whitespace-pre-wrap text-[13px] leading-[1.6] text-[#0f1923]">
                                   {n.content}
                                 </p>
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                       </div>
-                    )}
-                    <textarea
-                      value={noteDraft}
-                      onChange={(e) => {
-                        setNoteDraft(e.target.value);
-                        if (noteError) setNoteError("");
-                      }}
-                      placeholder="Tilføj en beskrivelse..."
-                      rows={3}
-                      aria-invalid={noteError ? true : undefined}
-                      aria-describedby={noteError ? "task-note-error" : undefined}
-                      className="mt-3 min-h-[72px] w-full resize-none rounded-md border border-[#e8e8e8] px-3 py-2 font-body text-[13px] text-[#0f1923] outline-none placeholder:text-[#9ca3af] focus:border-[#1a3167]"
-                    />
-                    {noteError ? (
-                      <p id="task-note-error" className="mt-2 text-[12px] text-[#dc2626]" role="alert">
-                        {noteError}
-                      </p>
                     ) : null}
-                    <div className="mt-2 flex justify-end">
-                      <button
-                        type="button"
-                        onClick={() => void saveNote()}
-                        className="rounded-[5px] bg-[#1a3167] px-[14px] py-[5px] font-body text-[12px] font-medium text-white hover:opacity-90"
-                      >
-                        Gem
-                      </button>
+
+                    <div className="px-[20px]">
+                      <textarea
+                        value={noteDraft}
+                        onChange={(e) => {
+                          setNoteDraft(e.target.value);
+                          if (noteError) setNoteError("");
+                        }}
+                        placeholder="Tilføj en beskrivelse..."
+                        rows={5}
+                        aria-invalid={noteError ? true : undefined}
+                        aria-describedby={noteError ? "task-note-error" : undefined}
+                        className="min-h-[120px] max-h-[300px] w-full resize-y rounded-[6px] border border-[#e8e8e8] px-[14px] py-[10px] font-body text-[13px] leading-[1.7] text-[#0f1923] outline-none placeholder:text-[#9ca3af] focus:border-[#1a3167]"
+                      />
+                      {noteError ? (
+                        <p id="task-note-error" className="mt-2 text-[12px] text-[#dc2626]" role="alert">
+                          {noteError}
+                        </p>
+                      ) : null}
+                      {descriptionDirty ? (
+                        <div className="mt-2 flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() => void saveNote()}
+                            className="rounded-[5px] bg-[#1a3167] px-4 py-1.5 font-body text-[12px] font-medium text-white hover:opacity-90"
+                            style={{ margin: "8px 20px 0 0" }}
+                          >
+                            Gem
+                          </button>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 </div>
