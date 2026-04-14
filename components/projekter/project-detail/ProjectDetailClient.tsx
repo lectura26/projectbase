@@ -170,6 +170,26 @@ function formatDaTime(iso: string) {
   });
 }
 
+const TASK_VIEWED_PREFIX = "task_viewed_";
+
+function taskViewedStorageKey(taskId: string) {
+  return `${TASK_VIEWED_PREFIX}${taskId}`;
+}
+
+/** `sync` bumps when a task panel marks viewed so we re-read localStorage. */
+function taskHasUnreadComments(task: TaskDetailDTO, sync: number): boolean {
+  void sync;
+  if (typeof window === "undefined") return false;
+  if (!task.comments.length) return false;
+  const raw = localStorage.getItem(taskViewedStorageKey(task.id));
+  const last = raw ? parseInt(raw, 10) : NaN;
+  const latest = Math.max(
+    ...task.comments.map((c) => new Date(c.createdAt).getTime()),
+  );
+  if (!raw || !Number.isFinite(last)) return true;
+  return latest > last;
+}
+
 type Props = {
   initial: ProjectDetailPayload;
   usersForModal: UserOption[];
@@ -559,6 +579,11 @@ function OpgaverTab({
   const [draftPriority, setDraftPriority] = useState<Priority>("MEDIUM");
   const [createError, setCreateError] = useState("");
   const [creating, setCreating] = useState(false);
+  const [taskViewSync, setTaskViewSync] = useState(0);
+
+  const markTaskViewed = useCallback(() => {
+    setTaskViewSync((n) => n + 1);
+  }, []);
 
   const resetAddTaskForm = useCallback(() => {
     setDraftTitle("");
@@ -652,6 +677,7 @@ function OpgaverTab({
       {tasks.map((task) => {
         const done = task.status === "DONE";
         const selected = expandedTaskId === task.id;
+        const showUnreadDot = taskHasUnreadComments(task, taskViewSync);
         return (
           <div
             key={task.id}
@@ -678,8 +704,15 @@ function OpgaverTab({
                   }
                 }}
               >
-                <div className="min-w-0 flex-1 truncate text-left">
+                <div className="flex min-w-0 flex-1 items-center gap-1.5 truncate text-left">
                   <TaskTitleAnimated task={task} done={done} />
+                  {showUnreadDot ? (
+                    <span
+                      className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#dc2626]"
+                      title="Ulæste kommentarer"
+                      aria-hidden
+                    />
+                  ) : null}
                 </div>
                 {task.assignee ? (
                   <span className="hidden shrink-0 rounded-full bg-primary-container/15 px-2 py-0.5 text-[11px] font-bold text-primary-container sm:inline">
@@ -706,6 +739,7 @@ function OpgaverTab({
         patchTask={patchTask}
         onRefresh={routerRefresh}
         onClose={() => setExpandedTaskId(null)}
+        onMarkTaskViewed={markTaskViewed}
       />
       <div className="rounded-lg border border-outline-variant/15 bg-surface-container-low/50">
         {!addTaskOpen ? (

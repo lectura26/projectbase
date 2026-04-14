@@ -2,20 +2,19 @@
 
 import type { Priority, TaskStatus } from "@prisma/client";
 import { AnimatePresence, motion } from "framer-motion";
-import { CheckCircle2, X } from "lucide-react";
+import { CheckCircle2, ChevronDown, ChevronUp, X } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useId, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import {
   addTaskComment,
+  createTaskNote,
   setTaskStatus,
-  updateTaskDescription,
   updateTaskFields,
   updateTaskTitle,
 } from "@/app/(dashboard)/projekter/project-detail-actions";
 import { displayName, initialsFromUser } from "@/lib/projekter/display";
-import { formatDanishDate } from "@/lib/datetime/format-danish";
 import {
   commitYmdString,
   isoToYmd,
@@ -24,11 +23,21 @@ import {
 import type { TaskDetailDTO } from "@/types/project-detail";
 import { DatePicker } from "@/components/ui/DatePicker";
 
-function formatDaTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("da-DK", {
+function formatNoteDetailTimestamp(iso: string): string {
+  const d = new Date(iso);
+  return new Intl.DateTimeFormat("da-DK", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-  });
+  })
+    .format(d)
+    .replace(/\u00a0/g, " ");
+}
+
+function taskViewedStorageKey(taskId: string) {
+  return `task_viewed_${taskId}`;
 }
 
 function taskStatusLabel(s: TaskStatus): string {
@@ -101,6 +110,7 @@ type Props = {
   patchTask: (taskId: string, patch: Partial<TaskDetailDTO>) => void;
   onRefresh: () => void;
   onClose: () => void;
+  onMarkTaskViewed: () => void;
 };
 
 export function TaskSidePanel({
@@ -112,6 +122,7 @@ export function TaskSidePanel({
   patchTask,
   onRefresh,
   onClose,
+  onMarkTaskViewed,
 }: Props) {
   const task = taskProp;
 
@@ -119,18 +130,48 @@ export function TaskSidePanel({
   useEffect(() => setMounted(true), []);
 
   const [titleDraft, setTitleDraft] = useState("");
-  const [descDraft, setDescDraft] = useState("");
   const [startYmd, setStartYmd] = useState("");
   const [deadlineYmd, setDeadlineYmd] = useState("");
+  const [noteDraft, setNoteDraft] = useState("");
   const [commentDraft, setCommentDraft] = useState("");
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [viewTick, setViewTick] = useState(0);
 
   useEffect(() => {
     if (!task) return;
     setTitleDraft(task.title);
-    setDescDraft(task.description ?? "");
     setStartYmd(isoToYmd(task.startDate));
     setDeadlineYmd(isoToYmd(task.deadline));
-  }, [task?.id, task?.title, task?.description, task?.startDate, task?.deadline, task]);
+    setNoteDraft("");
+    setCommentDraft("");
+    setCommentsOpen(false);
+  }, [task?.id, task?.title, task?.startDate, task?.deadline, task]);
+
+  useEffect(() => {
+    if (open && task && typeof window !== "undefined") {
+      const key = taskViewedStorageKey(task.id);
+      localStorage.setItem(key, String(Date.now()));
+      onMarkTaskViewed();
+      setViewTick((t) => t + 1);
+    }
+  }, [open, task?.id, task, onMarkTaskViewed]);
+
+  const lastViewedMs = useMemo(() => {
+    if (typeof window === "undefined" || !task) return null;
+    const raw = localStorage.getItem(taskViewedStorageKey(task.id));
+    if (!raw) return null;
+    const n = parseInt(raw, 10);
+    return Number.isFinite(n) ? n : null;
+  }, [task?.id, task?.comments, open, viewTick]);
+
+  const commentUnread = useMemo(() => {
+    if (!task?.comments.length) return false;
+    const latest = Math.max(
+      ...task.comments.map((c) => new Date(c.createdAt).getTime()),
+    );
+    if (lastViewedMs == null) return true;
+    return latest > lastViewedMs;
+  }, [task?.comments, lastViewedMs]);
 
   const saveTitle = useCallback(async () => {
     if (!task) return;
@@ -151,23 +192,6 @@ export function TaskSidePanel({
       toast.error(e instanceof Error ? e.message : "Fejl");
     }
   }, [task, titleDraft, patchTask, onRefresh]);
-
-  const saveDesc = useCallback(async () => {
-    if (!task) return;
-    const next = descDraft.trim() ? descDraft : "";
-    const normalized = next || null;
-    if (normalized === (task.description ?? null)) return;
-    const prev = task.description ?? null;
-    patchTask(task.id, { description: normalized });
-    try {
-      await updateTaskDescription(task.id, normalized);
-      onRefresh();
-    } catch (e) {
-      patchTask(task.id, { description: prev });
-      setDescDraft(prev ?? "");
-      toast.error(e instanceof Error ? e.message : "Fejl");
-    }
-  }, [task, descDraft, patchTask, onRefresh]);
 
   const toggleMarkerDone = async () => {
     if (!task) return;
@@ -238,6 +262,20 @@ export function TaskSidePanel({
     }
   };
 
+  const saveNote = async () => {
+    if (!task) return;
+    const t = noteDraft.trim();
+    if (!t) return;
+    try {
+      await createTaskNote(task.id, t);
+      setNoteDraft("");
+      toast.success("Note gemt");
+      onRefresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Fejl");
+    }
+  };
+
   const sendComment = async () => {
     if (!task) return;
     const t = commentDraft.trim();
@@ -254,6 +292,7 @@ export function TaskSidePanel({
 
   const panelTitleId = useId();
   const done = task?.status === "DONE";
+  const notes = task?.notes ?? [];
 
   const el = (
     <AnimatePresence>
@@ -275,7 +314,7 @@ export function TaskSidePanel({
             role="dialog"
             aria-modal="true"
             aria-labelledby={panelTitleId}
-            className="fixed bottom-0 right-0 top-0 z-50 flex w-[420px] min-[1280px]:w-[480px] flex-col overflow-hidden border-l border-[#e8e8e8] bg-white shadow-[0_0_24px_rgba(0,0,0,0.06)]"
+            className="fixed bottom-0 right-0 top-0 z-50 flex w-[500px] min-[1280px]:w-[560px] flex-col overflow-hidden border-l border-[#e8e8e8] bg-white shadow-[0_0_24px_rgba(0,0,0,0.06)]"
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
@@ -307,208 +346,287 @@ export function TaskSidePanel({
               </button>
             </header>
 
-            <div className="min-h-0 flex-1 overflow-y-auto">
-              <div className="space-y-0 pb-4">
-                <div className="px-5 pb-2 pt-5">
-                  <label className="sr-only" htmlFor={panelTitleId}>
-                    Opgavetitel
-                  </label>
-                  <input
-                    id={panelTitleId}
-                    type="text"
-                    value={titleDraft}
-                    onChange={(e) => setTitleDraft(e.target.value)}
-                    onBlur={() => void saveTitle()}
-                    placeholder="Opgavenavn..."
-                    className="w-full border-0 border-b-2 border-transparent bg-transparent pb-1 font-body text-[20px] font-semibold leading-snug text-[#0f1923] outline-none placeholder:text-[#9ca3af] focus:border-b-2 focus:border-[#1a3167]"
-                  />
-                </div>
-
-                <div className="px-5 py-2">
-                  <div className="flex h-9 items-center border-b border-[#f3f4f6]">
-                    <span className="w-[120px] shrink-0 text-[13px] font-medium text-[#9ca3af]">
-                      Status
-                    </span>
-                    <div className="flex min-w-0 flex-1 justify-end">
-                      <select
-                        value={task.status}
-                        onChange={(e) =>
-                          void saveStatus(e.target.value as TaskStatus)
-                        }
-                        className={`max-w-full cursor-pointer rounded px-2 py-0.5 text-[11px] font-semibold outline-none ring-offset-2 focus:ring-2 focus:ring-[#1a3167]/30 ${taskStatusChipClass(task.status)}`}
-                      >
-                        {(["TODO", "IN_PROGRESS", "DONE"] as const).map(
-                          (s) => (
-                            <option key={s} value={s}>
-                              {taskStatusLabel(s)}
-                            </option>
-                          ),
-                        )}
-                      </select>
-                    </div>
+            <div className="flex min-h-0 flex-1 flex-col">
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                <div className="space-y-0 pb-4">
+                  <div className="px-5 pb-2 pt-5">
+                    <label className="sr-only" htmlFor={panelTitleId}>
+                      Opgavetitel
+                    </label>
+                    <input
+                      id={panelTitleId}
+                      type="text"
+                      value={titleDraft}
+                      onChange={(e) => setTitleDraft(e.target.value)}
+                      onBlur={() => void saveTitle()}
+                      placeholder="Opgavenavn..."
+                      className="w-full border-0 border-b-2 border-transparent bg-transparent pb-1 font-body text-[20px] font-semibold leading-snug text-[#0f1923] outline-none placeholder:text-[#9ca3af] focus:border-b-2 focus:border-[#1a3167]"
+                    />
                   </div>
 
-                  <div className="flex h-9 items-center border-b border-[#f3f4f6]">
-                    <span className="w-[120px] shrink-0 text-[13px] font-medium text-[#9ca3af]">
-                      Prioritet
-                    </span>
-                    <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
-                      <span
-                        className={`inline-block h-2 w-2 shrink-0 rounded-full ${priorityDotClass(task.priority)}`}
-                        aria-hidden
-                      />
-                      <select
-                        value={task.priority}
-                        onChange={(e) =>
-                          void savePriority(e.target.value as Priority)
-                        }
-                        className="max-w-full cursor-pointer rounded border border-transparent bg-transparent py-1 text-right text-[13px] text-[#0f1923] outline-none focus:ring-2 focus:ring-[#1a3167]/20"
-                      >
-                        {(["HIGH", "MEDIUM", "LOW"] as const).map((p) => (
-                          <option key={p} value={p}>
-                            {priorityLabel(p)}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="flex min-h-9 items-center border-b border-[#f3f4f6] py-1">
-                    <span className="w-[120px] shrink-0 text-[13px] font-medium text-[#9ca3af]">
-                      Startdato
-                    </span>
-                    <div className="min-w-0 flex-1 [&_input]:text-right [&_input]:text-[13px]">
-                      <DatePicker
-                        value={startYmd}
-                        onChange={setStartYmd}
-                        onBlurCommit={(c) => void saveStartDate(c)}
-                        placeholder={
-                          commitYmdString(startYmd) ? "DD-MM-YYYY" : "Ingen startdato"
-                        }
-                        className={`border-0 bg-transparent !shadow-none !ring-0 focus:border-b-2 focus:border-[#1a3167] focus:!ring-0 ${
-                          commitYmdString(startYmd)
-                            ? "text-[#0f1923]"
-                            : "text-[#9ca3af] placeholder:text-[#9ca3af]"
-                        }`}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex min-h-9 items-center border-b border-[#f3f4f6] py-1">
-                    <span className="w-[120px] shrink-0 text-[13px] font-medium text-[#9ca3af]">
-                      Deadline
-                    </span>
-                    <div className="min-w-0 flex-1 [&_input]:text-right [&_input]:text-[13px]">
-                      <DatePicker
-                        value={deadlineYmd}
-                        onChange={setDeadlineYmd}
-                        onBlurCommit={(c) => void saveDeadline(c)}
-                        placeholder={
-                          commitYmdString(deadlineYmd)
-                            ? "DD-MM-YYYY"
-                            : "Ingen deadline"
-                        }
-                        className={`border-0 bg-transparent !shadow-none !ring-0 focus:border-b-2 focus:border-[#1a3167] focus:!ring-0 ${
-                          !commitYmdString(deadlineYmd)
-                            ? "text-[#9ca3af] placeholder:text-[#9ca3af]"
-                            : isDeadlineOverdue(task.deadline, task.status)
-                              ? "text-[#dc2626]"
-                              : "text-[#0f1923]"
-                        }`}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex h-9 items-center border-b border-[#f3f4f6]">
-                    <span className="w-[120px] shrink-0 text-[13px] font-medium text-[#9ca3af]">
-                      Projekt
-                    </span>
-                    <div className="min-w-0 flex-1 text-right">
-                      <Link
-                        href={`/projekter/${projectId}`}
-                        className="text-[13px] font-medium text-[#1a3167] hover:underline"
-                        onClick={onClose}
-                      >
-                        {projectName}
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-
-                <p className="px-5 pb-2 pt-4 text-[11px] font-medium uppercase tracking-wide text-[#9ca3af]">
-                  BESKRIVELSE
-                </p>
-                <textarea
-                  value={descDraft}
-                  onChange={(e) => setDescDraft(e.target.value)}
-                  onBlur={() => void saveDesc()}
-                  placeholder="Tilføj en beskrivelse..."
-                  rows={5}
-                  className="min-h-[100px] w-full resize-none border-0 bg-transparent px-5 py-0 font-body text-[14px] leading-[1.7] text-[#0f1923] outline-none placeholder:text-[#9ca3af]"
-                />
-
-                <div className="my-2 h-px bg-[#e8e8e8]" />
-
-                <p className="px-5 pb-2 pt-2 text-[11px] font-medium uppercase tracking-wide text-[#9ca3af]">
-                  KOMMENTARER
-                </p>
-                <div className="space-y-4 px-5 pb-4">
-                  {task.comments.length === 0 ? (
-                    <p className="text-[13px] text-[#9ca3af]">Ingen endnu.</p>
-                  ) : null}
-                  {task.comments.map((c) => {
-                    const isMe = c.author.id === currentUserId;
-                    const label = isMe ? "Du" : displayName(c.author);
-                    return (
-                      <div key={c.id} className="flex gap-2">
-                        <div
-                          className="flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded-full bg-[#1a3167] text-[11px] font-bold text-white"
-                          aria-hidden
+                  <div className="px-5 py-[10px]">
+                    <div className="flex min-h-[30px] items-center border-b border-[#f3f4f6] py-0">
+                      <span className="w-[120px] shrink-0 text-[12px] font-medium text-[#9ca3af]">
+                        Status
+                      </span>
+                      <div className="flex min-w-0 flex-1 justify-end">
+                        <select
+                          value={task.status}
+                          onChange={(e) =>
+                            void saveStatus(e.target.value as TaskStatus)
+                          }
+                          className={`max-w-full cursor-pointer rounded px-2 py-0.5 text-[11px] font-semibold outline-none ring-offset-2 focus:ring-2 focus:ring-[#1a3167]/30 ${taskStatusChipClass(task.status)}`}
                         >
-                          {initialsFromUser(c.author)}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-start justify-between gap-2">
-                            <span className="text-[13px] font-medium text-[#0f1923]">
-                              {label}
-                            </span>
-                            <span className="shrink-0 whitespace-nowrap text-[11px] text-[#9ca3af]">
-                              {formatDanishDate(c.createdAt)} ·{" "}
-                              {formatDaTime(c.createdAt)}
-                            </span>
-                          </div>
-                          <p className="mt-1 whitespace-pre-wrap text-[13px] leading-snug text-[#0f1923]">
-                            {c.content}
-                          </p>
-                        </div>
+                          {(["TODO", "IN_PROGRESS", "DONE"] as const).map(
+                            (s) => (
+                              <option key={s} value={s}>
+                                {taskStatusLabel(s)}
+                              </option>
+                            ),
+                          )}
+                        </select>
                       </div>
-                    );
-                  })}
+                    </div>
+
+                    <div className="flex min-h-[30px] items-center border-b border-[#f3f4f6] py-0">
+                      <span className="w-[120px] shrink-0 text-[12px] font-medium text-[#9ca3af]">
+                        Prioritet
+                      </span>
+                      <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+                        <span
+                          className={`inline-block h-2 w-2 shrink-0 rounded-full ${priorityDotClass(task.priority)}`}
+                          aria-hidden
+                        />
+                        <select
+                          value={task.priority}
+                          onChange={(e) =>
+                            void savePriority(e.target.value as Priority)
+                          }
+                          className="max-w-full cursor-pointer rounded border border-transparent bg-transparent py-0.5 text-right text-[13px] text-[#0f1923] outline-none focus:ring-2 focus:ring-[#1a3167]/20"
+                        >
+                          {(["HIGH", "MEDIUM", "LOW"] as const).map((p) => (
+                            <option key={p} value={p}>
+                              {priorityLabel(p)}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="flex min-h-[30px] items-center border-b border-[#f3f4f6] py-0.5">
+                      <span className="w-[120px] shrink-0 text-[12px] font-medium text-[#9ca3af]">
+                        Startdato
+                      </span>
+                      <div className="min-w-0 flex-1 [&_input]:py-1 [&_input]:text-right [&_input]:text-[13px]">
+                        <DatePicker
+                          value={startYmd}
+                          onChange={setStartYmd}
+                          onBlurCommit={(c) => void saveStartDate(c)}
+                          placeholder={
+                            commitYmdString(startYmd) ? "DD-MM-YYYY" : "Ingen startdato"
+                          }
+                          className={`border-0 bg-transparent !shadow-none !ring-0 focus:border-b-2 focus:border-[#1a3167] focus:!ring-0 ${
+                            commitYmdString(startYmd)
+                              ? "text-[#0f1923]"
+                              : "text-[#9ca3af] placeholder:text-[#9ca3af]"
+                          }`}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex min-h-[30px] items-center border-b border-[#f3f4f6] py-0.5">
+                      <span className="w-[120px] shrink-0 text-[12px] font-medium text-[#9ca3af]">
+                        Deadline
+                      </span>
+                      <div className="min-w-0 flex-1 [&_input]:py-1 [&_input]:text-right [&_input]:text-[13px]">
+                        <DatePicker
+                          value={deadlineYmd}
+                          onChange={setDeadlineYmd}
+                          onBlurCommit={(c) => void saveDeadline(c)}
+                          placeholder={
+                            commitYmdString(deadlineYmd)
+                              ? "DD-MM-YYYY"
+                              : "Ingen deadline"
+                          }
+                          className={`border-0 bg-transparent !shadow-none !ring-0 focus:border-b-2 focus:border-[#1a3167] focus:!ring-0 ${
+                            !commitYmdString(deadlineYmd)
+                              ? "text-[#9ca3af] placeholder:text-[#9ca3af]"
+                              : isDeadlineOverdue(task.deadline, task.status)
+                                ? "text-[#dc2626]"
+                                : "text-[#0f1923]"
+                          }`}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex min-h-[30px] items-center border-b border-[#f3f4f6] py-0">
+                      <span className="w-[120px] shrink-0 text-[12px] font-medium text-[#9ca3af]">
+                        Projekt
+                      </span>
+                      <div className="min-w-0 flex-1 text-right">
+                        <Link
+                          href={`/projekter/${projectId}`}
+                          className="text-[13px] font-medium text-[#1a3167] hover:underline"
+                          onClick={onClose}
+                        >
+                          {projectName}
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="px-5 pb-2 pt-3 text-[11px] font-medium uppercase tracking-wide text-[#9ca3af]">
+                    NOTER
+                  </p>
+                  <div className="px-5 pb-2">
+                    {notes.length === 0 ? (
+                      <p className="text-[13px] text-[#9ca3af]">Ingen noter endnu.</p>
+                    ) : (
+                      <div className="relative pl-0">
+                        {notes.length > 1 ? (
+                          <div
+                            className="pointer-events-none absolute bottom-2 left-[7px] top-2 w-px bg-[#1a3167]"
+                            aria-hidden
+                          />
+                        ) : null}
+                        <ul className="space-y-4">
+                          {notes.map((n) => (
+                            <li key={n.id} className="relative flex gap-3">
+                              <div className="relative z-10 mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#1a3167]" />
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-start justify-between gap-2">
+                                  <span className="text-[12px] font-medium text-[#0f1923]">
+                                    {displayName(n.author)}
+                                  </span>
+                                  <span className="shrink-0 whitespace-nowrap text-right text-[11px] text-[#9ca3af]">
+                                    {formatNoteDetailTimestamp(n.createdAt)}
+                                  </span>
+                                </div>
+                                <p className="mt-1 whitespace-pre-wrap text-[13px] leading-[1.6] text-[#0f1923]">
+                                  {n.content}
+                                </p>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    <textarea
+                      value={noteDraft}
+                      onChange={(e) => setNoteDraft(e.target.value)}
+                      placeholder="Tilføj en note..."
+                      rows={3}
+                      className="mt-3 min-h-[72px] w-full resize-none rounded-md border border-[#e8e8e8] px-3 py-2 font-body text-[13px] text-[#0f1923] outline-none placeholder:text-[#9ca3af] focus:border-[#1a3167]"
+                    />
+                    <div className="mt-2 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => void saveNote()}
+                        className="rounded-[5px] bg-[#1a3167] px-[14px] py-[5px] font-body text-[12px] font-medium text-white hover:opacity-90"
+                      >
+                        Gem note
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="shrink-0 border-t border-[#e8e8e8] px-4 py-3">
-              <div className="flex items-end gap-3">
-                <textarea
-                  value={commentDraft}
-                  onChange={(e) => setCommentDraft(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-                      e.preventDefault();
-                      void sendComment();
-                    }
-                  }}
-                  rows={2}
-                  placeholder="Skriv…"
-                  className="min-h-0 min-w-0 flex-1 resize-none rounded-md border border-[#e8e8e8] px-3 py-2 font-body text-[13px] text-[#0f1923] outline-none focus:border-[#1a3167]"
-                />
+              <div className="shrink-0 overflow-visible">
+                <motion.div
+                  initial={false}
+                  animate={{ height: commentsOpen ? 280 : 0 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className="overflow-hidden border-t border-[#e8e8e8] bg-white"
+                >
+                  <div className="flex h-[280px] flex-col">
+                    <div className="min-h-0 flex-1 overflow-y-auto px-5 py-3">
+                      {task.comments.length === 0 ? (
+                        <p className="text-[13px] text-[#9ca3af]">Ingen kommentarer endnu.</p>
+                      ) : null}
+                      {task.comments.map((c) => {
+                        const isMe = c.author.id === currentUserId;
+                        const label = isMe ? "Du" : displayName(c.author);
+                        return (
+                          <div key={c.id} className="mb-4 last:mb-0">
+                            <div className="flex gap-2">
+                              <div
+                                className="flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded-full bg-[#1a3167] text-[11px] font-bold text-white"
+                                aria-hidden
+                              >
+                                {initialsFromUser(c.author)}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-start justify-between gap-2">
+                                  <span className="text-[13px] font-medium text-[#0f1923]">
+                                    {label}
+                                  </span>
+                                  <span className="shrink-0 whitespace-nowrap text-[11px] text-[#9ca3af]">
+                                    {formatNoteDetailTimestamp(c.createdAt)}
+                                  </span>
+                                </div>
+                                <p className="ml-[38px] mt-1 whitespace-pre-wrap text-[13px] leading-snug text-[#0f1923]">
+                                  {c.content}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="shrink-0 border-t border-[#e8e8e8] px-4 py-3">
+                      <div className="flex items-end gap-2">
+                        <textarea
+                          value={commentDraft}
+                          onChange={(e) => setCommentDraft(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                              e.preventDefault();
+                              void sendComment();
+                            }
+                          }}
+                          rows={2}
+                          placeholder="Skriv…"
+                          className="min-h-0 min-w-0 flex-1 resize-none rounded-md border border-[#e8e8e8] px-3 py-2 font-body text-[13px] text-[#0f1923] outline-none focus:border-[#1a3167]"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => void sendComment()}
+                          className="shrink-0 rounded-[5px] bg-[#1a3167] px-[14px] py-1.5 font-body text-[12px] font-medium text-white hover:opacity-90"
+                        >
+                          Send
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+
                 <button
                   type="button"
-                  onClick={() => void sendComment()}
-                  className="shrink-0 rounded-md bg-[#1a3167] px-4 py-1.5 font-body text-[13px] font-medium text-white hover:opacity-90"
+                  className="flex h-11 w-full shrink-0 items-center justify-between border-t border-[#e8e8e8] bg-white px-5"
+                  onClick={() => setCommentsOpen((o) => !o)}
                 >
-                  Send
+                  <span className="flex items-center gap-2">
+                    {commentsOpen ? (
+                      <ChevronUp className="h-4 w-4 text-[#6b7280]" aria-hidden />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 text-[#6b7280]" aria-hidden />
+                    )}
+                    <span className="text-[13px] font-medium text-[#0f1923]">
+                      Kommentarer
+                    </span>
+                  </span>
+                  <span className="relative flex items-center">
+                    {task.comments.length > 0 ? (
+                      <>
+                        <span className="flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#1a3167] px-[5px] text-[11px] font-semibold text-white">
+                          {task.comments.length}
+                        </span>
+                        {commentUnread ? (
+                          <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-[#dc2626]" />
+                        ) : null}
+                      </>
+                    ) : null}
+                  </span>
                 </button>
               </div>
             </div>

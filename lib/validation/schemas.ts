@@ -137,6 +137,11 @@ export const commentContentSchema = z
   .transform((s) => s.trim())
   .pipe(z.string().min(1).max(MAX_COMMENT));
 
+export const createTaskNoteSchema = z.object({
+  taskId: cuidLikeSchema,
+  content: commentContentSchema,
+});
+
 export const calendarEventCreateSchema = z.object({
   projectId: cuidLikeSchema,
   title: z

@@ -56,6 +56,14 @@ export default async function ProjectDetailPage({ params }: Props) {
               },
             },
           },
+          notes: {
+            orderBy: { createdAt: "asc" },
+            include: {
+              author: {
+                select: { id: true, name: true, email: true, image: true },
+              },
+            },
+          },
         },
       },
       comments: {
@@ -116,6 +124,12 @@ export default async function ProjectDetailPage({ params }: Props) {
         content: c.content,
         createdAt: c.createdAt.toISOString(),
         author: c.author,
+      })),
+      notes: t.notes.map((n) => ({
+        id: n.id,
+        content: n.content,
+        createdAt: n.createdAt.toISOString(),
+        author: n.author,
       })),
     })),
     projectComments: row.comments.map((c) => ({

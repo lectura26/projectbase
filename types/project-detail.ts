@@ -21,6 +21,13 @@ export type CommentDTO = {
   author: UserMini;
 };
 
+export type TaskNoteDTO = {
+  id: string;
+  content: string;
+  createdAt: string;
+  author: UserMini;
+};
+
 export type TaskDetailDTO = {
   id: string;
   title: string;
@@ -31,6 +38,7 @@ export type TaskDetailDTO = {
   deadline: string | null;
   assignee: UserMini | null;
   comments: CommentDTO[];
+  notes: TaskNoteDTO[];
 };
 
 export type ActivityDTO = {

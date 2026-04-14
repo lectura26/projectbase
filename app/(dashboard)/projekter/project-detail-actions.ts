@@ -15,6 +15,7 @@ import {
   calendarEventCreateSchema,
   commentContentSchema,
   createTaskActionSchema,
+  createTaskNoteSchema,
   cuidLikeSchema,
   projectFileRecordSchema,
   setTaskStatusSchema,
@@ -264,7 +265,31 @@ export async function createTask(projectId: string, input: CreateTaskInput): Pro
         }
       : null,
     comments: [],
+    notes: [],
   };
+}
+
+export async function createTaskNote(taskId: string, content: string) {
+  const user = await getSessionUser();
+  if (!user?.email) throw new Error("Ikke logget ind.");
+
+  const parsed = parseOrThrow(createTaskNoteSchema, { taskId, content });
+
+  const task = await prisma.task.findFirst({
+    where: { id: parsed.taskId, project: projectAccessWhere(user.id) },
+    select: { id: true, projectId: true },
+  });
+  if (!task) throw new Error("Opgave ikke fundet.");
+
+  await ensureAppUser(user);
+  await prisma.taskNote.create({
+    data: {
+      taskId: parsed.taskId,
+      authorId: user.id,
+      content: parsed.content,
+    },
+  });
+  revalidatePath(`/projekter/${task.projectId}`);
 }
 
 export async function addProjectComment(projectId: string, content: string) {

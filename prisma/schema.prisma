@@ -84,6 +84,7 @@ model User {
   ownedProjects  Project[]       @relation("ProjectOwnedBy")
   projectMembers ProjectMember[]
   assignedTasks Task[]           @relation("TaskAssignee")
+  taskNotes      TaskNote[]
   comments       Comment[]
   uploadedFiles  File[]
   notifications  Notification[]
@@ -165,9 +166,23 @@ model Task {
   user    User?   @relation("TaskAssignee", fields: [userId], references: [id], onDelete: SetNull)
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   comments Comment[]
+  notes    TaskNote[]
 
   @@index([projectId])
   @@index([userId])
+}
+
+model TaskNote {
+  id        String   @id @default(cuid())
+  content   String
+  taskId    String
+  authorId  String
+  createdAt DateTime @default(now())
+
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
 }
 
 model Comment {
