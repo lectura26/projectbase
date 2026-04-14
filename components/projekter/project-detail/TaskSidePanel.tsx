@@ -53,19 +53,6 @@ function taskStatusLabel(s: TaskStatus): string {
   }
 }
 
-function taskStatusChipClass(s: TaskStatus): string {
-  switch (s) {
-    case "TODO":
-      return "bg-[#f3f4f6] text-[#6b7280]";
-    case "IN_PROGRESS":
-      return "bg-[#dbeafe] text-[#1e40af]";
-    case "DONE":
-      return "bg-[#dcfce7] text-[#15803d]";
-    default:
-      return "bg-[#f3f4f6] text-[#6b7280]";
-  }
-}
-
 function priorityDotClass(p: Priority): string {
   switch (p) {
     case "HIGH":
@@ -332,9 +319,10 @@ export function TaskSidePanel({
     [notes],
   );
 
+  const fieldCellClass =
+    "flex min-h-0 min-w-0 cursor-pointer flex-col rounded-[6px] bg-[#f8f9fa] px-3 py-2 transition-colors hover:bg-[#f0f6ff]";
   const fieldLabelClass =
-    "w-[110px] shrink-0 text-[12px] font-medium uppercase tracking-[0.04em] text-[#9ca3af]";
-  const fieldValueClass = "min-w-0 flex-1 text-[13px] text-[#0f1923]";
+    "mb-1 block text-[11px] font-medium uppercase tracking-[0.04em] text-[#9ca3af]";
 
   const el = (
     <AnimatePresence>
@@ -406,17 +394,17 @@ export function TaskSidePanel({
                     />
                   </div>
 
-                  <div className="mb-3 border-t border-b border-[#f3f4f6] py-2 px-5">
-                    <div className="flex flex-col gap-0.5">
-                      <div className="flex h-9 min-h-[36px] items-center rounded-[4px] transition-colors hover:bg-[#f8f9fa]">
+                  <div className="mb-3 border-t border-b border-[#f3f4f6]">
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-1 px-5 py-[10px]">
+                      <div className={fieldCellClass}>
                         <span className={fieldLabelClass}>Status</span>
-                        <div className={`flex min-w-0 flex-1 justify-end ${fieldValueClass}`}>
+                        <div className="relative min-w-0">
                           <select
                             value={task.status}
                             onChange={(e) =>
                               void saveStatus(e.target.value as TaskStatus)
                             }
-                            className={`max-w-full cursor-pointer rounded px-2 py-0.5 text-[11px] font-semibold outline-none ring-offset-2 focus:ring-2 focus:ring-[#1a3167]/30 ${taskStatusChipClass(task.status)}`}
+                            className="w-full cursor-pointer appearance-none border-0 bg-transparent pr-6 text-[13px] font-medium text-[#0f1923] outline-none focus:ring-0"
                           >
                             {(["TODO", "IN_PROGRESS", "DONE"] as const).map(
                               (s) => (
@@ -426,85 +414,89 @@ export function TaskSidePanel({
                               ),
                             )}
                           </select>
-                        </div>
-                      </div>
-
-                      <div className="flex h-9 min-h-[36px] items-center rounded-[4px] transition-colors hover:bg-[#f8f9fa]">
-                        <span className={fieldLabelClass}>Prioritet</span>
-                        <div className={`flex min-w-0 flex-1 items-center justify-end gap-2 ${fieldValueClass}`}>
-                          <span
-                            className={`inline-block h-2 w-2 shrink-0 rounded-full ${priorityDotClass(task.priority)}`}
+                          <ChevronDown
+                            className="pointer-events-none absolute right-0 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9ca3af]"
                             aria-hidden
+                            strokeWidth={2}
                           />
-                          <select
-                            value={task.priority}
-                            onChange={(e) =>
-                              void savePriority(e.target.value as Priority)
-                            }
-                            className="max-w-full cursor-pointer rounded border border-transparent bg-transparent py-0.5 text-right text-[13px] text-[#0f1923] outline-none focus:ring-2 focus:ring-[#1a3167]/20"
-                          >
-                            {(["HIGH", "MEDIUM", "LOW"] as const).map((p) => (
-                              <option key={p} value={p}>
-                                {priorityLabel(p)}
-                              </option>
-                            ))}
-                          </select>
                         </div>
                       </div>
 
-                      <div className="flex h-9 min-h-[36px] items-center rounded-[4px] transition-colors hover:bg-[#f8f9fa]">
+                      <div className={fieldCellClass}>
+                        <span className={fieldLabelClass}>Prioritet</span>
+                        <div className="relative min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`inline-block h-2 w-2 shrink-0 rounded-full ${priorityDotClass(task.priority)}`}
+                              aria-hidden
+                            />
+                            <select
+                              value={task.priority}
+                              onChange={(e) =>
+                                void savePriority(e.target.value as Priority)
+                              }
+                              className="min-w-0 flex-1 cursor-pointer appearance-none border-0 bg-transparent pr-6 text-[13px] font-medium text-[#0f1923] outline-none focus:ring-0"
+                            >
+                              {(["HIGH", "MEDIUM", "LOW"] as const).map((p) => (
+                                <option key={p} value={p}>
+                                  {priorityLabel(p)}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <ChevronDown
+                            className="pointer-events-none absolute right-0 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9ca3af]"
+                            aria-hidden
+                            strokeWidth={2}
+                          />
+                        </div>
+                      </div>
+
+                      <div className={fieldCellClass}>
                         <span className={fieldLabelClass}>Startdato</span>
-                        <div className={`flex min-w-0 flex-1 justify-end [&_input]:py-1 [&_input]:text-right [&_input]:text-[13px] ${fieldValueClass}`}>
+                        <div className="min-w-0 [&_button]:right-0 [&_button]:top-1/2 [&_button]:-translate-y-1/2">
                           <DatePicker
                             value={startYmd}
                             onChange={setStartYmd}
                             onBlurCommit={(c) => void saveStartDate(c)}
-                            placeholder={
-                              commitYmdString(startYmd) ? "DD-MM-YYYY" : "Ingen startdato"
-                            }
-                            className={`border-0 bg-transparent !shadow-none !ring-0 focus:border-b-2 focus:border-[#1a3167] focus:!ring-0 ${
+                            placeholder="Ingen"
+                            className={`!rounded-md !border-0 !bg-transparent !px-0 !py-0 !pr-8 !text-[13px] !font-medium !leading-normal !shadow-none !ring-0 focus:!border-0 focus:!ring-0 ${
                               commitYmdString(startYmd)
-                                ? "text-[#0f1923]"
-                                : "text-[#9ca3af] placeholder:text-[#9ca3af]"
+                                ? "!text-[#0f1923]"
+                                : "!text-[#9ca3af] placeholder:!text-[#9ca3af]"
                             }`}
                           />
                         </div>
                       </div>
 
-                      <div className="flex h-9 min-h-[36px] items-center rounded-[4px] transition-colors hover:bg-[#f8f9fa]">
+                      <div className={fieldCellClass}>
                         <span className={fieldLabelClass}>Deadline</span>
-                        <div className={`flex min-w-0 flex-1 justify-end [&_input]:py-1 [&_input]:text-right [&_input]:text-[13px] ${fieldValueClass}`}>
+                        <div className="min-w-0 [&_button]:right-0 [&_button]:top-1/2 [&_button]:-translate-y-1/2">
                           <DatePicker
                             value={deadlineYmd}
                             onChange={setDeadlineYmd}
                             onBlurCommit={(c) => void saveDeadline(c)}
-                            placeholder={
-                              commitYmdString(deadlineYmd)
-                                ? "DD-MM-YYYY"
-                                : "Ingen deadline"
-                            }
-                            className={`border-0 bg-transparent !shadow-none !ring-0 focus:border-b-2 focus:border-[#1a3167] focus:!ring-0 ${
+                            placeholder="Ingen"
+                            className={`!rounded-md !border-0 !bg-transparent !px-0 !py-0 !pr-8 !text-[13px] !font-medium !leading-normal !shadow-none !ring-0 focus:!border-0 focus:!ring-0 ${
                               !commitYmdString(deadlineYmd)
-                                ? "text-[#9ca3af] placeholder:text-[#9ca3af]"
+                                ? "!text-[#9ca3af] placeholder:!text-[#9ca3af]"
                                 : isDeadlineOverdue(task.deadline, task.status)
-                                  ? "text-[#dc2626]"
-                                  : "text-[#0f1923]"
+                                  ? "!text-[#dc2626]"
+                                  : "!text-[#0f1923]"
                             }`}
                           />
                         </div>
                       </div>
 
-                      <div className="flex h-9 min-h-[36px] items-center rounded-[4px] transition-colors hover:bg-[#f8f9fa]">
+                      <div className={`${fieldCellClass} col-span-2`}>
                         <span className={fieldLabelClass}>Projekt</span>
-                        <div className={`flex min-w-0 flex-1 justify-end text-right ${fieldValueClass}`}>
-                          <Link
-                            href={`/projekter/${projectId}`}
-                            className="text-[13px] font-medium text-[#1a3167] hover:underline"
-                            onClick={onClose}
-                          >
-                            {projectName}
-                          </Link>
-                        </div>
+                        <Link
+                          href={`/projekter/${projectId}`}
+                          className="text-[13px] font-medium text-[#1a3167] hover:underline"
+                          onClick={onClose}
+                        >
+                          {projectName}
+                        </Link>
                       </div>
                     </div>
                   </div>
