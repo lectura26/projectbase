@@ -90,6 +90,32 @@ export default async function ProjectDetailPage({ params }: Props) {
 
   if (!row) notFound();
 
+  const activityNotesRaw = await prisma.taskNote.findMany({
+    where: {
+      OR: [
+        { task: { projectId: row.id } },
+        { meeting: { projectId: row.id } },
+      ],
+    },
+    include: {
+      task: { select: { id: true, title: true } },
+      meeting: {
+        select: {
+          id: true,
+          title: true,
+          date: true,
+          startTime: true,
+          endTime: true,
+          projectId: true,
+          completed: true,
+          project: { select: { id: true, name: true, color: true } },
+        },
+      },
+      author: { select: { id: true, name: true, email: true, image: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
   const [linkableRows, calendarProjectOptions] = await Promise.all([
     prisma.calendarEvent.findMany({
       where: {
@@ -188,6 +214,25 @@ export default async function ProjectDetailPage({ params }: Props) {
     calendarEvents: row.calendarEvents.map(mapCal),
     linkableMeetings: linkableRows.map(mapCal),
     calendarProjectOptions,
+    activityNotes: activityNotesRaw.map((n) => ({
+      id: n.id,
+      content: n.content,
+      createdAt: n.createdAt.toISOString(),
+      author: n.author,
+      task: n.task ? { id: n.task.id, title: n.task.title } : null,
+      meeting: n.meeting
+        ? {
+            id: n.meeting.id,
+            title: n.meeting.title,
+            date: n.meeting.date.toISOString(),
+            startTime: n.meeting.startTime,
+            endTime: n.meeting.endTime,
+            projectId: n.meeting.projectId,
+            completed: n.meeting.completed,
+            project: n.meeting.project,
+          }
+        : null,
+    })),
   };
 
   const modalUserMap = new Map<string, { id: string; name: string; email: string }>();

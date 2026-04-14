@@ -1,6 +1,6 @@
 "use client";
 
-import type { ActivityType, Priority, ProjectStatus, TaskStatus } from "@prisma/client";
+import type { Priority, ProjectStatus, TaskStatus } from "@prisma/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, ChevronDown, Pencil, Plus, Repeat, Trash2, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -22,10 +22,8 @@ import {
 } from "@/app/(dashboard)/projekter/actions";
 import {
   addProjectComment,
-  confirmActivity,
   createProjectFileRecord,
   createTask,
-  deleteActivity,
   deleteProjectFile,
   setTaskStatus,
 } from "@/app/(dashboard)/projekter/project-detail-actions";
@@ -45,6 +43,7 @@ import {
 import { routineIntervalLabel } from "@/lib/projekter/routine";
 import type { ProjectDetailPayload, TaskDetailDTO, UserMini } from "@/types/project-detail";
 import { NytProjektModal } from "@/components/projekter/NytProjektModal";
+import { AktivitetTab } from "@/components/projekter/project-detail/AktivitetTab";
 import { ProjectKalenderTab } from "@/components/projekter/project-detail/ProjectKalenderTab";
 import { TaskSidePanel } from "@/components/projekter/project-detail/TaskSidePanel";
 import { DatePicker } from "@/components/ui/DatePicker";
@@ -177,19 +176,6 @@ function isProjectDeadlineOverdue(
   return d.getTime() < today.getTime();
 }
 
-function activityBadge(type: ActivityType) {
-  switch (type) {
-    case "MAIL":
-      return { letter: "M", className: "bg-surface-container-high text-on-surface" };
-    case "MEETING":
-      return { letter: "T", className: "bg-surface-container-high text-on-surface" };
-    case "NOTE":
-      return { letter: "N", className: "bg-surface-container-high text-on-surface" };
-    default:
-      return { letter: "F", className: "bg-surface-container-high text-on-surface" };
-  }
-}
-
 function formatDaTime(iso: string) {
   return new Date(iso).toLocaleTimeString("da-DK", {
     hour: "2-digit",
@@ -241,7 +227,6 @@ export default function ProjectDetailClient({
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
   const [highlightTaskId, setHighlightTaskId] = useState<string | null>(null);
   const deepLinkHandledFor = useRef<string | null>(null);
-  const [hoverActivityId, setHoverActivityId] = useState<string | null>(null);
   const [hoverFileId, setHoverFileId] = useState<string | null>(null);
   const [projectCommentDraft, setProjectCommentDraft] = useState("");
   const [scheduleStart, setScheduleStart] = useState(() => isoToYmd(initial.startDate));
@@ -297,14 +282,9 @@ export default function ProjectDetailClient({
     }
   };
 
-  const showAktivitet = initial.activities.length > 0;
   // Always show Kalender/Filer so the first event/file can be added (Kommentarer-style UX).
   const showKalender = true;
   const showFiler = true;
-
-  useEffect(() => {
-    if (activeTab === "aktivitet" && !showAktivitet) setActiveTab("opgaver");
-  }, [activeTab, showAktivitet]);
 
   const progress = useMemo(() => {
     const n = tasks.length;
@@ -609,8 +589,8 @@ export default function ProjectDetailClient({
 
       <div className="scrollbar-thin flex gap-2 overflow-x-auto border-b border-outline-variant/30 px-6">
         {tabBtn("opgaver", "Opgaver", true)}
+        {tabBtn("aktivitet", "Aktivitet", true)}
         {tabBtn("kommentarer", "Kommentarer", true)}
-        {tabBtn("aktivitet", "Aktivitet", showAktivitet)}
         {tabBtn("kalender", "Kalender", showKalender)}
         {tabBtn("filer", "Filer", showFiler)}
       </div>
@@ -631,19 +611,20 @@ export default function ProjectDetailClient({
             routerRefresh={() => router.refresh()}
           />
         ) : null}
+        {activeTab === "aktivitet" ? (
+          <AktivitetTab
+            projectId={initial.id}
+            activityNotes={initial.activityNotes}
+            calendarProjectOptions={initial.calendarProjectOptions}
+            currentUserId={currentUserId}
+            onRefresh={() => router.refresh()}
+          />
+        ) : null}
         {activeTab === "kommentarer" ? (
           <KommentarerTab
             initial={initial}
             draft={projectCommentDraft}
             setDraft={setProjectCommentDraft}
-            onRefresh={() => router.refresh()}
-          />
-        ) : null}
-        {activeTab === "aktivitet" ? (
-          <AktivitetTab
-            initial={initial}
-            hoverActivityId={hoverActivityId}
-            setHoverActivityId={setHoverActivityId}
             onRefresh={() => router.refresh()}
           />
         ) : null}
@@ -1073,110 +1054,6 @@ function KommentarerTab({
         </div>
       </div>
     </div>
-  );
-}
-
-function AktivitetTab({
-  initial,
-  hoverActivityId,
-  setHoverActivityId,
-  onRefresh,
-}: {
-  initial: ProjectDetailPayload;
-  hoverActivityId: string | null;
-  setHoverActivityId: (id: string | null) => void;
-  onRefresh: () => void;
-}) {
-  const [activities, setActivities] = useState(initial.activities);
-
-  useEffect(() => {
-    setActivities(initial.activities);
-  }, [initial.id, initial.updatedAt]); // eslint-disable-line react-hooks/exhaustive-deps -- sync only when server revision changes; avoid resetting optimistic rows on every activities array identity
-
-  const onConfirm = async (id: string) => {
-    const prev = activities;
-    setActivities((rows) =>
-      rows.map((a) => (a.id === id ? { ...a, confirmed: true } : a)),
-    );
-    try {
-      await confirmActivity(id);
-      onRefresh();
-    } catch (e) {
-      setActivities(prev);
-      toast.error(e instanceof Error ? e.message : "Fejl");
-    }
-  };
-
-  const onDelete = async (id: string) => {
-    const prev = activities;
-    setActivities((rows) => rows.filter((a) => a.id !== id));
-    try {
-      await deleteActivity(id);
-      onRefresh();
-    } catch (e) {
-      setActivities(prev);
-      toast.error(e instanceof Error ? e.message : "Fejl");
-    }
-  };
-
-  return (
-    <ul className="space-y-2">
-      {activities.map((a) => {
-        const b = activityBadge(a.type);
-        const hover = hoverActivityId === a.id;
-        return (
-          <li
-            key={a.id}
-            className="relative flex items-start gap-3 rounded-lg border border-outline-variant/15 px-3 py-3"
-            onMouseEnter={() => setHoverActivityId(a.id)}
-            onMouseLeave={() => setHoverActivityId(null)}
-          >
-            <span
-              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold ${b.className}`}
-            >
-              {b.letter}
-            </span>
-            <div className="min-w-0 flex-1">
-              <span
-                className="cursor-not-allowed font-body text-sm font-medium text-on-surface"
-                title="Kommer med Microsoft-integration"
-              >
-                {a.title}
-              </span>
-              <p className="text-xs text-on-surface-variant">
-                {(a.organizerName || a.source) && `${a.organizerName || a.source} · `}
-                {formatDanishDate(a.date)}
-              </p>
-            </div>
-            {a.autoMatched ? (
-              <span className="rounded bg-violet-100 px-1.5 py-0.5 text-[10px] font-bold text-violet-700">
-                AI
-              </span>
-            ) : null}
-            {hover && !a.confirmed ? (
-              <div className="absolute right-2 top-2 flex gap-1">
-                <button
-                  type="button"
-                  onClick={() => void onConfirm(a.id)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-low text-on-surface hover:bg-surface-container-high"
-                  aria-label="Bekræft"
-                >
-                  <Check className="h-5 w-5" aria-hidden />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void onDelete(a.id)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-low text-on-surface hover:bg-surface-container-high"
-                  aria-label="Slet"
-                >
-                  <X className="h-5 w-5" aria-hidden />
-                </button>
-              </div>
-            ) : null}
-          </li>
-        );
-      })}
-    </ul>
   );
 }
 

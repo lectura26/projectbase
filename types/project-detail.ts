@@ -72,6 +72,25 @@ export type CalendarEventDTO = {
   completed: boolean;
 };
 
+/** Single TaskNote in project activity feed (task or meeting description history). */
+export type ActivityNoteFeedItem = {
+  id: string;
+  content: string;
+  createdAt: string;
+  author: UserMini;
+  task: { id: string; title: string } | null;
+  meeting: {
+    id: string;
+    title: string;
+    date: string;
+    startTime: string | null;
+    endTime: string | null;
+    projectId: string | null;
+    completed: boolean;
+    project: { id: string; name: string; color: string } | null;
+  } | null;
+};
+
 export type ProjectDetailPayload = {
   id: string;
   name: string;
@@ -102,4 +121,6 @@ export type ProjectDetailPayload = {
   linkableMeetings: CalendarEventDTO[];
   /** Active projects for meeting modals */
   calendarProjectOptions: { id: string; name: string; color: string }[];
+  /** Task + meeting notes for Aktivitet feed (newest first from server; tab sorts display). */
+  activityNotes: ActivityNoteFeedItem[];
 };
