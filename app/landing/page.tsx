@@ -202,16 +202,12 @@ export default function LandingPage() {
         <section className="overflow-hidden bg-white py-20 lg:py-28">
           <div className="mx-auto grid max-w-7xl items-center gap-16 px-8 lg:grid-cols-2">
             <div className="space-y-8">
-              <span className="inline-flex items-center rounded-full bg-[#cce8f4] px-4 py-1 text-xs font-bold uppercase tracking-widest text-[#1a3167]">
-                Til finansielle teams
-              </span>
               <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-[#0f1923] lg:text-5xl xl:text-6xl">
-                Projektstyring der <br />
-                <span className="text-[#1a3167]">faktisk virker.</span>
+                Ét sted til alle dine projekter.
               </h1>
               <p className="max-w-lg text-lg leading-relaxed text-[#6b7280]">
-                En disciplineret tilgang til projektstyring. Designet til nordiske finansielle huse, der kræver overblik,
-                sikkerhed og funktionel præcision.
+                Projectbase samler projekter, opgaver, møder og filer så du og dit team altid har overblik — uanset hvor
+                mange bolde I har i luften.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link
@@ -251,57 +247,57 @@ export default function LandingPage() {
           <div className="mx-auto max-w-7xl px-8">
             <div className="mb-16 max-w-2xl">
               <h2 className="mb-4 text-3xl font-bold tracking-tight text-[#0f1923]">
-                Alt hvad du behøver for at styre komplekse processer
+                Hvad du får med Projectbase
               </h2>
               <p className="text-[#6b7280]">
-                Vores værktøjer er bygget til at fjerne støj og bringe fokus tilbage på resultaterne.
+                Alt hvad du har brug for til at holde styr på dine projekter.
               </p>
             </div>
             <div className="grid gap-x-8 gap-y-12 md:grid-cols-2 lg:grid-cols-3">
               <FeatureCard
                 icon={<Grid2x2 className="h-6 w-6" strokeWidth={1.75} />}
-                title="Komplet projektoverblik"
-                text="Se alle aktive projekter med status, prioritet, fremdrift og deadline — liste eller kanban efter behov."
+                title="Projektoverblik"
+                text="Se alle projekter samlet med status, fremdrift og deadline. Skift mellem liste, kanban og gantt."
               />
               <FeatureCard
                 icon={<CheckCircle2 className="h-6 w-6" strokeWidth={1.75} />}
                 title="Opgavestyring"
-                text="Opret opgaver med deadline, prioritet og ansvarlig. Marker færdig og se fremdrift på projektet."
+                text="Opret opgaver under hvert projekt. Sæt deadline, prioritet og følg fremdriften."
               />
               <FeatureCard
                 icon={<Repeat className="h-6 w-6" strokeWidth={1.75} />}
                 title="Rutineprojekter"
-                text="Gentagende projekter kan sættes som rutine og genstartes automatisk når de afsluttes."
+                text="Projekter der gentager sig kan sættes som rutine og genstartes automatisk når de afsluttes."
               />
               <FeatureCard
                 icon={<ChartGantt className="h-6 w-6" strokeWidth={1.75} />}
                 title="Gantt-diagram"
-                text="Tidslinje pr. projekt så du kan se opgaver og deadlines i ét samlet overblik."
+                text="Se alle opgaver og deadlines på en tidslinje. Dag, uge og månedsoverblik."
               />
               <FeatureCard
                 icon={<MessageSquare className="h-6 w-6" strokeWidth={1.75} />}
                 title="Kommentarer og noter"
-                text="Kommentarer på projekter og opgaver, noter på opgaver og aktivitet på projektet — samlet ét sted."
+                text="Skriv kommentarer på projekter og opgaver. Tilføj noter og se al aktivitet samlet."
               />
               <FeatureCard
                 icon={<Target className="h-6 w-6" strokeWidth={1.75} />}
                 title="Dagligt fokus"
-                text="Oversigten viser dine vigtigste opgaver og deadlines, så du hurtigt ved, hvad der trænger til handling."
+                text="Start dagen med et overblik over dine vigtigste opgaver og næste deadlines."
               />
               <FeatureCard
                 icon={<Cloud className="h-6 w-6" strokeWidth={1.75} />}
                 title="Filer og dokumenter"
-                text="Upload filer til projekter med sikker lagring og hurtig adgang fra projektsiden."
+                text="Upload filer direkte til projekter så alt materiale ligger samlet."
               />
               <FeatureCard
                 icon={<Shield className="h-6 w-6" strokeWidth={1.75} />}
                 title="Sikkerhed og GDPR"
-                text="Data i EU og understøttelse af en ansvarlig, dokumenterbar brug af persondata i arbejdsprocesser."
+                text="Data opbevares i EU. Understøtter ansvarlig og dokumenterbar brug af persondata."
               />
               <FeatureCard
                 icon={<AppWindow className="h-6 w-6" strokeWidth={1.75} />}
                 title="Microsoft 365"
-                text="Planlagt integration med Outlook, Teams og relaterede værktøjer i dit eksisterende miljø."
+                text="Integration med Outlook og Teams er planlagt som kommende funktion."
                 badge="Kommer snart"
               />
             </div>
@@ -311,26 +307,28 @@ export default function LandingPage() {
         {/* How it works */}
         <section id="how-it-works" className="bg-[#f8f9fa] py-24">
           <div className="mx-auto max-w-7xl px-8">
-            <h2 className="mb-20 text-center text-3xl font-bold text-[#1a3167]">Kom i gang på få minutter</h2>
+            <h2 className="mb-20 text-center text-3xl font-bold text-[#1a3167]">Sådan kommer du i gang</h2>
             <div className="relative grid gap-12 md:grid-cols-3">
               <div className="absolute left-1/4 right-1/4 top-12 -z-0 hidden h-0.5 bg-[#cce8f4]/40 md:block" aria-hidden />
               <div className="relative z-10 space-y-4 text-center">
                 <div className="text-7xl font-black leading-none text-[#cce8f4]/70">01</div>
                 <h3 className="text-xl font-bold text-[#0f1923]">Log ind med Google</h3>
-                <p className="px-4 text-[#6b7280]">Brug dit eksisterende login. Ingen ny adgangskode at administrere.</p>
+                <p className="px-4 text-[#6b7280]">
+                  Brug dit eksisterende Google-login. Ingen ny konto eller adgangskode.
+                </p>
               </div>
               <div className="relative z-10 space-y-4 text-center">
                 <div className="text-7xl font-black leading-none text-[#cce8f4]/70">02</div>
-                <h3 className="text-xl font-bold text-[#0f1923]">Opret dit første projekt</h3>
+                <h3 className="text-xl font-bold text-[#0f1923]">Opret et projekt</h3>
                 <p className="px-4 text-[#6b7280]">
-                  Navngiv projektet, sæt deadline og prioritet, og tilføj opgaver og kontaktpersoner som i appen.
+                  Giv projektet et navn, en deadline og tilføj de første opgaver.
                 </p>
               </div>
               <div className="relative z-10 space-y-4 text-center">
                 <div className="text-7xl font-black leading-none text-[#cce8f4]/70">03</div>
-                <h3 className="text-xl font-bold text-[#0f1923]">Hold overblikket</h3>
+                <h3 className="text-xl font-bold text-[#0f1923]">Hold styr på det hele</h3>
                 <p className="px-4 text-[#6b7280]">
-                  Følg status, opgaver og aktivitet på tværs af projekter — med samme data for hele teamet.
+                  Følg status og fremdrift på tværs af projekter — for dig selv eller hele teamet.
                 </p>
               </div>
             </div>
@@ -342,14 +340,15 @@ export default function LandingPage() {
           <div className="mx-auto max-w-7xl space-y-32 px-8">
             <div className="flex flex-col items-center gap-16 lg:flex-row">
               <div className="space-y-6 lg:w-1/2">
-                <h2 className="text-4xl font-bold tracking-tight text-[#0f1923]">Tre visninger. Én sandhed.</h2>
+                <h2 className="text-4xl font-bold tracking-tight text-[#0f1923]">Tre visninger til samme data</h2>
                 <p className="text-lg leading-relaxed text-[#6b7280]">
-                  Vælg liste, kanban eller Gantt pr. projekt. Skift visning efter behov — opgaver og deadlines følger med.
+                  Vælg den visning der passer til opgaven. Liste til overblik, kanban til workflow og gantt til
+                  tidsplanlægning.
                 </p>
                 <ul className="space-y-4 text-sm font-medium text-[#0f1923]">
                   <li className="flex items-start gap-3">
                     <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#1a3167]" strokeWidth={2.5} />
-                    Listevisning til detaljeret planlægning
+                    Liste til hurtig scanning
                   </li>
                   <li className="flex items-start gap-3">
                     <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#1a3167]" strokeWidth={2.5} />
@@ -357,7 +356,7 @@ export default function LandingPage() {
                   </li>
                   <li className="flex items-start gap-3">
                     <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#1a3167]" strokeWidth={2.5} />
-                    Gantt til visualisering af deadlines
+                    Gantt til deadlineoverblik
                   </li>
                 </ul>
               </div>
@@ -368,23 +367,22 @@ export default function LandingPage() {
 
             <div className="flex flex-col items-center gap-16 lg:flex-row-reverse">
               <div className="space-y-6 lg:w-1/2">
-                <h2 className="text-4xl font-bold tracking-tight text-[#0f1923]">Opgaver i fokus</h2>
+                <h2 className="text-4xl font-bold tracking-tight text-[#0f1923]">Opgavedetaljer i et sidepanel</h2>
                 <p className="text-lg leading-relaxed text-[#6b7280]">
-                  Sidepanelet samler titel, status, datoer, beskrivelse, noter og kommentarer for den valgte opgave —
-                  uden at du mister konteksten for projektet.
+                  Klik på en opgave og få alle detaljer i et panel til højre — uden at forlade projektvisningen.
                 </p>
                 <ul className="space-y-4 text-sm font-medium text-[#0f1923]">
                   <li className="flex items-start gap-3">
                     <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#1a3167]" strokeWidth={2.5} />
-                    Kommentarer og noter på opgaven
+                    Status, prioritet og datoer
                   </li>
                   <li className="flex items-start gap-3">
                     <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#1a3167]" strokeWidth={2.5} />
-                    Felter for status, prioritet og ansvarlig
+                    Beskrivelse og noter med log
                   </li>
                   <li className="flex items-start gap-3">
                     <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#1a3167]" strokeWidth={2.5} />
-                    Hurtig navigation tilbage til projektet
+                    Kommentarer direkte på opgaven
                   </li>
                 </ul>
               </div>
@@ -398,9 +396,9 @@ export default function LandingPage() {
         {/* CTA */}
         <section className="bg-[#1a3167] py-24">
           <div className="mx-auto max-w-4xl space-y-8 px-8 text-center">
-            <h2 className="text-4xl font-extrabold tracking-tight text-white">Klar til at optimere jeres projekter?</h2>
+            <h2 className="text-4xl font-extrabold tracking-tight text-white">Klar til at prøve det?</h2>
             <p className="mx-auto max-w-2xl text-lg text-[#cce8f4]/95">
-              Opret jeres team i dag og oplev forskellen.
+              Log ind med Google og vær i gang på få minutter.
             </p>
             <div className="flex flex-col justify-center gap-4 pt-4 sm:flex-row">
               <Link
