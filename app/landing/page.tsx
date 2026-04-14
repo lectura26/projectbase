@@ -1,142 +1,159 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
+import {
+  AppWindow,
+  ChartGantt,
+  Check,
+  CheckCircle2,
+  Cloud,
+  Grid2x2,
+  MessageSquare,
+  Repeat,
+  Shield,
+  Target,
+} from "lucide-react";
 import { Logo } from "@/components/Logo";
 
 export const metadata: Metadata = {
-  title: "Projectbase — Ét sted til alle dine projekter",
+  title: "Projectbase — Nordisk projektstyring",
   description:
-    "Projectbase giver dig og dit team fuldt overblik over projekter, opgaver, deadlines og aktivitet.",
+    "Disciplineret projektstyring til finansielle teams — overblik, opgaver, kalender og Gantt i ét system.",
 };
 
-function IconGridSquares() {
+function IconBox({ children }: { children: ReactNode }) {
   return (
-    <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden className="shrink-0">
-      <rect x="2" y="2" width="10" height="10" rx="2" fill="#1a3167" />
-      <rect x="16" y="2" width="10" height="10" rx="2" fill="#1a3167" />
-      <rect x="2" y="16" width="10" height="10" rx="2" fill="#1a3167" />
-      <rect x="16" y="16" width="10" height="10" rx="2" fill="#1a3167" />
-    </svg>
+    <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-[#f3f4f5] text-[#1a3167] transition-colors duration-300 group-hover:bg-[#1a3167] group-hover:text-white">
+      {children}
+    </div>
   );
 }
 
-function IconCheckCircle() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden className="shrink-0">
-      <circle cx="14" cy="14" r="12" stroke="#1a3167" strokeWidth="2" fill="none" />
-      <path d="M8 14l4 4 8-8" stroke="#1a3167" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function IconRepeat() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden className="shrink-0">
-      <path
-        d="M6 12a8 8 0 0114.5-4M22 16a8 8 0 01-14.5 4"
-        stroke="#1a3167"
-        strokeWidth="2"
-        fill="none"
-        strokeLinecap="round"
-      />
-      <path d="M4 12h4V8M24 16h-4v4" stroke="#1a3167" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function IconChat() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden className="shrink-0">
-      <path
-        d="M6 8a3 3 0 013-3h10a3 3 0 013 3v8a3 3 0 01-3 3h-6l-5 4v-4H9a3 3 0 01-3-3V8z"
-        stroke="#1a3167"
-        strokeWidth="2"
-        fill="none"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function IconCloudUpload() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden className="shrink-0">
-      <path
-        d="M8 18a5 5 0 01.3-10 4 4 0 017.7 2.5A4 4 0 0118 20h-1"
-        stroke="#1a3167"
-        strokeWidth="2"
-        fill="none"
-        strokeLinecap="round"
-      />
-      <path d="M14 12v8M10 16l4-4 4 4" stroke="#1a3167" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function IconCalendar() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden className="shrink-0">
-      <rect x="4" y="6" width="20" height="18" rx="2" stroke="#1a3167" strokeWidth="2" fill="none" />
-      <path d="M4 11h20M10 4v4M18 4v4" stroke="#1a3167" strokeWidth="2" strokeLinecap="round" />
-      <circle cx="14" cy="17" r="1.5" fill="#1a3167" />
-    </svg>
-  );
-}
-
-function IconBell() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden className="shrink-0">
-      <path
-        d="M14 5a5 5 0 00-5 5v3l-2 3h14l-2-3v-3a5 5 0 00-5-5zM11 21a3 3 0 006 0"
-        stroke="#1a3167"
-        strokeWidth="2"
-        fill="none"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function IconMicrosoft() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden className="shrink-0">
-      <rect x="2" y="2" width="11" height="11" fill="#1a3167" />
-      <rect x="15" y="2" width="11" height="11" fill="#1a3167" opacity="0.85" />
-      <rect x="2" y="15" width="11" height="11" fill="#1a3167" opacity="0.85" />
-      <rect x="15" y="15" width="11" height="11" fill="#1a3167" />
-    </svg>
-  );
-}
-
-function IconTeam() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden className="shrink-0">
-      <circle cx="10" cy="10" r="4" stroke="#1a3167" strokeWidth="2" fill="none" />
-      <circle cx="18" cy="10" r="4" stroke="#1a3167" strokeWidth="2" fill="none" />
-      <path d="M4 24c0-4 3-6 6-6M18 18c3 0 6 2 6 6" stroke="#1a3167" strokeWidth="2" fill="none" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-type FeatureCardProps = {
+function FeatureCard({
+  icon,
+  title,
+  text,
+  badge,
+}: {
   icon: ReactNode;
   title: string;
   text: string;
   badge?: string;
-};
-
-function FeatureCard({ icon, title, text, badge }: FeatureCardProps) {
+}) {
   return (
-    <div className="rounded-xl border border-[#e8e8e8] bg-white p-8">
-      {icon}
-      <h3 className="mt-4 text-base font-semibold text-[#0f1923]">{title}</h3>
-      <p className="mt-2 text-sm leading-[1.7] text-[#6b7280]">{text}</p>
-      {badge ? (
-        <span className="mt-3 inline-block rounded bg-[#fef3c7] px-2.5 py-0.5 text-[10px] font-medium text-[#d97706]">
-          {badge}
-        </span>
-      ) : null}
+    <div className="group">
+      <IconBox>{icon}</IconBox>
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <h3 className="text-lg font-bold text-[#0f1923]">{title}</h3>
+        {badge ? (
+          <span className="rounded bg-[#cce8f4] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-[#1a3167]">
+            {badge}
+          </span>
+        ) : null}
+      </div>
+      <p className="text-sm leading-relaxed text-[#6b7280]">{text}</p>
+    </div>
+  );
+}
+
+function HeroProjectMockup() {
+  return (
+    <div className="relative">
+      <div className="rounded-2xl border border-[#e8e8e8]/60 bg-[#f3f4f5] p-4 shadow-[0_24px_48px_-12px_rgba(26,49,103,0.12)]">
+        <div className="overflow-hidden rounded-xl bg-white shadow-sm">
+          <div className="flex items-center justify-between border-b border-[#edeeef] bg-white px-4 py-3">
+            <span className="text-sm font-bold tracking-tight text-[#0f1923]">Aktive projekter</span>
+            <span className="text-[#6b7280]" aria-hidden>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M4 6h16M4 12h10M4 18h16" />
+              </svg>
+            </span>
+          </div>
+          <div className="divide-y divide-[#edeeef]">
+            {[
+              { t: "Q3 Revision — Nordics", a: "Ansvarlig: A. M.", p: 75, s: "I gang", sc: "bg-emerald-50 text-emerald-800" },
+              { t: "AML Compliance Update", a: "Ansvarlig: S. L.", p: 40, s: "Planlagt", sc: "bg-amber-50 text-amber-800" },
+              { t: "Market Analysis", a: "Ansvarlig: J. K.", p: 90, s: "Næsten færdig", sc: "bg-emerald-50 text-emerald-800" },
+            ].map((row) => (
+              <div
+                key={row.t}
+                className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-[#f8f9fa]"
+              >
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-[#cce8f4] text-[#1a3167]">
+                    <Grid2x2 className="h-4 w-4" aria-hidden />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-semibold text-[#0f1923]">{row.t}</div>
+                    <div className="text-xs text-[#6b7280]">{row.a}</div>
+                  </div>
+                </div>
+                <div className="hidden w-28 sm:block">
+                  <div className="h-1 w-full overflow-hidden rounded-full bg-[#cce8f4]">
+                    <div className="h-full bg-[#1a3167]" style={{ width: `${row.p}%` }} />
+                  </div>
+                </div>
+                <span className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${row.sc}`}>
+                  {row.s}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div
+        className="pointer-events-none absolute -bottom-10 -right-10 -z-10 h-64 w-64 rounded-full bg-[#cbe7f3]/30 blur-3xl"
+        aria-hidden
+      />
+    </div>
+  );
+}
+
+function KanbanMockup() {
+  const cols = [
+    { title: "At gøre", tint: "bg-[#f3f4f5]" },
+    { title: "I gang", tint: "bg-[#cce8f4]/40" },
+    { title: "Færdig", tint: "bg-[#f3f4f5]" },
+  ];
+  return (
+    <div className="rounded-2xl bg-[#e7e8e9] p-2">
+      <div className="grid min-h-[320px] gap-2 rounded-xl bg-[#e7e8e9] sm:grid-cols-3">
+        {cols.map((c) => (
+          <div key={c.title} className={`flex flex-col rounded-lg ${c.tint} p-2`}>
+            <p className="mb-2 px-1 text-xs font-semibold text-[#6b7280]">{c.title}</p>
+            <div className="space-y-2">
+              <div className="rounded-lg border border-[#e8e8e8] bg-white p-2 shadow-sm">
+                <p className="text-xs font-medium text-[#0f1923]">Opgave</p>
+                <p className="mt-1 text-[10px] text-[#9ca3af]">Deadline</p>
+              </div>
+              <div className="rounded-lg border border-[#e8e8e8] bg-white p-2 shadow-sm">
+                <p className="text-xs font-medium text-[#0f1923]">Review</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SidePanelMockup() {
+  return (
+    <div className="rounded-2xl bg-[#e7e8e9] p-2">
+      <div className="ml-auto flex h-[min(400px,50vh)] w-full max-w-sm flex-col overflow-hidden rounded-xl border border-[#e8e8e8] bg-white shadow-lg">
+        <div className="border-b border-[#e8e8e8] px-4 py-3">
+          <div className="h-3 w-3/4 rounded bg-[#f3f4f5]" />
+          <div className="mt-2 h-2 w-1/2 rounded bg-[#edeeef]" />
+        </div>
+        <div className="flex-1 space-y-3 p-4">
+          <div className="h-2 w-full rounded bg-[#f3f4f5]" />
+          <div className="h-2 w-5/6 rounded bg-[#edeeef]" />
+          <div className="h-2 w-4/6 rounded bg-[#edeeef]" />
+        </div>
+        <div className="border-t border-[#e8e8e8] p-3">
+          <div className="h-8 rounded-md border border-[#e8e8e8] bg-[#f8f9fa]" />
+        </div>
+      </div>
     </div>
   );
 }
@@ -144,171 +161,287 @@ function FeatureCard({ icon, title, text, badge }: FeatureCardProps) {
 export default function LandingPage() {
   return (
     <div className="min-h-screen min-w-[1024px] bg-[#f8f9fa] font-body text-[#0f1923] antialiased">
-      {/* NAVBAR */}
-      <header className="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between border-b border-[#e8e8e8] bg-white px-10">
-        <Link href="/landing" className="flex items-center">
-          <Logo className="h-8 w-auto" />
-        </Link>
-        <Link
-          href="/login"
-          className="rounded-lg bg-[#1a3167] px-5 py-2 text-[13px] font-medium text-white"
-        >
-          Log ind
-        </Link>
+      <header className="fixed left-0 right-0 top-0 z-50 flex h-16 items-center border-b border-black/[0.06] bg-white/80 backdrop-blur-md">
+        <div className="mx-auto flex h-full w-full max-w-7xl items-center justify-between px-8">
+          <Link href="/landing" className="flex shrink-0 items-center gap-2">
+            <Logo className="h-9 w-auto" />
+          </Link>
+          <nav className="hidden items-center gap-8 md:flex">
+            <a
+              href="#features"
+              className="border-b-2 border-[#1a3167] pb-1 text-sm font-semibold text-[#1a3167]"
+            >
+              Features
+            </a>
+            <a
+              href="#how-it-works"
+              className="text-sm font-medium text-[#6b7280] transition-colors hover:text-[#1a3167]"
+            >
+              Sådan virker det
+            </a>
+          </nav>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/login"
+              className="hidden rounded-xl border border-[#e8e8e8] px-5 py-2 text-sm font-medium text-[#0f1923] transition-colors hover:bg-[#f8f9fa] md:inline-flex"
+            >
+              Log ind
+            </Link>
+            <Link
+              href="/login"
+              className="rounded-xl bg-[#1a3167] px-5 py-2 text-sm font-semibold text-white transition-transform active:scale-[0.98]"
+            >
+              Kom i gang
+            </Link>
+          </div>
+        </div>
       </header>
 
       <main className="pt-16">
-        {/* HERO — luft under fast header (nav = h-16; main har pt-16) */}
-        <section className="bg-white px-10 pb-20 pt-16">
-          <div className="mx-auto max-w-[720px] text-center">
-            <span className="inline-block rounded-full bg-[#cce8f4] px-3.5 py-1 text-[11px] font-medium text-[#1a3167]">
-              Til professionelle teams
-            </span>
-            <h1 className="mt-4 text-[52px] font-semibold leading-[1.15] text-[#0f1923]">
-              Ét sted til alle dine projekter.
-            </h1>
-            <p className="mx-auto mt-5 max-w-[560px] text-lg leading-[1.7] text-[#6b7280]">
-              Projectbase giver dig og dit team fuldt overblik over projekter, opgaver, deadlines og aktivitet — uden støj,
-              uden kompleksitet.
+        {/* Hero */}
+        <section className="overflow-hidden bg-white py-20 lg:py-28">
+          <div className="mx-auto grid max-w-7xl items-center gap-16 px-8 lg:grid-cols-2">
+            <div className="space-y-8">
+              <span className="inline-flex items-center rounded-full bg-[#cce8f4] px-4 py-1 text-xs font-bold uppercase tracking-widest text-[#1a3167]">
+                Til finansielle teams
+              </span>
+              <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-[#0f1923] lg:text-5xl xl:text-6xl">
+                Projektstyring der <br />
+                <span className="text-[#1a3167]">faktisk virker.</span>
+              </h1>
+              <p className="max-w-lg text-lg leading-relaxed text-[#6b7280]">
+                En disciplineret tilgang til projektstyring. Designet til nordiske finansielle huse, der kræver overblik,
+                sikkerhed og funktionel præcision.
+              </p>
+              <div className="flex flex-wrap gap-4">
+                <Link
+                  href="/login"
+                  className="rounded-xl bg-[#1a3167] px-8 py-4 text-base font-semibold text-white transition-transform active:scale-[0.98]"
+                >
+                  Kom i gang
+                </Link>
+                <Link
+                  href="/login"
+                  className="rounded-xl border border-[#c5c6d1]/40 px-8 py-4 text-base font-semibold text-[#1a3167] transition-colors hover:border-[#c5c6d1]"
+                >
+                  Se hvordan det virker
+                </Link>
+              </div>
+              <p className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-[#6b7280]">
+                <span>✓ Data i EU</span>
+                <span className="text-[#d1d5db]">·</span>
+                <span>✓ GDPR-compliant</span>
+              </p>
+            </div>
+            <HeroProjectMockup />
+          </div>
+        </section>
+
+        {/* Social proof — tonal shift, no heavy border */}
+        <section className="bg-[#f3f4f5] py-12">
+          <div className="mx-auto max-w-7xl px-8 text-center">
+            <p className="mx-auto max-w-3xl text-base font-medium italic leading-relaxed tracking-tight text-[#6b7280]">
+              Brugt af finansielle rådgivere, projektledere og teams i ledende skandinaviske organisationer.
             </p>
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-              <Link
-                href="/login"
-                className="rounded-lg bg-[#1a3167] px-8 py-3.5 text-[15px] font-medium text-white"
-              >
-                Kom i gang gratis
-              </Link>
-              <a
-                href="#features"
-                className="rounded-lg border border-[#e8e8e8] bg-white px-8 py-3.5 text-[15px] font-medium text-[#0f1923]"
-              >
-                Se funktioner
-              </a>
+          </div>
+        </section>
+
+        {/* Features */}
+        <section id="features" className="bg-white py-24">
+          <div className="mx-auto max-w-7xl px-8">
+            <div className="mb-16 max-w-2xl">
+              <h2 className="mb-4 text-3xl font-bold tracking-tight text-[#0f1923]">
+                Alt hvad du behøver for at styre komplekse processer
+              </h2>
+              <p className="text-[#6b7280]">
+                Vores værktøjer er bygget til at fjerne støj og bringe fokus tilbage på resultaterne.
+              </p>
+            </div>
+            <div className="grid gap-x-8 gap-y-12 md:grid-cols-2 lg:grid-cols-3">
+              <FeatureCard
+                icon={<Grid2x2 className="h-6 w-6" strokeWidth={1.75} />}
+                title="Komplet projektoverblik"
+                text="Se alle aktive projekter med status, prioritet, fremdrift og deadline — liste eller kanban efter behov."
+              />
+              <FeatureCard
+                icon={<CheckCircle2 className="h-6 w-6" strokeWidth={1.75} />}
+                title="Opgavestyring"
+                text="Opret opgaver med deadline, prioritet og ansvarlig. Marker færdig og se fremdrift på projektet."
+              />
+              <FeatureCard
+                icon={<Repeat className="h-6 w-6" strokeWidth={1.75} />}
+                title="Rutineprojekter"
+                text="Gentagende projekter kan sættes som rutine og genstartes automatisk når de afsluttes."
+              />
+              <FeatureCard
+                icon={<ChartGantt className="h-6 w-6" strokeWidth={1.75} />}
+                title="Gantt-diagram"
+                text="Tidslinje pr. projekt så du kan se opgaver og deadlines i ét samlet overblik."
+              />
+              <FeatureCard
+                icon={<MessageSquare className="h-6 w-6" strokeWidth={1.75} />}
+                title="Kommentarer og noter"
+                text="Kommentarer på projekter og opgaver, noter på opgaver og aktivitet på projektet — samlet ét sted."
+              />
+              <FeatureCard
+                icon={<Target className="h-6 w-6" strokeWidth={1.75} />}
+                title="Dagligt fokus"
+                text="Oversigten viser dine vigtigste opgaver og deadlines, så du hurtigt ved, hvad der trænger til handling."
+              />
+              <FeatureCard
+                icon={<Cloud className="h-6 w-6" strokeWidth={1.75} />}
+                title="Filer og dokumenter"
+                text="Upload filer til projekter med sikker lagring og hurtig adgang fra projektsiden."
+              />
+              <FeatureCard
+                icon={<Shield className="h-6 w-6" strokeWidth={1.75} />}
+                title="Sikkerhed og GDPR"
+                text="Data i EU og understøttelse af en ansvarlig, dokumenterbar brug af persondata i arbejdsprocesser."
+              />
+              <FeatureCard
+                icon={<AppWindow className="h-6 w-6" strokeWidth={1.75} />}
+                title="Microsoft 365"
+                text="Planlagt integration med Outlook, Teams og relaterede værktøjer i dit eksisterende miljø."
+                badge="Kommer snart"
+              />
             </div>
           </div>
         </section>
 
-        {/* FEATURES */}
-        <section id="features" className="px-10 py-[100px]">
-          <p className="text-center text-[11px] uppercase tracking-[0.08em] text-[#9ca3af]">Hvad du får</p>
-          <h2 className="mx-auto mt-2 max-w-[560px] text-center text-4xl font-semibold text-[#0f1923]">
-            Bygget til at gøre arbejdet lettere
-          </h2>
-          <p className="mx-auto mt-3 max-w-xl text-center text-base text-[#6b7280]">
-            Alt hvad du har brug for samlet i et enkelt, hurtigt og intuitivt værktøj.
-          </p>
-
-          <div className="mx-auto mt-[60px] grid max-w-[1000px] grid-cols-3 gap-5">
-            <FeatureCard
-              icon={<IconGridSquares />}
-              title="Fuldt projektoverblik"
-              text="Se alle aktive projekter med status, prioritet, fremdrift og deadline på ét sted. Skift mellem liste- og kanban-visning alt efter hvad der passer dig bedst."
-            />
-            <FeatureCard
-              icon={<IconCheckCircle />}
-              title="Opgavestyring der virker"
-              text="Opret opgaver direkte under hvert projekt. Sæt deadline, prioritet og ansvarlig. Marker opgaver færdige med ét klik — fremdriften opdateres automatisk."
-            />
-            <FeatureCard
-              icon={<IconRepeat />}
-              title="Rutineprojekter"
-              text="Har du projekter der gentager sig hver måned? Sæt dem som rutine og de genopstår automatisk når de er fuldført — med alle opgaver nulstillet og klar til brug."
-            />
-            <FeatureCard
-              icon={<IconChat />}
-              title="Kommentarer og noter"
-              text="Skriv kommentarer direkte på projekter og på individuelle opgaver. Tilføj frie noter og mødereferater under aktivitet — al kommunikation samlet ét sted."
-            />
-            <FeatureCard
-              icon={<IconCloudUpload />}
-              title="Filer og dokumenter"
-              text="Upload relevante filer direkte til projekter. Alle dokumenter, præsentationer og bilag ligger præcis der de hører hjemme — knyttet til det rigtige projekt."
-            />
-            <FeatureCard
-              icon={<IconCalendar />}
-              title="Møder og aktivitet"
-              text="Tilføj møder manuelt til projekter med dato og beskrivelse. Få et samlet aktivitetsoverblik over alt der er sket på hvert projekt."
-            />
-            <FeatureCard
-              icon={<IconBell />}
-              title="Notifikationer"
-              text="Få besked når opgaver er overskredet, rutineprojekter genstartes eller nye opgaver tildeles dig. Alt samlet i ét diskret notifikationscenter."
-            />
-            <FeatureCard
-              icon={<IconMicrosoft />}
-              title="Microsoft 365 integration"
-              text="Kommende funktion: forbind Outlook, Teams og OneNote så mails, møder og noter automatisk tilknyttes de rigtige projekter via AI-matching."
-              badge="Kommer snart"
-            />
-            <FeatureCard
-              icon={<IconTeam />}
-              title="Team og samarbejde"
-              text="Inviter kolleger til dine projekter. Se teamets aktive projekter og opgaver. Administrer roller og adgang direkte fra indstillinger."
-            />
+        {/* How it works */}
+        <section id="how-it-works" className="bg-[#f8f9fa] py-24">
+          <div className="mx-auto max-w-7xl px-8">
+            <h2 className="mb-20 text-center text-3xl font-bold text-[#1a3167]">Kom i gang på få minutter</h2>
+            <div className="relative grid gap-12 md:grid-cols-3">
+              <div className="absolute left-1/4 right-1/4 top-12 -z-0 hidden h-0.5 bg-[#cce8f4]/40 md:block" aria-hidden />
+              <div className="relative z-10 space-y-4 text-center">
+                <div className="text-7xl font-black leading-none text-[#cce8f4]/70">01</div>
+                <h3 className="text-xl font-bold text-[#0f1923]">Log ind med Google</h3>
+                <p className="px-4 text-[#6b7280]">Brug dit eksisterende login. Ingen ny adgangskode at administrere.</p>
+              </div>
+              <div className="relative z-10 space-y-4 text-center">
+                <div className="text-7xl font-black leading-none text-[#cce8f4]/70">02</div>
+                <h3 className="text-xl font-bold text-[#0f1923]">Opret dit første projekt</h3>
+                <p className="px-4 text-[#6b7280]">
+                  Navngiv projektet, sæt deadline og prioritet, og tilføj opgaver og kontaktpersoner som i appen.
+                </p>
+              </div>
+              <div className="relative z-10 space-y-4 text-center">
+                <div className="text-7xl font-black leading-none text-[#cce8f4]/70">03</div>
+                <h3 className="text-xl font-bold text-[#0f1923]">Hold overblikket</h3>
+                <p className="px-4 text-[#6b7280]">
+                  Følg status, opgaver og aktivitet på tværs af projekter — med samme data for hele teamet.
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* HOW IT WORKS */}
-        <section className="bg-white px-10 py-[100px]">
-          <p className="text-center text-[11px] uppercase tracking-[0.08em] text-[#9ca3af]">Sådan virker det</p>
-          <h2 className="mt-2 text-center text-4xl font-semibold text-[#0f1923]">I gang på 2 minutter</h2>
+        {/* Feature highlights */}
+        <section id="feature-highlights" className="overflow-hidden bg-white py-24">
+          <div className="mx-auto max-w-7xl space-y-32 px-8">
+            <div className="flex flex-col items-center gap-16 lg:flex-row">
+              <div className="space-y-6 lg:w-1/2">
+                <h2 className="text-4xl font-bold tracking-tight text-[#0f1923]">Tre visninger. Én sandhed.</h2>
+                <p className="text-lg leading-relaxed text-[#6b7280]">
+                  Vælg liste, kanban eller Gantt pr. projekt. Skift visning efter behov — opgaver og deadlines følger med.
+                </p>
+                <ul className="space-y-4 text-sm font-medium text-[#0f1923]">
+                  <li className="flex items-start gap-3">
+                    <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#1a3167]" strokeWidth={2.5} />
+                    Listevisning til detaljeret planlægning
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#1a3167]" strokeWidth={2.5} />
+                    Kanban til daglig workflow
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#1a3167]" strokeWidth={2.5} />
+                    Gantt til visualisering af deadlines
+                  </li>
+                </ul>
+              </div>
+              <div className="w-full lg:w-1/2">
+                <KanbanMockup />
+              </div>
+            </div>
 
-          <div className="mx-auto mt-[60px] flex max-w-[800px] justify-between gap-10">
-            <div className="flex-1 text-center">
-              <p className="text-[48px] font-semibold leading-none text-[#cce8f4]">01</p>
-              <h3 className="mt-4 text-lg font-semibold text-[#0f1923]">Log ind med Google</h3>
-              <p className="mt-2 text-sm leading-[1.7] text-[#6b7280]">
-                Opret din konto med et enkelt klik via Google. Ingen adgangskode, ingen opsætning.
-              </p>
-            </div>
-            <div className="flex-1 text-center">
-              <p className="text-[48px] font-semibold leading-none text-[#cce8f4]">02</p>
-              <h3 className="mt-4 text-lg font-semibold text-[#0f1923]">Opret dit første projekt</h3>
-              <p className="mt-2 text-sm leading-[1.7] text-[#6b7280]">
-                Giv projektet et navn, en deadline og en prioritet. Tilføj opgaver, kontaktpersoner og noter.
-              </p>
-            </div>
-            <div className="flex-1 text-center">
-              <p className="text-[48px] font-semibold leading-none text-[#cce8f4]">03</p>
-              <h3 className="mt-4 text-lg font-semibold text-[#0f1923]">Inviter dit team</h3>
-              <p className="mt-2 text-sm leading-[1.7] text-[#6b7280]">
-                Del projekter med kolleger og arbejd sammen i realtid. Alle ser de samme opdateringer.
-              </p>
+            <div className="flex flex-col items-center gap-16 lg:flex-row-reverse">
+              <div className="space-y-6 lg:w-1/2">
+                <h2 className="text-4xl font-bold tracking-tight text-[#0f1923]">Opgaver i fokus</h2>
+                <p className="text-lg leading-relaxed text-[#6b7280]">
+                  Sidepanelet samler titel, status, datoer, beskrivelse, noter og kommentarer for den valgte opgave —
+                  uden at du mister konteksten for projektet.
+                </p>
+                <ul className="space-y-4 text-sm font-medium text-[#0f1923]">
+                  <li className="flex items-start gap-3">
+                    <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#1a3167]" strokeWidth={2.5} />
+                    Kommentarer og noter på opgaven
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#1a3167]" strokeWidth={2.5} />
+                    Felter for status, prioritet og ansvarlig
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#1a3167]" strokeWidth={2.5} />
+                    Hurtig navigation tilbage til projektet
+                  </li>
+                </ul>
+              </div>
+              <div className="w-full lg:w-1/2">
+                <SidePanelMockup />
+              </div>
             </div>
           </div>
         </section>
 
         {/* CTA */}
-        <section className="bg-[#1a3167] px-10 py-[100px] text-center">
-          <h2 className="text-[40px] font-semibold text-white">Klar til at prøve det?</h2>
-          <p className="mt-4 text-base text-white/75">
-            Log ind med Google og vær i gang på under 2 minutter. Gratis.
-          </p>
-          <Link
-            href="/login"
-            className="mt-10 inline-block rounded-lg bg-white px-10 py-4 text-base font-semibold text-[#1a3167]"
-          >
-            Log ind med Google
-          </Link>
+        <section className="bg-[#1a3167] py-24">
+          <div className="mx-auto max-w-4xl space-y-8 px-8 text-center">
+            <h2 className="text-4xl font-extrabold tracking-tight text-white">Klar til at optimere jeres projekter?</h2>
+            <p className="mx-auto max-w-2xl text-lg text-[#cce8f4]/95">
+              Opret jeres team i dag og oplev forskellen.
+            </p>
+            <div className="flex flex-col justify-center gap-4 pt-4 sm:flex-row">
+              <Link
+                href="/login"
+                className="rounded-xl bg-white px-10 py-5 text-lg font-bold text-[#1a3167] transition-transform active:scale-[0.98]"
+              >
+                Kom i gang
+              </Link>
+              <Link
+                href="/login"
+                className="rounded-xl border border-white/40 px-10 py-5 text-lg font-bold text-white transition-colors hover:bg-white/10"
+              >
+                Kontakt salg
+              </Link>
+            </div>
+          </div>
         </section>
 
-        {/* FOOTER */}
-        <footer className="border-t border-[#e8e8e8] bg-white px-10 py-8">
-          <div className="grid grid-cols-3 items-center">
-            <div className="justify-self-start">
-              <Link href="/landing">
-                <Logo className="h-7 w-auto" />
+        {/* Footer */}
+        <footer className="bg-[#f8f9fa] py-12">
+          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-8 px-8 text-sm md:flex-row">
+            <Link href="/landing" className="flex items-center gap-2">
+              <Logo className="h-7 w-auto" />
+            </Link>
+            <nav className="flex flex-wrap justify-center gap-8" aria-label="Footer">
+              <Link href="/privacy" className="text-[#6b7280] transition-colors hover:text-[#1a3167]">
+                Privacy
               </Link>
-            </div>
-            <p className="text-center text-xs text-[#9ca3af]">© 2026 Projectbase</p>
-            <div className="flex justify-end gap-6 text-xs text-[#6b7280]">
-              <a href="mailto:kontakt@projectbase.dk" className="hover:text-[#1a3167]">
-                Kontakt
+              <Link href="/privacy" className="text-[#6b7280] transition-colors hover:text-[#1a3167]">
+                Terms
+              </Link>
+              <Link href="/privacy" className="text-[#6b7280] transition-colors hover:text-[#1a3167]">
+                Security
+              </Link>
+              <a href="mailto:kontakt@projectbase.dk" className="text-[#6b7280] transition-colors hover:text-[#1a3167]">
+                Contact
               </a>
-              <Link href="/privacy" className="hover:text-[#1a3167]">
-                Privatlivspolitik
-              </Link>
-            </div>
+            </nav>
+            <p className="text-center text-xs text-[#9ca3af] md:text-right">
+              © 2026 Projectbase. Udviklet af Rasmus Vilstrup
+            </p>
           </div>
         </footer>
       </main>
