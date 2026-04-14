@@ -35,8 +35,10 @@ export type OversigtMeetingItem = {
   dateIso: string;
   timeLabel: string;
   title: string;
-  projectId: string;
-  projectName: string;
+  projectId: string | null;
+  projectName: string | null;
+  source: "calendar" | "ics";
+  projectColor?: string | null;
 };
 
 export type OversigtFocusSuggestion = {

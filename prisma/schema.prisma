@@ -93,6 +93,8 @@ model User {
   focusProjectId String?
   focusDate      DateTime?
   focusProject   Project? @relation("UserFocusProject", fields: [focusProjectId], references: [id], onDelete: SetNull)
+
+  icsEvents IcsEvent[]
 }
 
 model Project {
@@ -121,6 +123,7 @@ model Project {
   activities     Activity[]
   files          File[]
   calendarEvents CalendarEvent[]
+  icsEvents      IcsEvent[]
 
   userFocusSelections User[] @relation("UserFocusProject")
 
@@ -250,6 +253,27 @@ model CalendarEvent {
 
   @@index([projectId])
   @@index([externalId])
+}
+
+model IcsEvent {
+  id          String    @id @default(cuid())
+  userId      String
+  title       String
+  start       DateTime
+  end         DateTime?
+  location    String?
+  description String?
+  externalId  String
+  projectId   String?
+  createdAt   DateTime  @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, externalId])
+  @@index([userId])
+  @@index([start])
+  @@index([projectId])
 }
 
 model Notification {

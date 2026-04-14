@@ -12,6 +12,7 @@ import {
   updateMemberRole,
   updateMyAccount,
 } from "@/app/(dashboard)/indstillinger/actions";
+import IcsUploadSection from "@/components/indstillinger/IcsUploadSection";
 import { displayName, initialsFromUser } from "@/lib/projekter/display";
 
 type UserRow = {
@@ -246,6 +247,8 @@ export default function IndstillingerPageClient({
           </div>
         </div>
       </section>
+
+      <IcsUploadSection />
 
       {/* MICROSOFT */}
       <section className="rounded-xl bg-surface-container-lowest p-6 shadow-sm ring-1 ring-black/5">

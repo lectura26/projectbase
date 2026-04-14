@@ -4,8 +4,10 @@ import { X } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { projectColorForId } from "@/lib/calendar-palette";
 import { formatDanishDate } from "@/lib/datetime/format-danish";
+import { IcsEventRow } from "@/components/kalender/IcsEventRow";
 import type {
   KalenderEvent,
+  KalenderIcsEvent,
   KalenderProject,
   KalenderTaskDeadline,
   KalenderUserOption,
@@ -26,6 +28,12 @@ type PopoverState =
       y: number;
       kind: "deadline";
       item: KalenderTaskDeadline;
+    }
+  | {
+      x: number;
+      y: number;
+      kind: "ics";
+      item: KalenderIcsEvent;
     };
 
 function pad2(n: number) {
@@ -57,13 +65,25 @@ type Props = {
   projects: KalenderProject[];
   events: KalenderEvent[];
   tasks: KalenderTaskDeadline[];
+  icsEvents: KalenderIcsEvent[];
   users: KalenderUserOption[];
 };
+
+function formatIcsTimeShort(startIso: string, endIso: string | null): string {
+  const start = new Date(startIso);
+  const opts: Intl.DateTimeFormatOptions = { hour: "2-digit", minute: "2-digit" };
+  const a = start.toLocaleTimeString("da-DK", opts).replace(/\u00a0/g, " ");
+  if (!endIso) return a;
+  const end = new Date(endIso);
+  const b = end.toLocaleTimeString("da-DK", opts).replace(/\u00a0/g, " ");
+  return `${a} – ${b}`;
+}
 
 export default function KalenderPageClient({
   projects,
   events,
   tasks,
+  icsEvents,
   users,
 }: Props) {
   const [view, setView] = useState<ViewMode>("week");
@@ -101,18 +121,28 @@ export default function KalenderPageClient({
     });
   }, [tasks, projectFilter, personId, projectMap]);
 
+  const filteredIcs = useMemo(() => {
+    return icsEvents.filter((e) => {
+      if (projectFilter.size === 0) return true;
+      if (e.projectId && projectFilter.has(e.projectId)) return true;
+      return false;
+    });
+  }, [icsEvents, projectFilter]);
+
   const itemsByDay = useCallback(
     (key: string) => {
       const evs = filteredEvents.filter((e) => dayKeyLocal(new Date(e.date)) === key);
       const tks = filteredTasks.filter(
         (t) => dayKeyLocal(new Date(t.deadline)) === key,
       );
+      const ics = filteredIcs.filter((e) => dayKeyLocal(new Date(e.start)) === key);
       return {
         events: evs,
         deadlines: tks,
+        ics,
       };
     },
-    [filteredEvents, filteredTasks],
+    [filteredEvents, filteredTasks, filteredIcs],
   );
 
   const weekDays = useMemo(() => {
@@ -150,7 +180,8 @@ export default function KalenderPageClient({
     e: React.MouseEvent,
     payload:
       | { kind: "event"; item: KalenderEvent }
-      | { kind: "deadline"; item: KalenderTaskDeadline },
+      | { kind: "deadline"; item: KalenderTaskDeadline }
+      | { kind: "ics"; item: KalenderIcsEvent },
   ) {
     setPopover({ ...payload, x: e.clientX, y: e.clientY });
   }
@@ -266,8 +297,10 @@ export default function KalenderPageClient({
         </div>
       </div>
 
-      {projects.length === 0 ? (
-        <p className="text-sm text-on-surface-variant/90">Ingen projekter med kalenderdata endnu.</p>
+      {projects.length === 0 && icsEvents.length === 0 ? (
+        <p className="text-sm text-on-surface-variant/90">
+          Ingen projekter med kalenderdata endnu. Importer Outlook-møder under Indstillinger.
+        </p>
       ) : null}
 
       <div className="rounded-xl border border-outline-variant/20 bg-white p-4">
@@ -275,7 +308,7 @@ export default function KalenderPageClient({
           <div className="grid min-h-[320px] grid-cols-7 gap-2">
             {weekDays.map((d, i) => {
               const key = dayKeyLocal(d);
-              const { events: evs, deadlines: dls } = itemsByDay(key);
+              const { events: evs, deadlines: dls, ics: icsList } = itemsByDay(key);
               return (
                 <div
                   key={key}
@@ -315,6 +348,19 @@ export default function KalenderPageClient({
                         ⏳ {t.title}
                       </button>
                     ))}
+                    {icsList.map((ic) => (
+                      <button
+                        key={ic.id}
+                        type="button"
+                        onClick={(ev) => openPopover(ev, { kind: "ics", item: ic })}
+                        className="rounded border-l-[3px] border-[#0ea5e9] bg-[#f0f9ff] px-2 py-1 text-left font-body text-[10px] font-medium text-[#0f1923] shadow-sm"
+                      >
+                        <span className="mr-0.5 rounded bg-[#f0f9ff] text-[9px] font-semibold text-[#0ea5e9]">
+                          Outlook
+                        </span>
+                        {formatIcsTimeShort(ic.start, ic.end)} · {ic.title}
+                      </button>
+                    ))}
                   </div>
                 </div>
               );
@@ -331,8 +377,8 @@ export default function KalenderPageClient({
               {monthCells.map((d) => {
                 const key = dayKeyLocal(d);
                 const inMonth = d.getMonth() === monthAnchor.getMonth();
-                const { events: evs, deadlines: dls } = itemsByDay(key);
-                const total = evs.length + dls.length;
+                const { events: evs, deadlines: dls, ics: icsList } = itemsByDay(key);
+                const total = evs.length + dls.length + icsList.length;
                 const firstLabel =
                   evs[0]?.title ?? dls[0]?.title ?? "";
                 return (
@@ -356,12 +402,28 @@ export default function KalenderPageClient({
             </div>
           </div>
         )}
-        {filteredEvents.length === 0 && filteredTasks.length === 0 && projects.length > 0 ? (
+        {filteredEvents.length === 0 &&
+        filteredTasks.length === 0 &&
+        filteredIcs.length === 0 &&
+        projects.length > 0 ? (
           <p className="mt-4 text-center text-sm text-on-surface-variant/90">
             Ingen begivenheder eller deadlines i denne periode.
           </p>
         ) : null}
       </div>
+
+      {filteredIcs.length > 0 ? (
+        <div className="rounded-xl border border-outline-variant/20 bg-white p-4">
+          <h3 className="mb-3 font-body text-sm font-semibold text-primary">
+            Outlook / Teams
+          </h3>
+          <div className="divide-y divide-outline-variant/10">
+            {filteredIcs.map((e) => (
+              <IcsEventRow key={e.id} event={e} projects={projects} />
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       {popover ? (
         <div
@@ -399,6 +461,27 @@ export default function KalenderPageClient({
               >
                 Gå til projekt
               </a>
+            </>
+          ) : popover.kind === "ics" ? (
+            <>
+              <p className="pr-6 font-headline text-sm font-semibold text-[#0ea5e9]">
+                {popover.item.title}
+              </p>
+              <p className="mt-1 text-xs text-on-surface-variant">
+                {formatDanishDate(popover.item.start)}
+                {` · ${formatIcsTimeShort(popover.item.start, popover.item.end)}`}
+              </p>
+              {popover.item.location ? (
+                <p className="mt-1 text-xs text-on-surface-variant">{popover.item.location}</p>
+              ) : null}
+              {popover.item.project ? (
+                <a
+                  href={`/projekter/${popover.item.project.id}`}
+                  className="mt-3 inline-block text-xs font-medium text-primary underline"
+                >
+                  Gå til projekt
+                </a>
+              ) : null}
             </>
           ) : (
             <>

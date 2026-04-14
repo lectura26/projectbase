@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { projectAccessWhere } from "@/lib/projekter/project-access";
 import type {
   KalenderEvent,
+  KalenderIcsEvent,
   KalenderProject,
   KalenderTaskDeadline,
   KalenderUserOption,
@@ -27,25 +28,35 @@ export default async function KalenderPage() {
 
   const ids = projects.map((p) => p.id);
 
-  const [events, tasks] =
+  const startOfRange = new Date();
+  startOfRange.setDate(startOfRange.getDate() - 30);
+  startOfRange.setHours(0, 0, 0, 0);
+
+  const [events, tasks, icsEventsRaw] = await Promise.all([
     ids.length === 0
-      ? [[], []]
-      : await Promise.all([
-          prisma.calendarEvent.findMany({
-            where: { projectId: { in: ids } },
-            include: { project: { select: { name: true } } },
-            orderBy: { date: "asc" },
-          }),
-          prisma.task.findMany({
-            where: {
-              projectId: { in: ids },
-              deadline: { not: null },
-              status: { not: "DONE" },
-            },
-            include: { project: { select: { name: true } } },
-            orderBy: { deadline: "asc" },
-          }),
-        ]);
+      ? Promise.resolve([])
+      : prisma.calendarEvent.findMany({
+          where: { projectId: { in: ids } },
+          include: { project: { select: { name: true } } },
+          orderBy: { date: "asc" },
+        }),
+    ids.length === 0
+      ? Promise.resolve([])
+      : prisma.task.findMany({
+          where: {
+            projectId: { in: ids },
+            deadline: { not: null },
+            status: { not: "DONE" },
+          },
+          include: { project: { select: { name: true } } },
+          orderBy: { deadline: "asc" },
+        }),
+    prisma.icsEvent.findMany({
+      where: { userId: user.id, start: { gte: startOfRange } },
+      include: { project: { select: { id: true, name: true, color: true } } },
+      orderBy: { start: "asc" },
+    }),
+  ]);
 
   const projectPayload: KalenderProject[] = projects.map((p) => ({
     id: p.id,
@@ -70,6 +81,17 @@ export default async function KalenderPage() {
     projectId: t.projectId,
     projectName: t.project.name,
     assigneeId: t.userId,
+  }));
+
+  const icsPayload: KalenderIcsEvent[] = icsEventsRaw.map((e) => ({
+    id: e.id,
+    title: e.title,
+    start: e.start.toISOString(),
+    end: e.end ? e.end.toISOString() : null,
+    location: e.location,
+    description: e.description,
+    projectId: e.projectId,
+    project: e.project,
   }));
 
   const userIds = new Set<string>();
@@ -101,6 +123,7 @@ export default async function KalenderPage() {
       projects={projectPayload}
       events={eventPayload}
       tasks={taskPayload}
+      icsEvents={icsPayload}
       users={userOptions}
     />
   );

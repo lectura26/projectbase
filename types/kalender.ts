@@ -28,3 +28,14 @@ export type KalenderUserOption = {
   name: string;
   email: string;
 };
+
+export type KalenderIcsEvent = {
+  id: string;
+  title: string;
+  start: string;
+  end: string | null;
+  location: string | null;
+  description: string | null;
+  projectId: string | null;
+  project: { id: string; name: string; color: string } | null;
+};

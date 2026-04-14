@@ -56,6 +56,22 @@ function meetingTimeLabel(date: Date, eventTime: string | null): string {
   });
 }
 
+function icsMeetingTimeLabel(start: Date, end: Date | null): string {
+  const opts: Intl.DateTimeFormatOptions = {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: TZ,
+  };
+  const a = start
+    .toLocaleTimeString("da-DK", opts)
+    .replace(/\u00a0/g, " ");
+  if (!end) return a;
+  const b = end
+    .toLocaleTimeString("da-DK", opts)
+    .replace(/\u00a0/g, " ");
+  return `${a}–${b}`;
+}
+
 export default async function OversigtPage() {
   const user = await getSessionUser();
   if (!user?.email) redirect("/login");
@@ -65,7 +81,15 @@ export default async function OversigtPage() {
   const data = await getCachedOversigtDashboardData(user.id);
   if (!data) redirect("/login");
 
-  const { user: row, now, upcomingTasks, pulseRaw, deadlineTasks, meetingRows } = data;
+  const {
+    user: row,
+    now,
+    upcomingTasks,
+    pulseRaw,
+    deadlineTasks,
+    meetingRows,
+    icsRowsForOversigt,
+  } = data;
 
   const displayName = (row.name?.trim() || row.email).trim();
 
@@ -102,13 +126,45 @@ export default async function OversigtPage() {
     dotColor: projectCalendarColor(t.projectId),
   }));
 
-  const meetings: OversigtMeetingItem[] = meetingRows.map((e) => ({
-    id: e.id,
-    dateIso: e.date.toISOString(),
-    timeLabel: meetingTimeLabel(e.date, e.eventTime),
-    title: e.title,
-    projectId: e.projectId,
-    projectName: e.project.name,
+  const combinedMeetings = [
+    ...meetingRows.map((e) => ({
+      source: "calendar" as const,
+      id: e.id,
+      date: e.date,
+      eventTime: e.eventTime,
+      title: e.title,
+      projectId: e.projectId,
+      projectName: e.project.name,
+      end: null as Date | null,
+      projectColor: null as string | null,
+    })),
+    ...icsRowsForOversigt.map((e) => ({
+      source: "ics" as const,
+      id: e.id,
+      date: e.start,
+      eventTime: null as string | null,
+      title: e.title,
+      projectId: e.projectId,
+      projectName: e.project?.name ?? null,
+      end: e.end,
+      projectColor: e.project?.color ?? null,
+    })),
+  ]
+    .sort((a, b) => a.date.getTime() - b.date.getTime())
+    .slice(0, 5);
+
+  const meetings: OversigtMeetingItem[] = combinedMeetings.map((m) => ({
+    id: m.id,
+    dateIso: m.date.toISOString(),
+    timeLabel:
+      m.source === "calendar"
+        ? meetingTimeLabel(m.date, m.eventTime)
+        : icsMeetingTimeLabel(m.date, m.end),
+    title: m.title,
+    projectId: m.projectId,
+    projectName: m.projectName,
+    source: m.source,
+    projectColor: m.projectColor,
   }));
 
   const [focusProject, focusPick] = await Promise.all([

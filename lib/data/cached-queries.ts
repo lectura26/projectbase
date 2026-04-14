@@ -67,7 +67,8 @@ export const getCachedOversigtDashboardData = cache(async (userId: string) => {
   const now = new Date();
   const { start: dayStart } = copenhagenDayRangeUTC(now);
 
-  const [upcomingTasks, pulseRaw, deadlineTasks, meetingRows] = await Promise.all([
+  const [upcomingTasks, pulseRaw, deadlineTasks, meetingRows, icsRowsForOversigt] =
+    await Promise.all([
     prisma.task.findMany({
       where: {
         project: { userId, isTemplate: false },
@@ -111,7 +112,18 @@ export const getCachedOversigtDashboardData = cache(async (userId: string) => {
         project: { select: { name: true } },
       },
       orderBy: [{ date: "asc" }, { title: "asc" }],
-      take: 5,
+      take: 15,
+    }),
+    prisma.icsEvent.findMany({
+      where: {
+        userId,
+        start: { gte: dayStart },
+      },
+      include: {
+        project: { select: { id: true, name: true, color: true } },
+      },
+      orderBy: [{ start: "asc" }, { title: "asc" }],
+      take: 15,
     }),
   ]);
 
@@ -122,5 +134,6 @@ export const getCachedOversigtDashboardData = cache(async (userId: string) => {
     pulseRaw,
     deadlineTasks,
     meetingRows,
+    icsRowsForOversigt,
   };
 });
