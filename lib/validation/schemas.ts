@@ -100,6 +100,11 @@ export const updateProjectStatusSchema = z.object({
   status: projectStatusZ,
 });
 
+export const updateProjectPrioritySchema = z.object({
+  projectId: cuidLikeSchema,
+  priority: priorityZ,
+});
+
 export const ganttTasksForProjectSchema = z.object({
   projectId: cuidLikeSchema,
 });

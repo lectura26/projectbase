@@ -20,6 +20,7 @@ import { parseOrThrow } from "@/lib/validation/parse";
 import {
   createProjectActionSchema,
   updateProjectActionSchema,
+  updateProjectPrioritySchema,
   updateProjectScheduleActionSchema,
   updateProjectStatusSchema,
 } from "@/lib/validation/schemas";
@@ -114,6 +115,27 @@ export async function updateProjectStatus(
   revalidatePath("/projekter");
   revalidatePath(`/projekter/${projectId}`);
   return { ok: true, routineRestarted };
+}
+
+export async function updateProjectPriority(projectId: string, priority: Priority) {
+  const user = await getSessionUser();
+  if (!user) throw new Error("Ikke logget ind.");
+
+  parseOrThrow(updateProjectPrioritySchema, { projectId, priority });
+
+  const project = await prisma.project.findFirst({
+    where: { id: projectId, ...projectAccessWhere(user.id) },
+    select: { id: true },
+  });
+  if (!project) throw new Error("Projekt ikke fundet eller ingen adgang.");
+
+  await prisma.project.update({
+    where: { id: projectId },
+    data: { priority },
+  });
+
+  revalidatePath("/projekter");
+  revalidatePath(`/projekter/${projectId}`);
 }
 
 export type CreateProjectInput = {

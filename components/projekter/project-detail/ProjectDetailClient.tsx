@@ -2,18 +2,20 @@
 
 import type { ActivityType, Priority, ProjectStatus, TaskStatus } from "@prisma/client";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, Pencil, Plus, Repeat, Trash2, X } from "lucide-react";
+import { Check, ChevronDown, Pencil, Plus, Repeat, Trash2, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
 import { toast } from "sonner";
 import {
+  updateProjectPriority,
   updateProjectStatus,
   type EditProjectInitial,
   updateProjectSchedule,
@@ -150,6 +152,31 @@ function PriorityBadge({ priority }: { priority: Priority }) {
   );
 }
 
+function projectPriorityDotClass(p: Priority): string {
+  switch (p) {
+    case "HIGH":
+      return "bg-[#dc2626]";
+    case "MEDIUM":
+      return "bg-[#d97706]";
+    case "LOW":
+      return "bg-[#16a34a]";
+    default:
+      return "bg-[#9ca3af]";
+  }
+}
+
+function isProjectDeadlineOverdue(
+  deadlineIso: string | null,
+  status: ProjectStatus,
+): boolean {
+  if (!deadlineIso || status === "COMPLETED") return false;
+  const d = new Date(deadlineIso);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime() < today.getTime();
+}
+
 function activityBadge(type: ActivityType) {
   switch (type) {
     case "MAIL":
@@ -223,13 +250,28 @@ export default function ProjectDetailClient({
 
   const [tasks, setTasks] = useState<TaskDetailDTO[]>(initial.tasks);
   const [projectStatusOverride, setProjectStatusOverride] = useState<ProjectStatus | null>(null);
+  const [priorityOverride, setPriorityOverride] = useState<Priority | null>(null);
 
   const displayProjectStatus = projectStatusOverride ?? initial.status;
+  const displayPriority = priorityOverride ?? initial.priority;
+
+  const descriptionText = initial.description?.trim() ?? "";
+  const [descExpanded, setDescExpanded] = useState(false);
+  const descRef = useRef<HTMLParagraphElement>(null);
+  const [descNeedsToggle, setDescNeedsToggle] = useState(false);
 
   useEffect(() => {
     setTasks(initial.tasks);
     setProjectStatusOverride(null);
+    setPriorityOverride(null);
   }, [initial.id, initial.updatedAt]); // eslint-disable-line react-hooks/exhaustive-deps -- sync when server payload revision changes
+
+  useLayoutEffect(() => {
+    if (!descriptionText || descExpanded) return;
+    const el = descRef.current;
+    if (!el) return;
+    setDescNeedsToggle(el.scrollHeight > el.clientHeight + 1);
+  }, [descriptionText, descExpanded, initial.updatedAt]);
 
   useEffect(() => {
     setScheduleStart(isoToYmd(initial.startDate));
@@ -335,6 +377,17 @@ export default function ProjectDetailClient({
     }
   };
 
+  const onPriorityChange = async (next: Priority) => {
+    setPriorityOverride(next);
+    try {
+      await updateProjectPriority(initial.id, next);
+      router.refresh();
+    } catch (e) {
+      setPriorityOverride(null);
+      toast.error(e instanceof Error ? e.message : "Kunne ikke opdatere prioritet.");
+    }
+  };
+
   const tabBtn = (key: TabKey, label: string, visible: boolean) =>
     visible ? (
       <button
@@ -362,45 +415,154 @@ export default function ProjectDetailClient({
             <h1 className="font-headline text-2xl font-semibold text-primary sm:text-3xl">
               {initial.name}
             </h1>
-            <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
-              <div className="flex items-center gap-2">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-container text-xs font-bold text-white">
-                  {initialsFromUser(initial.owner)}
-                </span>
-                <span className="font-body font-medium text-on-surface">
-                  {displayName(initial.owner)}
-                </span>
-              </div>
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-on-surface-variant">
-                {scheduleStart ? (
-                  <>
-                    <span>Startdato</span>
-                    <DatePicker
-                      value={scheduleStart}
-                      onChange={setScheduleStart}
-                      onBlurCommit={(c) => void saveScheduleField("startDate", c)}
-                      className="w-[min(100%,152px)] rounded border border-outline-variant/30 bg-white px-2 py-1 font-body text-sm text-on-surface"
-                    />
-                    {scheduleDeadline ? (
-                      <span className="text-on-surface-variant" aria-hidden>
-                        →
-                      </span>
-                    ) : null}
-                  </>
+            {descriptionText ? (
+              <div className="mt-[6px] mb-0 flex flex-wrap items-baseline gap-x-1 gap-y-0 text-[14px] leading-[1.6] text-[#6b7280]">
+                <p
+                  ref={descRef}
+                  className={`min-w-0 flex-1 ${
+                    !descExpanded ? "line-clamp-2" : ""
+                  }`}
+                >
+                  {descriptionText}
+                </p>
+                {descNeedsToggle ? (
+                  <button
+                    type="button"
+                    onClick={() => setDescExpanded((v) => !v)}
+                    className="shrink-0 cursor-pointer border-0 bg-transparent p-0 text-[12px] font-normal text-[#1a3167] hover:underline"
+                  >
+                    {descExpanded ? "Vis mindre" : "Læs mere"}
+                  </button>
                 ) : null}
-                <span>Frist</span>
-                <DatePicker
-                  value={scheduleDeadline}
-                  onChange={setScheduleDeadline}
-                  onBlurCommit={(c) => void saveScheduleField("deadline", c)}
-                  className="w-[min(100%,152px)] rounded border border-outline-variant/30 bg-white px-2 py-1 font-body text-sm text-on-surface"
-                />
               </div>
-              <PriorityBadge priority={initial.priority} />
-              <span className="text-on-surface-variant">
-                Fremskridt {progress}%
-              </span>
+            ) : null}
+
+            <div className="my-3 flex flex-row flex-wrap gap-2 border-y border-[#f3f4f6] py-3">
+              <div className="flex min-h-0 w-fit min-w-0 max-w-full flex-[0_0_auto] flex-col rounded-[6px] bg-[#f8f9fa] px-3 py-2">
+                <span className="mb-[3px] block text-[11px] font-medium uppercase tracking-[0.04em] text-[#9ca3af]">
+                  Status
+                </span>
+                <div className="relative min-w-0">
+                  <label className="sr-only" htmlFor="project-status">
+                    Status
+                  </label>
+                  <select
+                    id="project-status"
+                    value={displayProjectStatus}
+                    onChange={(e) => onStatusChange(e.target.value as ProjectStatus)}
+                    className="w-full min-w-[140px] cursor-pointer appearance-none border-0 bg-transparent pr-6 text-[13px] font-medium text-[#0f1923] outline-none focus:ring-0"
+                  >
+                    {PROJECT_STATUS_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    className="pointer-events-none absolute right-0 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9ca3af]"
+                    aria-hidden
+                    strokeWidth={2}
+                  />
+                </div>
+              </div>
+
+              <div className="flex min-h-0 w-fit min-w-0 max-w-full flex-[0_0_auto] flex-col rounded-[6px] bg-[#f8f9fa] px-3 py-2">
+                <span className="mb-[3px] block text-[11px] font-medium uppercase tracking-[0.04em] text-[#9ca3af]">
+                  Prioritet
+                </span>
+                <div className="relative min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`inline-block h-2 w-2 shrink-0 rounded-full ${projectPriorityDotClass(displayPriority)}`}
+                      aria-hidden
+                    />
+                    <select
+                      value={displayPriority}
+                      onChange={(e) =>
+                        void onPriorityChange(e.target.value as Priority)
+                      }
+                      className="min-w-0 flex-1 cursor-pointer appearance-none border-0 bg-transparent pr-6 text-[13px] font-medium text-[#0f1923] outline-none focus:ring-0"
+                      aria-label="Prioritet"
+                    >
+                      {(["HIGH", "MEDIUM", "LOW"] as const).map((p) => (
+                        <option key={p} value={p}>
+                          {priorityLabelDa(p)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <ChevronDown
+                    className="pointer-events-none absolute right-0 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9ca3af]"
+                    aria-hidden
+                    strokeWidth={2}
+                  />
+                </div>
+              </div>
+
+              <div className="flex min-h-0 w-fit min-w-0 max-w-full flex-[0_0_auto] flex-col rounded-[6px] bg-[#f8f9fa] px-3 py-2">
+                <span className="mb-[3px] block text-[11px] font-medium uppercase tracking-[0.04em] text-[#9ca3af]">
+                  Startdato
+                </span>
+                <div className="min-w-0 [&_button]:right-0 [&_button]:top-1/2 [&_button]:-translate-y-1/2">
+                  <DatePicker
+                    value={scheduleStart}
+                    onChange={setScheduleStart}
+                    onBlurCommit={(c) => void saveScheduleField("startDate", c)}
+                    placeholder="Ingen"
+                    className={`!rounded-md !border-0 !bg-transparent !px-0 !py-0 !pr-8 !text-[13px] !font-medium !leading-normal !shadow-none !ring-0 focus:!border-0 focus:!ring-0 ${
+                      commitYmdString(scheduleStart)
+                        ? "!text-[#0f1923]"
+                        : "!text-[#9ca3af] placeholder:!text-[#9ca3af]"
+                    }`}
+                  />
+                </div>
+              </div>
+
+              <div className="flex min-h-0 w-fit min-w-0 max-w-full flex-[0_0_auto] flex-col rounded-[6px] bg-[#f8f9fa] px-3 py-2">
+                <span className="mb-[3px] block text-[11px] font-medium uppercase tracking-[0.04em] text-[#9ca3af]">
+                  Frist
+                </span>
+                <div className="min-w-0 [&_button]:right-0 [&_button]:top-1/2 [&_button]:-translate-y-1/2">
+                  <DatePicker
+                    value={scheduleDeadline}
+                    onChange={setScheduleDeadline}
+                    onBlurCommit={(c) => void saveScheduleField("deadline", c)}
+                    placeholder="Ingen"
+                    className={`!rounded-md !border-0 !bg-transparent !px-0 !py-0 !pr-8 !text-[13px] !font-medium !leading-normal !shadow-none !ring-0 focus:!border-0 focus:!ring-0 ${
+                      !commitYmdString(scheduleDeadline)
+                        ? "!text-[#9ca3af] placeholder:!text-[#9ca3af]"
+                        : isProjectDeadlineOverdue(initial.deadline, displayProjectStatus)
+                          ? "!text-[#dc2626]"
+                          : "!text-[#0f1923]"
+                    }`}
+                  />
+                </div>
+              </div>
+
+              <div className="flex min-h-0 w-fit min-w-0 max-w-full flex-[0_0_auto] flex-col rounded-[6px] bg-[#f8f9fa] px-3 py-2">
+                <span className="mb-[3px] block text-[11px] font-medium uppercase tracking-[0.04em] text-[#9ca3af]">
+                  Fremdrift
+                </span>
+                <span className="text-[13px] font-semibold text-[#1a3167]">
+                  {progress}%
+                </span>
+              </div>
+
+              <div className="flex min-h-0 w-fit min-w-0 max-w-full flex-[0_0_auto] flex-col rounded-[6px] bg-[#f8f9fa] px-3 py-2">
+                <span className="mb-[3px] block text-[11px] font-medium uppercase tracking-[0.04em] text-[#9ca3af]">
+                  Ejer
+                </span>
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#1a3167] text-[10px] font-bold leading-none text-white">
+                    {initialsFromUser(initial.owner)}
+                  </span>
+                  <span className="min-w-0 truncate text-[13px] font-medium text-[#0f1923]">
+                    {displayName(initial.owner)}
+                  </span>
+                </div>
+              </div>
             </div>
+
             {initial.isRoutine && initial.routineInterval ? (
               <p className="mt-2 flex items-center gap-1 font-body text-xs text-on-surface-variant/80">
                 <Repeat className="h-4 w-4 shrink-0" aria-hidden />
@@ -409,21 +571,6 @@ export default function ProjectDetailClient({
             ) : null}
           </div>
           <div className="flex shrink-0 items-center gap-3">
-            <label className="sr-only" htmlFor="project-status">
-              Status
-            </label>
-            <select
-              id="project-status"
-              value={displayProjectStatus}
-              onChange={(e) => onStatusChange(e.target.value as ProjectStatus)}
-              className="rounded-lg border border-outline-variant/20 bg-white px-3 py-2 font-body text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-            >
-              {PROJECT_STATUS_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
             <button
               type="button"
               onClick={() => setEditOpen(true)}
