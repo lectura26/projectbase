@@ -1,5 +1,7 @@
 "use client";
 
+import { FolderOpen } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   priorityBadgeClass,
@@ -28,11 +30,35 @@ function headerDeadlineLabel(deadlineIso: string | null): { text: string; urgent
 
 type Props = {
   focusProject: OversigtFocusProjectCard | null;
+  hasActiveProjects: boolean;
   onShiftFocus: () => void;
 };
 
-export function DagensFocusCard({ focusProject, onShiftFocus }: Props) {
+export function DagensFocusCard({ focusProject, hasActiveProjects, onShiftFocus }: Props) {
   const router = useRouter();
+
+  if (!hasActiveProjects) {
+    return (
+      <section className="mb-6">
+        <h2 className="mb-2 font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
+          Dagens fokus
+        </h2>
+        <div className="w-full rounded-[8px] border border-dashed border-[#d1d5db] bg-white py-10 text-center">
+          <FolderOpen className="mx-auto h-6 w-6 text-[#9ca3af]" aria-hidden />
+          <p className="mt-2 text-[14px] text-[#6b7280]">Ingen aktive projekter</p>
+          <p className="mt-1 text-[13px] text-[#9ca3af]">
+            Opret et projekt for at anvende dagens fokus.
+          </p>
+          <Link
+            href="/projekter"
+            className="mt-3 inline-block text-[13px] font-medium text-[#1a3167] hover:underline"
+          >
+            + Opret projekt
+          </Link>
+        </div>
+      </section>
+    );
+  }
 
   if (!focusProject) {
     return (

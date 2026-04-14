@@ -72,8 +72,9 @@ export default function OversigtPageClient({
     initialFocusProject,
   );
   const morningPickerDismissedRef = useRef(false);
+  const hasActiveProjects = focusSuggestions.length > 0;
   const [pickerOpen, setPickerOpen] = useState(
-    () => !isFocusSetToday && focusSuggestions.length > 0,
+    () => !isFocusSetToday && hasActiveProjects,
   );
 
   useEffect(() => {
@@ -81,10 +82,14 @@ export default function OversigtPageClient({
   }, [initialFocusProject]);
 
   useEffect(() => {
-    if (!isFocusSetToday && focusSuggestions.length > 0 && !morningPickerDismissedRef.current) {
+    if (!hasActiveProjects) {
+      setPickerOpen(false);
+      return;
+    }
+    if (!isFocusSetToday && !morningPickerDismissedRef.current) {
       setPickerOpen(true);
     }
-  }, [isFocusSetToday, focusSuggestions.length]);
+  }, [isFocusSetToday, hasActiveProjects]);
 
   const applyFocus = useCallback(
     async (projectId: string) => {
@@ -105,15 +110,17 @@ export default function OversigtPageClient({
 
   return (
     <div className="min-w-0 pb-10">
-      <FocusPicker
-        open={pickerOpen}
-        displayName={focusPickerDisplayName}
-        todayLabel={focusPickerTodayLabel}
-        suggestions={focusSuggestions}
-        autoSelectedId={focusAutoSelectedId}
-        onClose={() => setPickerOpen(false)}
-        onConfirm={applyFocus}
-      />
+      {hasActiveProjects ? (
+        <FocusPicker
+          open={pickerOpen}
+          displayName={focusPickerDisplayName}
+          todayLabel={focusPickerTodayLabel}
+          suggestions={focusSuggestions}
+          autoSelectedId={focusAutoSelectedId}
+          onClose={() => setPickerOpen(false)}
+          onConfirm={applyFocus}
+        />
+      ) : null}
 
       <header className="mb-8">
         <h1 className="font-headline text-[20px] font-semibold leading-tight text-primary">
@@ -127,6 +134,7 @@ export default function OversigtPageClient({
         <div className="min-w-0 space-y-10">
           <DagensFocusCard
             focusProject={focusProject}
+            hasActiveProjects={hasActiveProjects}
             onShiftFocus={() => setPickerOpen(true)}
           />
 

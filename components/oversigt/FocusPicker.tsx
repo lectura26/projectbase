@@ -72,6 +72,10 @@ export function FocusPicker({
     }
   }, [selectedId, onConfirm, onClose]);
 
+  if (suggestions.length === 0) {
+    return null;
+  }
+
   return (
     <AnimatePresence>
       {open ? (
