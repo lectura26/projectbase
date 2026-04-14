@@ -1,12 +1,8 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Check, ChevronDown, ChevronUp, Plus, X } from "lucide-react";
-import {
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import {
   createTodoItem,
@@ -15,7 +11,7 @@ import {
 } from "@/app/(dashboard)/projekter/project-detail-actions";
 import type { TodoItemDTO } from "@/types/project-detail";
 
-const DRAWER_EXPAND_PX = 400;
+const TODO_DRAWER_HEIGHT_PX = 280;
 
 export type TodoSectionProps = {
   todos: TodoItemDTO[];
@@ -30,15 +26,12 @@ export function TodoSection({
   meetingId,
   onTodosReplace,
 }: TodoSectionProps) {
-  const drawerMode =
-    todos.length === 0 || todos.every((t) => t.done);
   const [todoDrawerOpen, setTodoDrawerOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const [inputFocused, setInputFocused] = useState(false);
 
-  useEffect(() => {
-    if (drawerMode) setTodoDrawerOpen(false);
-  }, [drawerMode]);
+  const openCount = todos.filter((t) => !t.done).length;
+  const showBadge = openCount > 0;
 
   const handleToggle = useCallback(
     async (id: string) => {
@@ -113,10 +106,7 @@ export function TodoSection({
     }
   };
 
-  const badgeAllDone =
-    todos.length > 0 && todos.every((t) => t.done);
-
-  const labelRow = (opts: { showCollapseChevron: boolean }) => (
+  const labelRow = (
     <div
       className="flex items-center justify-between px-5 pt-3 pb-2"
       style={{ padding: "12px 20px 8px" }}
@@ -124,16 +114,6 @@ export function TodoSection({
       <span className="text-[11px] font-normal uppercase tracking-[0.04em] text-[#9ca3af]">
         TO-DO
       </span>
-      {opts.showCollapseChevron ? (
-        <button
-          type="button"
-          aria-label="Skjul to-do"
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border-0 bg-transparent p-0 text-[#6b7280] hover:bg-[#f8f9fa]"
-          onClick={() => setTodoDrawerOpen(false)}
-        >
-          <ChevronUp className="h-4 w-4" aria-hidden strokeWidth={2} />
-        </button>
-      ) : null}
     </div>
   );
 
@@ -200,65 +180,41 @@ export function TodoSection({
 
   if (!taskId && !meetingId) return null;
 
-  const expandedBlock = (
-    <div className="border-t border-[#e8e8e8] bg-white">
-      {labelRow({ showCollapseChevron: false })}
-      {listAndInput}
-    </div>
-  );
-
-  if (!drawerMode) {
-    return expandedBlock;
-  }
-
   return (
     <>
-      <motion.div
-        initial={false}
-        animate={{ height: todoDrawerOpen ? DRAWER_EXPAND_PX : 0 }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
-        className="overflow-hidden border-t border-[#e8e8e8] bg-white"
-      >
-        <AnimatePresence initial={false}>
-          {todoDrawerOpen ? (
-            <motion.div
-              key="todo-drawer-inner"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="flex max-h-[400px] flex-col overflow-y-auto"
-            >
-              {labelRow({ showCollapseChevron: true })}
-              {listAndInput}
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
-      </motion.div>
-
       <button
         type="button"
-        className="flex h-[44px] w-full shrink-0 items-center justify-between border-t border-[#e8e8e8] bg-white px-5"
+        className="flex h-[44px] w-full shrink-0 items-center justify-between border-t border-[#e8e8e8] bg-white px-[20px]"
         onClick={() => setTodoDrawerOpen((o) => !o)}
       >
         <span className="flex items-center gap-2">
           {todoDrawerOpen ? (
-            <ChevronUp className="h-4 w-4 text-[#6b7280]" aria-hidden strokeWidth={2} />
+            <ChevronUp className="h-4 w-4 shrink-0 text-[#6b7280]" aria-hidden strokeWidth={2} />
           ) : (
-            <ChevronDown className="h-4 w-4 text-[#6b7280]" aria-hidden strokeWidth={2} />
+            <ChevronDown className="h-4 w-4 shrink-0 text-[#6b7280]" aria-hidden strokeWidth={2} />
           )}
           <span className="text-[13px] font-medium text-[#0f1923]">To-do</span>
         </span>
-        {todos.length > 0 ? (
-          <span
-            className={`flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-[5px] text-[11px] font-semibold text-white ${
-              badgeAllDone ? "bg-[#16a34a]" : "bg-[#1a3167]"
-            }`}
-          >
-            {todos.length}
+        {showBadge ? (
+          <span className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#1a3167] px-[5px] text-[11px] font-semibold text-white">
+            {openCount}
           </span>
         ) : null}
       </button>
+
+      <motion.div
+        initial={false}
+        animate={{ height: todoDrawerOpen ? TODO_DRAWER_HEIGHT_PX : 0 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+        className="overflow-hidden border-t border-[#e8e8e8] bg-white"
+      >
+        <div className="flex h-[280px] flex-col">
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            {labelRow}
+            {listAndInput}
+          </div>
+        </div>
+      </motion.div>
     </>
   );
 }

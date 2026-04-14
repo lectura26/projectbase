@@ -422,7 +422,7 @@ export function MeetingSidePanel({
             ) : (
               <div className="flex min-h-0 flex-1 flex-col">
                 <div className="min-h-0 flex-1 overflow-y-auto">
-                  <div className="space-y-0 pb-4">
+                  <div className="space-y-0 pb-0">
                     <div className="px-5 pb-2 pt-5">
                       <label className="sr-only" htmlFor={panelTitleId}>
                         Mødetitel
@@ -649,18 +649,48 @@ export function MeetingSidePanel({
                         ) : null}
                       </div>
                     </div>
-                    <TodoSection
-                      todos={detail.todos}
-                      taskId={null}
-                      meetingId={detail.id}
-                      onTodosReplace={(next) =>
-                        setDetail((d) => (d ? { ...d, todos: next } : null))
-                      }
-                    />
                   </div>
                 </div>
 
                 <div className="shrink-0 overflow-visible">
+                  <TodoSection
+                    todos={detail.todos}
+                    taskId={null}
+                    meetingId={detail.id}
+                    onTodosReplace={(next) =>
+                      setDetail((d) => (d ? { ...d, todos: next } : null))
+                    }
+                  />
+
+                  <button
+                    type="button"
+                    className="flex h-[44px] w-full shrink-0 items-center justify-between border-t border-[#e8e8e8] bg-white px-[20px]"
+                    onClick={() => setCommentsOpen((o) => !o)}
+                  >
+                    <span className="flex items-center gap-2">
+                      {commentsOpen ? (
+                        <ChevronUp className="h-4 w-4 shrink-0 text-[#6b7280]" aria-hidden strokeWidth={2} />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 shrink-0 text-[#6b7280]" aria-hidden strokeWidth={2} />
+                      )}
+                      <span className="text-[13px] font-medium text-[#0f1923]">
+                        Kommentarer
+                      </span>
+                    </span>
+                    <span className="relative flex items-center">
+                      {comments.length > 0 ? (
+                        <>
+                          <span className="flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#1a3167] px-[5px] text-[11px] font-semibold text-white">
+                            {comments.length}
+                          </span>
+                          {commentUnread ? (
+                            <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-[#dc2626]" />
+                          ) : null}
+                        </>
+                      ) : null}
+                    </span>
+                  </button>
+
                   <motion.div
                     initial={false}
                     animate={{ height: commentsOpen ? 280 : 0 }}
@@ -730,35 +760,6 @@ export function MeetingSidePanel({
                       </div>
                     </div>
                   </motion.div>
-
-                  <button
-                    type="button"
-                    className="flex h-11 w-full shrink-0 items-center justify-between border-t border-[#e8e8e8] bg-white px-5"
-                    onClick={() => setCommentsOpen((o) => !o)}
-                  >
-                    <span className="flex items-center gap-2">
-                      {commentsOpen ? (
-                        <ChevronUp className="h-4 w-4 text-[#6b7280]" aria-hidden />
-                      ) : (
-                        <ChevronDown className="h-4 w-4 text-[#6b7280]" aria-hidden />
-                      )}
-                      <span className="text-[13px] font-medium text-[#0f1923]">
-                        Kommentarer
-                      </span>
-                    </span>
-                    <span className="relative flex items-center">
-                      {comments.length > 0 ? (
-                        <>
-                          <span className="flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#1a3167] px-[5px] text-[11px] font-semibold text-white">
-                            {comments.length}
-                          </span>
-                          {commentUnread ? (
-                            <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-[#dc2626]" />
-                          ) : null}
-                        </>
-                      ) : null}
-                    </span>
-                  </button>
                 </div>
               </div>
             )}
