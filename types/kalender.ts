@@ -9,7 +9,8 @@ export type KalenderEvent = {
   id: string;
   title: string;
   date: string;
-  eventTime: string | null;
+  startTime: string | null;
+  endTime: string | null;
   projectId: string;
   projectName: string;
 };

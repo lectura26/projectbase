@@ -312,21 +312,9 @@ export default function OversigtPageClient({
                         <span className="font-body text-sm font-bold text-on-surface">
                           {m.timeLabel}
                         </span>
-                        {m.source === "ics" ? (
-                          <span className="rounded bg-[#f0f9ff] px-1.5 py-0.5 font-body text-[10px] font-medium text-[#0ea5e9]">
-                            Outlook
-                          </span>
-                        ) : null}
                         <span className="font-body text-[13px] font-medium text-[#0f1923]">{m.title}</span>
                       </div>
-                      {m.source === "calendar" && m.projectId && m.projectName ? (
-                        <Link
-                          href={`/projekter/${m.projectId}`}
-                          className="inline-flex w-fit rounded-full bg-primary/10 px-2.5 py-0.5 font-body text-[11px] font-semibold text-primary hover:bg-primary/15"
-                        >
-                          {m.projectName}
-                        </Link>
-                      ) : m.source === "ics" && m.projectId && m.projectName ? (
+                      {m.projectId && m.projectName ? (
                         <span
                           className="inline-flex w-fit max-w-full truncate rounded-full px-2.5 py-0.5 font-body text-[11px] font-semibold text-white"
                           style={{ backgroundColor: m.projectColor ?? "#1a3167" }}

@@ -66,7 +66,9 @@ export type CalendarEventDTO = {
   id: string;
   title: string;
   date: string;
-  eventTime: string | null;
+  startTime: string | null;
+  endTime: string | null;
+  projectId: string | null;
 };
 
 export type ProjectDetailPayload = {
@@ -95,4 +97,8 @@ export type ProjectDetailPayload = {
   activities: ActivityDTO[];
   files: FileDTO[];
   calendarEvents: CalendarEventDTO[];
+  /** User's meetings not linked to this project (or linked elsewhere) for "Tilknyt eksisterende" */
+  linkableMeetings: CalendarEventDTO[];
+  /** Active projects for meeting modals */
+  calendarProjectOptions: { id: string; name: string; color: string }[];
 };

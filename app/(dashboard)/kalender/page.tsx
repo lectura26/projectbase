@@ -3,128 +3,47 @@ import KalenderPageClient from "@/components/kalender/KalenderPageClient";
 import { getSessionUser } from "@/lib/auth/session-user";
 import { prisma } from "@/lib/prisma";
 import { projectAccessWhere } from "@/lib/projekter/project-access";
-import type {
-  KalenderEvent,
-  KalenderIcsEvent,
-  KalenderProject,
-  KalenderTaskDeadline,
-  KalenderUserOption,
-} from "@/types/kalender";
+import type { CalendarMeetingDTO, CalendarProjectOption } from "@/types/calendar";
 
 export default async function KalenderPage() {
   const user = await getSessionUser();
   if (!user) redirect("/login");
 
-  const projects = await prisma.project.findMany({
-    where: projectAccessWhere(user.id),
-    select: {
-      id: true,
-      name: true,
-      userId: true,
-      members: { select: { userId: true } },
-    },
-    orderBy: { name: "asc" },
-  });
-
-  const ids = projects.map((p) => p.id);
-
-  const startOfRange = new Date();
-  startOfRange.setDate(startOfRange.getDate() - 30);
-  startOfRange.setHours(0, 0, 0, 0);
-
-  const [events, tasks, icsEventsRaw] = await Promise.all([
-    ids.length === 0
-      ? Promise.resolve([])
-      : prisma.calendarEvent.findMany({
-          where: { projectId: { in: ids } },
-          include: { project: { select: { name: true } } },
-          orderBy: { date: "asc" },
-        }),
-    ids.length === 0
-      ? Promise.resolve([])
-      : prisma.task.findMany({
-          where: {
-            projectId: { in: ids },
-            deadline: { not: null },
-            status: { not: "DONE" },
-          },
-          include: { project: { select: { name: true } } },
-          orderBy: { deadline: "asc" },
-        }),
-    prisma.icsEvent.findMany({
-      where: { userId: user.id, start: { gte: startOfRange } },
-      include: { project: { select: { id: true, name: true, color: true } } },
-      orderBy: { start: "asc" },
+  const [meetings, projects] = await Promise.all([
+    prisma.calendarEvent.findMany({
+      where: { userId: user.id },
+      include: {
+        project: { select: { id: true, name: true, color: true } },
+      },
+      orderBy: [{ date: "asc" }, { startTime: "asc" }, { title: "asc" }],
+    }),
+    prisma.project.findMany({
+      where: {
+        ...projectAccessWhere(user.id),
+        status: { not: "COMPLETED" },
+      },
+      select: { id: true, name: true, color: true },
+      orderBy: { name: "asc" },
     }),
   ]);
 
-  const projectPayload: KalenderProject[] = projects.map((p) => ({
-    id: p.id,
-    name: p.name,
-    ownerId: p.userId,
-    memberIds: p.members.map((m) => m.userId),
-  }));
-
-  const eventPayload: KalenderEvent[] = events.map((e) => ({
+  const meetingPayload: CalendarMeetingDTO[] = meetings.map((e) => ({
     id: e.id,
     title: e.title,
     date: e.date.toISOString(),
-    eventTime: e.eventTime,
-    projectId: e.projectId,
-    projectName: e.project.name,
-  }));
-
-  const taskPayload: KalenderTaskDeadline[] = tasks.map((t) => ({
-    id: t.id,
-    title: t.title,
-    deadline: t.deadline!.toISOString(),
-    projectId: t.projectId,
-    projectName: t.project.name,
-    assigneeId: t.userId,
-  }));
-
-  const icsPayload: KalenderIcsEvent[] = icsEventsRaw.map((e) => ({
-    id: e.id,
-    title: e.title,
-    start: e.start.toISOString(),
-    end: e.end ? e.end.toISOString() : null,
-    location: e.location,
-    description: e.description,
+    startTime: e.startTime,
+    endTime: e.endTime,
     projectId: e.projectId,
     project: e.project,
   }));
 
-  const userIds = new Set<string>();
-  for (const p of projects) {
-    userIds.add(p.userId);
-    for (const m of p.members) userIds.add(m.userId);
-  }
-  for (const t of tasks) {
-    if (t.userId) userIds.add(t.userId);
-  }
-
-  const users =
-    userIds.size === 0
-      ? []
-      : await prisma.user.findMany({
-          where: { id: { in: Array.from(userIds) } },
-          select: { id: true, name: true, email: true },
-          orderBy: { name: "asc" },
-        });
-
-  const userOptions: KalenderUserOption[] = users.map((u) => ({
-    id: u.id,
-    name: u.name ?? u.email,
-    email: u.email,
+  const projectPayload: CalendarProjectOption[] = projects.map((p) => ({
+    id: p.id,
+    name: p.name,
+    color: p.color,
   }));
 
   return (
-    <KalenderPageClient
-      projects={projectPayload}
-      events={eventPayload}
-      tasks={taskPayload}
-      icsEvents={icsPayload}
-      users={userOptions}
-    />
+    <KalenderPageClient meetings={meetingPayload} projects={projectPayload} />
   );
 }

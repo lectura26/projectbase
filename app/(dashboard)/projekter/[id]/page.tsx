@@ -90,6 +90,33 @@ export default async function ProjectDetailPage({ params }: Props) {
 
   if (!row) notFound();
 
+  const [linkableRows, calendarProjectOptions] = await Promise.all([
+    prisma.calendarEvent.findMany({
+      where: {
+        userId: user.id,
+        OR: [{ projectId: null }, { projectId: { not: id } }],
+      },
+      orderBy: [{ date: "asc" }, { startTime: "asc" }, { title: "asc" }],
+    }),
+    prisma.project.findMany({
+      where: {
+        ...projectAccessWhere(user.id),
+        status: { not: "COMPLETED" },
+      },
+      select: { id: true, name: true, color: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
+
+  const mapCal = (e: (typeof linkableRows)[0]) => ({
+    id: e.id,
+    title: e.title,
+    date: e.date.toISOString(),
+    startTime: e.startTime,
+    endTime: e.endTime,
+    projectId: e.projectId,
+  });
+
   const initial: ProjectDetailPayload = {
     id: row.id,
     name: row.name,
@@ -157,12 +184,9 @@ export default async function ProjectDetailPage({ params }: Props) {
       createdAt: f.createdAt.toISOString(),
       uploadedBy: f.uploadedBy,
     })),
-    calendarEvents: row.calendarEvents.map((e) => ({
-      id: e.id,
-      title: e.title,
-      date: e.date.toISOString(),
-      eventTime: e.eventTime,
-    })),
+    calendarEvents: row.calendarEvents.map(mapCal),
+    linkableMeetings: linkableRows.map(mapCal),
+    calendarProjectOptions,
   };
 
   const modalUserMap = new Map<string, { id: string; name: string; email: string }>();

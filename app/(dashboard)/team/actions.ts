@@ -81,9 +81,10 @@ export async function getTeamMemberDetail(memberId: string) {
       id: e.id,
       title: e.title,
       date: e.date.toISOString(),
-      eventTime: e.eventTime,
+      startTime: e.startTime,
+      endTime: e.endTime,
       projectId: e.projectId,
-      projectName: e.project.name,
+      projectName: e.project?.name ?? "",
     })),
   };
 }

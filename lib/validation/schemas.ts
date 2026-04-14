@@ -142,16 +142,6 @@ export const createTaskNoteSchema = z.object({
   content: commentContentSchema,
 });
 
-export const calendarEventCreateSchema = z.object({
-  projectId: cuidLikeSchema,
-  title: z
-    .string()
-    .transform((s) => s.trim())
-    .pipe(z.string().min(1).max(MAX_CALENDAR_TITLE)),
-  date: z.string().min(1),
-  time: z.string().max(32).nullable().optional(),
-});
-
 const allowedFileType = z.enum([
   "application/pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

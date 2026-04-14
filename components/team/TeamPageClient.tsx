@@ -223,7 +223,11 @@ export default function TeamPageClient({ rows }: Props) {
                               — {e.projectName}
                               <br />
                               {formatDanishDate(e.date)}
-                              {e.eventTime ? ` · ${e.eventTime}` : ""}
+                              {e.startTime?.trim()
+                                ? e.endTime?.trim()
+                                  ? ` · ${e.startTime}–${e.endTime}`
+                                  : ` · ${e.startTime}`
+                                : ""}
                             </span>
                           </li>
                         ))}

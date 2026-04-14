@@ -12,7 +12,6 @@ import { projectAccessWhere } from "@/lib/projekter/project-access";
 import { removeStorageObject } from "@/lib/supabase/storage-remove";
 import { parseOrThrow } from "@/lib/validation/parse";
 import {
-  calendarEventCreateSchema,
   commentContentSchema,
   createTaskActionSchema,
   createTaskNoteSchema,
@@ -381,33 +380,6 @@ export async function deleteActivity(activityId: string) {
 
   await prisma.activity.delete({ where: { id: activityId } });
   revalidatePath(`/projekter/${row.projectId}`);
-}
-
-export async function createCalendarEvent(input: {
-  projectId: string;
-  title: string;
-  date: string;
-  time?: string | null;
-}) {
-  const user = await getSessionUser();
-  if (!user) throw new Error("Ikke logget ind.");
-
-  const parsed = parseOrThrow(calendarEventCreateSchema, input);
-
-  await assertProjectMember(parsed.projectId, user.id);
-
-  const d = new Date(parsed.date);
-  if (Number.isNaN(d.getTime())) throw new Error("Ugyldig dato.");
-
-  await prisma.calendarEvent.create({
-    data: {
-      projectId: parsed.projectId,
-      title: parsed.title,
-      date: d,
-      eventTime: parsed.time?.trim() || null,
-    },
-  });
-  revalidatePath(`/projekter/${parsed.projectId}`);
 }
 
 export async function createProjectFileRecord(input: {

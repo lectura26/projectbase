@@ -21,7 +21,6 @@ import {
 import {
   addProjectComment,
   confirmActivity,
-  createCalendarEvent,
   createProjectFileRecord,
   createTask,
   deleteActivity,
@@ -44,6 +43,7 @@ import {
 import { routineIntervalLabel } from "@/lib/projekter/routine";
 import type { ProjectDetailPayload, TaskDetailDTO, UserMini } from "@/types/project-detail";
 import { NytProjektModal } from "@/components/projekter/NytProjektModal";
+import { ProjectKalenderTab } from "@/components/projekter/project-detail/ProjectKalenderTab";
 import { TaskSidePanel } from "@/components/projekter/project-detail/TaskSidePanel";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { formatDanishDate } from "@/lib/datetime/format-danish";
@@ -217,10 +217,6 @@ export default function ProjectDetailClient({
   const [hoverActivityId, setHoverActivityId] = useState<string | null>(null);
   const [hoverFileId, setHoverFileId] = useState<string | null>(null);
   const [projectCommentDraft, setProjectCommentDraft] = useState("");
-  const [eventFormOpen, setEventFormOpen] = useState(false);
-  const [eventTitle, setEventTitle] = useState("");
-  const [eventDate, setEventDate] = useState("");
-  const [eventTime, setEventTime] = useState("");
   const [scheduleStart, setScheduleStart] = useState(() => isoToYmd(initial.startDate));
   const [scheduleDeadline, setScheduleDeadline] = useState(() => isoToYmd(initial.deadline));
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -306,16 +302,6 @@ export default function ProjectDetailClient({
     }
     return Array.from(m.values());
   }, [initial]);
-
-  const calendarGroups = useMemo(() => {
-    const m = new Map<string, ProjectDetailPayload["calendarEvents"]>();
-    for (const e of initial.calendarEvents) {
-      const k = e.date.slice(0, 10);
-      if (!m.has(k)) m.set(k, []);
-      m.get(k)!.push(e);
-    }
-    return Array.from(m.entries()).sort(([a], [b]) => a.localeCompare(b));
-  }, [initial.calendarEvents]);
 
   const editInitial: EditProjectInitial = useMemo(
     () => ({
@@ -515,18 +501,8 @@ export default function ProjectDetailClient({
           />
         ) : null}
         {activeTab === "kalender" ? (
-          <KalenderTab
-            calendarGroups={calendarGroups}
-            calendarColor={initial.calendarColor}
-            eventFormOpen={eventFormOpen}
-            setEventFormOpen={setEventFormOpen}
-            eventTitle={eventTitle}
-            setEventTitle={setEventTitle}
-            eventDate={eventDate}
-            setEventDate={setEventDate}
-            eventTime={eventTime}
-            setEventTime={setEventTime}
-            projectId={initial.id}
+          <ProjectKalenderTab
+            initial={initial}
             onRefresh={() => router.refresh()}
           />
         ) : null}
@@ -1053,169 +1029,6 @@ function AktivitetTab({
         );
       })}
     </ul>
-  );
-}
-
-function KalenderTab({
-  calendarGroups,
-  calendarColor,
-  eventFormOpen,
-  setEventFormOpen,
-  eventTitle,
-  setEventTitle,
-  eventDate,
-  setEventDate,
-  eventTime,
-  setEventTime,
-  projectId,
-  onRefresh,
-}: {
-  calendarGroups: [string, ProjectDetailPayload["calendarEvents"]][];
-  calendarColor: string;
-  eventFormOpen: boolean;
-  setEventFormOpen: (v: boolean) => void;
-  eventTitle: string;
-  setEventTitle: (s: string) => void;
-  eventDate: string;
-  setEventDate: (s: string) => void;
-  eventTime: string;
-  setEventTime: (s: string) => void;
-  projectId: string;
-  onRefresh: () => void;
-}) {
-  const [titleError, setTitleError] = useState("");
-  const [dateError, setDateError] = useState("");
-
-  const save = async () => {
-    const title = eventTitle.trim();
-    setTitleError("");
-    setDateError("");
-    let ok = true;
-    if (!title) {
-      setTitleError("Titel er påkrævet.");
-      ok = false;
-    }
-    const ymd = commitYmdString(eventDate);
-    if (!ymd) {
-      setDateError("Dato er påkrævet (DD-MM-YYYY).");
-      ok = false;
-    }
-    if (!ok) return;
-    try {
-      await createCalendarEvent({
-        projectId,
-        title,
-        date: ymd,
-        time: eventTime || null,
-      });
-      setEventTitle("");
-      setEventDate("");
-      setEventTime("");
-      setEventFormOpen(false);
-      onRefresh();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Fejl");
-    }
-  };
-
-  return (
-    <div>
-      <div className="mb-4 flex justify-end">
-        <button
-          type="button"
-          onClick={() => {
-            setEventFormOpen(!eventFormOpen);
-            setTitleError("");
-            setDateError("");
-          }}
-          className="rounded-lg border border-outline-variant/20 px-3 py-1.5 font-body text-sm font-medium text-primary"
-        >
-          Tilføj begivenhed
-        </button>
-      </div>
-      {eventFormOpen ? (
-        <div className="mb-6 grid max-w-md gap-3 rounded-lg border border-outline-variant/20 p-4 md:grid-cols-2">
-          <div className="md:col-span-2">
-            <input
-              type="text"
-              value={eventTitle}
-              onChange={(e) => {
-                setEventTitle(e.target.value);
-                setTitleError("");
-              }}
-              placeholder="Titel"
-              aria-invalid={Boolean(titleError)}
-              className="w-full rounded border px-3 py-2 text-sm"
-            />
-            {titleError ? (
-              <p className="mt-1 text-xs text-error">{titleError}</p>
-            ) : null}
-          </div>
-          <div>
-            <DatePicker
-              value={eventDate}
-              onChange={(v) => {
-                setEventDate(v);
-                setDateError("");
-              }}
-              aria-invalid={Boolean(dateError)}
-              className="w-full rounded border px-3 py-2 text-sm"
-            />
-            {dateError ? (
-              <p className="mt-1 text-xs text-error">{dateError}</p>
-            ) : null}
-          </div>
-          <input
-            type="time"
-            value={eventTime}
-            onChange={(e) => setEventTime(e.target.value)}
-            className="rounded border px-3 py-2 text-sm"
-          />
-          <div className="md:col-span-2 flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => setEventFormOpen(false)}
-              className="text-sm text-on-surface-variant"
-            >
-              Annuller
-            </button>
-            <button
-              type="button"
-              onClick={() => void save()}
-              className="rounded-lg bg-primary px-4 py-2 text-sm text-white"
-            >
-              Gem
-            </button>
-          </div>
-        </div>
-      ) : null}
-      <div className="space-y-6">
-        {calendarGroups.length === 0 ? (
-          <p className="text-sm text-on-surface-variant/90">Ingen begivenheder i kalenderen endnu.</p>
-        ) : null}
-        {calendarGroups.map(([day, events]) => (
-          <div key={day}>
-            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-on-surface-variant">
-              {formatDanishDate(`${day}T12:00:00.000Z`)}
-            </p>
-            <ul className="space-y-2">
-              {events.map((e) => (
-                <li key={e.id} className="flex items-center gap-2 text-sm">
-                  <span
-                    className="h-2 w-2 shrink-0 rounded-full"
-                    style={{ backgroundColor: calendarColor }}
-                  />
-                  <span className="font-medium">{e.title}</span>
-                  {e.eventTime ? (
-                    <span className="text-on-surface-variant">{e.eventTime}</span>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-    </div>
   );
 }
 
