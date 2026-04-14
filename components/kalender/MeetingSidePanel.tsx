@@ -33,6 +33,7 @@ import type {
   MeetingDetailDTO,
 } from "@/types/calendar";
 import { DatePicker } from "@/components/ui/DatePicker";
+import { TodoSection } from "@/components/projekter/project-detail/TodoSection";
 
 function formatNoteDetailTimestamp(iso: string): string {
   const d = new Date(iso);
@@ -648,6 +649,14 @@ export function MeetingSidePanel({
                         ) : null}
                       </div>
                     </div>
+                    <TodoSection
+                      todos={detail.todos}
+                      taskId={null}
+                      meetingId={detail.id}
+                      onTodosReplace={(next) =>
+                        setDetail((d) => (d ? { ...d, todos: next } : null))
+                      }
+                    />
                   </div>
                 </div>
 

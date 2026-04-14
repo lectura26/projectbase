@@ -157,6 +157,24 @@ export const createMeetingCommentSchema = z.object({
   content: commentContentSchema,
 });
 
+export const todoContentSchema = z
+  .string()
+  .transform((s) => s.trim())
+  .pipe(z.string().min(1).max(MAX_COMMENT));
+
+export const createTodoItemSchema = z
+  .object({
+    taskId: cuidLikeSchema.nullable(),
+    meetingId: cuidLikeSchema.nullable(),
+    content: todoContentSchema,
+  })
+  .refine(
+    (d) =>
+      (d.taskId != null && d.meetingId == null) ||
+      (d.taskId == null && d.meetingId != null),
+    { message: "Angiv enten opgave eller møde." },
+  );
+
 export const updateMeetingFieldSchema = z.object({
   meetingId: cuidLikeSchema,
   field: z.enum(["title", "date", "startTime", "endTime"]),

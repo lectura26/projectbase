@@ -171,6 +171,7 @@ model Task {
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   comments Comment[]
   notes    TaskNote[]
+  todos    TodoItem[]
 
   @@index([projectId])
   @@index([userId])
@@ -263,10 +264,25 @@ model CalendarEvent {
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   notes    TaskNote[]
   comments Comment[]
+  todos    TodoItem[]
 
   @@index([projectId])
   @@index([userId])
   @@index([date])
+}
+
+model TodoItem {
+  id        String         @id @default(cuid())
+  content   String
+  done      Boolean        @default(false)
+  taskId    String?
+  meetingId String?
+  createdAt DateTime       @default(now())
+  task      Task?          @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  meeting   CalendarEvent? @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([meetingId])
 }
 
 model IcsEvent {

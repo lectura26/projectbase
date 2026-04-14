@@ -64,6 +64,7 @@ export default async function ProjectDetailPage({ params }: Props) {
               },
             },
           },
+          todos: { orderBy: { createdAt: "asc" } },
         },
       },
       comments: {
@@ -200,6 +201,12 @@ export default async function ProjectDetailPage({ params }: Props) {
         content: n.content,
         createdAt: n.createdAt.toISOString(),
         author: n.author,
+      })),
+      todos: t.todos.map((td) => ({
+        id: td.id,
+        content: td.content,
+        done: td.done,
+        createdAt: td.createdAt.toISOString(),
       })),
     })),
     projectComments: row.comments.map((c) => ({

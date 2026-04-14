@@ -15,13 +15,14 @@ import {
   commentContentSchema,
   createTaskActionSchema,
   createTaskNoteSchema,
+  createTodoItemSchema,
   cuidLikeSchema,
   projectFileRecordSchema,
   setTaskStatusSchema,
   updateTaskFieldsSchema,
   updateTaskTitleSchema,
 } from "@/lib/validation/schemas";
-import type { TaskDetailDTO, TaskNoteDTO } from "@/types/project-detail";
+import type { TaskDetailDTO, TaskNoteDTO, TodoItemDTO } from "@/types/project-detail";
 
 async function assertProjectMember(projectId: string, userId: string) {
   const p = await prisma.project.findFirst({
@@ -29,6 +30,58 @@ async function assertProjectMember(projectId: string, userId: string) {
     select: { id: true },
   });
   if (!p) throw new Error("Projekt ikke fundet eller ingen adgang.");
+}
+
+function mapTodoItem(row: {
+  id: string;
+  content: string;
+  done: boolean;
+  createdAt: Date;
+}): TodoItemDTO {
+  return {
+    id: row.id,
+    content: row.content,
+    done: row.done,
+    createdAt: row.createdAt.toISOString(),
+  };
+}
+
+async function assertTodoAccess(todoId: string, userId: string) {
+  const todo = await prisma.todoItem.findUnique({
+    where: { id: todoId },
+    select: { taskId: true, meetingId: true },
+  });
+  if (!todo) throw new Error("To-do ikke fundet.");
+  if (todo.taskId) {
+    const t = await prisma.task.findFirst({
+      where: { id: todo.taskId, project: projectAccessWhere(userId) },
+      select: { projectId: true },
+    });
+    if (!t) throw new Error("Ingen adgang.");
+    return { kind: "task" as const, projectId: t.projectId };
+  }
+  if (todo.meetingId) {
+    const m = await prisma.calendarEvent.findFirst({
+      where: { id: todo.meetingId, userId },
+      select: { projectId: true },
+    });
+    if (!m) throw new Error("Ingen adgang.");
+    return { kind: "meeting" as const, projectId: m.projectId };
+  }
+  throw new Error("Ugyldig to-do.");
+}
+
+function revalidateAfterTodoChange(ctx: {
+  kind: "task" | "meeting";
+  projectId: string | null;
+}) {
+  if (ctx.kind === "task") {
+    revalidatePath(`/projekter/${ctx.projectId}`);
+    return;
+  }
+  revalidatePath("/kalender");
+  revalidatePath("/oversigt");
+  if (ctx.projectId) revalidatePath(`/projekter/${ctx.projectId}`);
 }
 
 export async function cycleTaskStatus(taskId: string) {
@@ -265,7 +318,79 @@ export async function createTask(projectId: string, input: CreateTaskInput): Pro
       : null,
     comments: [],
     notes: [],
+    todos: [],
   };
+}
+
+export async function createTodoItem(
+  taskId: string | null,
+  meetingId: string | null,
+  content: string,
+): Promise<TodoItemDTO> {
+  const user = await getSessionUser();
+  if (!user) throw new Error("Ikke logget ind.");
+
+  const parsed = parseOrThrow(createTodoItemSchema, {
+    taskId,
+    meetingId,
+    content,
+  });
+
+  if (parsed.taskId) {
+    const t = await prisma.task.findFirst({
+      where: { id: parsed.taskId, project: projectAccessWhere(user.id) },
+      select: { id: true, projectId: true },
+    });
+    if (!t) throw new Error("Opgave ikke fundet.");
+
+    const row = await prisma.todoItem.create({
+      data: { content: parsed.content, taskId: t.id },
+    });
+    revalidatePath(`/projekter/${t.projectId}`);
+    return mapTodoItem(row);
+  }
+
+  const m = await prisma.calendarEvent.findFirst({
+    where: { id: parsed.meetingId!, userId: user.id },
+    select: { id: true, projectId: true },
+  });
+  if (!m) throw new Error("Møde ikke fundet.");
+
+  const row = await prisma.todoItem.create({
+    data: { content: parsed.content, meetingId: m.id },
+  });
+  revalidateAfterTodoChange({ kind: "meeting", projectId: m.projectId });
+  return mapTodoItem(row);
+}
+
+export async function toggleTodoItem(todoId: string): Promise<{ done: boolean }> {
+  const user = await getSessionUser();
+  if (!user) throw new Error("Ikke logget ind.");
+
+  const id = parseOrThrow(cuidLikeSchema, todoId);
+  const access = await assertTodoAccess(id, user.id);
+  const cur = await prisma.todoItem.findUnique({
+    where: { id },
+    select: { done: true },
+  });
+  if (!cur) throw new Error("To-do ikke fundet.");
+
+  await prisma.todoItem.update({
+    where: { id },
+    data: { done: !cur.done },
+  });
+  revalidateAfterTodoChange(access);
+  return { done: !cur.done };
+}
+
+export async function deleteTodoItem(todoId: string) {
+  const user = await getSessionUser();
+  if (!user) throw new Error("Ikke logget ind.");
+
+  const id = parseOrThrow(cuidLikeSchema, todoId);
+  const access = await assertTodoAccess(id, user.id);
+  await prisma.todoItem.delete({ where: { id } });
+  revalidateAfterTodoChange(access);
 }
 
 export async function createTaskNote(taskId: string, content: string): Promise<TaskNoteDTO> {

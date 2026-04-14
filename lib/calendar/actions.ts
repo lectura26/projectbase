@@ -390,6 +390,7 @@ export async function getMeetingWithDetails(meetingId: string) {
           author: { select: { id: true, name: true, email: true, image: true } },
         },
       },
+      todos: { orderBy: { createdAt: "asc" } },
     },
   });
   if (!row) throw new Error("Møde ikke fundet.");
@@ -414,6 +415,12 @@ export async function getMeetingWithDetails(meetingId: string) {
       content: c.content,
       createdAt: c.createdAt.toISOString(),
       author: c.author,
+    })),
+    todos: row.todos.map((t) => ({
+      id: t.id,
+      content: t.content,
+      done: t.done,
+      createdAt: t.createdAt.toISOString(),
     })),
   };
 }

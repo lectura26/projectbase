@@ -22,6 +22,7 @@ import {
 } from "@/lib/datetime/ymd";
 import type { TaskDetailDTO, TaskNoteDTO, UserMini } from "@/types/project-detail";
 import { DatePicker } from "@/components/ui/DatePicker";
+import { TodoSection } from "@/components/projekter/project-detail/TodoSection";
 
 function formatNoteDetailTimestamp(iso: string): string {
   const d = new Date(iso);
@@ -587,6 +588,12 @@ export function TaskSidePanel({
                       ) : null}
                     </div>
                   </div>
+                  <TodoSection
+                    todos={task.todos}
+                    taskId={task.id}
+                    meetingId={null}
+                    onTodosReplace={(next) => patchTask(task.id, { todos: next })}
+                  />
                 </div>
               </div>
 

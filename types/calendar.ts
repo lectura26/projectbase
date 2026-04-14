@@ -1,4 +1,4 @@
-import type { CommentDTO, TaskNoteDTO } from "@/types/project-detail";
+import type { CommentDTO, TaskNoteDTO, TodoItemDTO } from "@/types/project-detail";
 
 export type CalendarMeetingDTO = {
   id: string;
@@ -22,6 +22,7 @@ export type MeetingDetailDTO = {
   project: { id: string; name: string; color: string } | null;
   notes: TaskNoteDTO[];
   comments: CommentDTO[];
+  todos: TodoItemDTO[];
 };
 
 export type CalendarProjectOption = {

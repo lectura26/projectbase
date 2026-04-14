@@ -28,6 +28,13 @@ export type TaskNoteDTO = {
   author: UserMini;
 };
 
+export type TodoItemDTO = {
+  id: string;
+  content: string;
+  done: boolean;
+  createdAt: string;
+};
+
 export type TaskDetailDTO = {
   id: string;
   title: string;
@@ -39,6 +46,7 @@ export type TaskDetailDTO = {
   assignee: UserMini | null;
   comments: CommentDTO[];
   notes: TaskNoteDTO[];
+  todos: TodoItemDTO[];
 };
 
 export type ActivityDTO = {
