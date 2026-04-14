@@ -1,6 +1,6 @@
 "use client";
 
-import type { Priority, ProjectVisibility, RoutineInterval } from "@prisma/client";
+import type { Priority, ProjectStatus, ProjectVisibility, RoutineInterval } from "@prisma/client";
 import {
   ArrowRight,
   ChevronDown,
@@ -21,6 +21,7 @@ import {
 import { commitYmdString } from "@/lib/datetime/ymd";
 import { ProjectColorPicker } from "@/components/projekter/ProjectColorPicker";
 import { PROJECT_COLORS } from "@/lib/projekter/project-colors";
+import { priorityLabelDa, statusLabelDa } from "@/components/projekter/project-helpers";
 import { DatePicker } from "@/components/ui/DatePicker";
 
 type UserOption = { id: string; name: string; email: string };
@@ -34,11 +35,14 @@ type NytProjektModalProps = {
   initialEdit?: EditProjectInitial | null;
 };
 
-const labelClass =
-  "block text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-3 ml-1 font-label";
-
-const inputUnderlineClass =
-  "w-full bg-transparent border-0 border-b-2 border-outline-variant/70 py-3 text-sm font-medium text-on-surface shadow-none transition-colors placeholder:text-outline-variant/50 focus:border-primary focus:outline-none focus:ring-0";
+const cellLabelClass =
+  "mb-0.5 block text-[11px] font-medium uppercase tracking-[0.04em] text-[#9ca3af]";
+const cellBoxClass =
+  "flex min-h-0 min-w-0 flex-col rounded-[6px] bg-[#f8f9fa] px-3 py-2";
+const inputBaseClass =
+  "w-full rounded-[6px] border border-[#e8e8e8] px-[14px] py-[10px] font-body text-[13px] text-[#0f1923] outline-none placeholder:text-[#9ca3af] focus:border-[#1a3167]";
+const textareaBaseClass =
+  `${inputBaseClass} min-h-[80px] resize-y leading-relaxed`;
 
 export function NytProjektModal({
   open,
@@ -61,6 +65,7 @@ export function NytProjektModal({
   const [startDate, setStartDate] = useState("");
   const [deadline, setDeadline] = useState("");
   const [description, setDescription] = useState("");
+  const [projectStatus, setProjectStatus] = useState<ProjectStatus>("NOT_STARTED");
   const [priority, setPriority] = useState<Priority>("MEDIUM");
   const [teamVisible, setTeamVisible] = useState(true);
   const [tags, setTags] = useState<string[]>([]);
@@ -69,7 +74,6 @@ export function NytProjektModal({
   const [routineInterval, setRoutineInterval] = useState<RoutineInterval>("MONTHLY");
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
-  const [saveAsTemplate, setSaveAsTemplate] = useState(false);
   const [color, setColor] = useState<string>(PROJECT_COLORS[0]!);
   const [nameError, setNameError] = useState("");
 
@@ -78,6 +82,7 @@ export function NytProjektModal({
     setStartDate("");
     setDeadline("");
     setDescription("");
+    setProjectStatus("NOT_STARTED");
     setPriority("MEDIUM");
     setTeamVisible(true);
     setTags([]);
@@ -86,7 +91,6 @@ export function NytProjektModal({
     setRoutineInterval("MONTHLY");
     setContactName("");
     setContactEmail("");
-    setSaveAsTemplate(false);
     setColor(PROJECT_COLORS[0]!);
     setNameError("");
     setError(null);
@@ -107,6 +111,7 @@ export function NytProjektModal({
       setStartDate(initialEdit.startDate);
       setDeadline(initialEdit.deadline);
       setDescription(initialEdit.description);
+      setProjectStatus(initialEdit.status);
       setPriority(initialEdit.priority);
       setTeamVisible(
         initialEdit.visibility === "TEAM" || initialEdit.visibility === "ALL",
@@ -175,6 +180,7 @@ export function NytProjektModal({
           startDate: commitYmdString(startDate) || null,
           deadline: commitYmdString(deadline) || null,
           priority,
+          status: projectStatus,
           visibility,
           tags,
           isRoutine,
@@ -190,13 +196,13 @@ export function NytProjektModal({
           startDate: commitYmdString(startDate) || null,
           deadline: commitYmdString(deadline) || null,
           priority,
+          status: projectStatus,
           visibility,
           tags,
           isRoutine,
           routineInterval: isRoutine ? routineInterval : null,
           contactName: contactName || undefined,
           contactEmail: contactEmail || undefined,
-          saveAsTemplate: saveAsTemplate || undefined,
           color,
         });
         toast.success("Projekt oprettet");
@@ -211,21 +217,6 @@ export function NytProjektModal({
   };
 
   if (!mounted || !open) return null;
-
-  const priorityBtn = (p: Priority, label: string) => (
-    <button
-      key={p}
-      type="button"
-      onClick={() => setPriority(p)}
-      className={`flex-1 rounded-md py-3 px-4 text-xs font-bold uppercase tracking-tight transition-colors ${
-        priority === p
-          ? "bg-primary text-on-primary"
-          : "bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high"
-      }`}
-    >
-      {label}
-    </button>
-  );
 
   return createPortal(
     <div
@@ -275,10 +266,10 @@ export function NytProjektModal({
           onSubmit={handleSubmit}
           className="flex min-h-0 flex-1 flex-col overflow-y-auto px-8 pb-8 pt-6"
         >
-          <div className="space-y-10">
-            <section className="grid grid-cols-1 gap-x-12 gap-y-8 md:grid-cols-2">
-              <div className="md:col-span-2">
-                <label htmlFor="np-name" className={labelClass}>
+          <div className="space-y-6">
+            <section className="space-y-4">
+              <div>
+                <label htmlFor="np-name" className={`${cellLabelClass} ml-0`}>
                   Projektnavn
                 </label>
                 <input
@@ -290,7 +281,7 @@ export function NytProjektModal({
                     setNameError("");
                   }}
                   placeholder="Indtast projektets fulde navn..."
-                  className={`${inputUnderlineClass} text-lg font-semibold sm:text-xl`}
+                  className={`${inputBaseClass} mt-1`}
                   autoComplete="off"
                   aria-invalid={Boolean(nameError)}
                 />
@@ -299,64 +290,23 @@ export function NytProjektModal({
                 ) : null}
               </div>
               <div>
-                <label htmlFor="np-owner" className={labelClass}>
-                  Ansvarlig
+                <label htmlFor="np-deadline" className={`${cellLabelClass} ml-0`}>
+                  Frist
                 </label>
-                <div className="relative">
-                  <select
-                    id="np-owner"
-                    value={users[0]?.id ?? ""}
-                    onChange={() => {}}
-                    disabled={!users.length}
-                    className={`${inputUnderlineClass} appearance-none bg-surface-container-low pr-8`}
-                    required
-                  >
-                    {users.length === 0 ? (
-                      <option value="">— Ingen brugere —</option>
-                    ) : (
-                      users.map((u) => (
-                        <option key={u.id} value={u.id}>
-                          {u.name}
-                        </option>
-                      ))
-                    )}
-                  </select>
-                  <ChevronDown
-                    className="pointer-events-none absolute right-1 top-3 h-6 w-6 text-primary/40"
-                    aria-hidden
+                <div className="mt-1">
+                  <DatePicker
+                    id="np-deadline"
+                    value={deadline}
+                    onChange={setDeadline}
+                    className={`${inputBaseClass} !mt-0 border-0 border-b-2 border-outline-variant/70 !bg-surface-container-low pr-10`}
                   />
                 </div>
               </div>
-              <div>
-                <label htmlFor="np-start" className={labelClass}>
-                  Startdato{" "}
-                  <span className="font-normal normal-case tracking-normal text-on-surface-variant/70">
-                    (valgfri)
-                  </span>
-                </label>
-                <DatePicker
-                  id="np-start"
-                  value={startDate}
-                  onChange={setStartDate}
-                  className={`${inputUnderlineClass} bg-surface-container-low border-0 border-b-2 border-outline-variant/70 pr-10`}
-                />
-              </div>
-              <div>
-                <label htmlFor="np-deadline" className={labelClass}>
-                  Frist
-                </label>
-                <DatePicker
-                  id="np-deadline"
-                  value={deadline}
-                  onChange={setDeadline}
-                  className={`${inputUnderlineClass} bg-surface-container-low border-0 border-b-2 border-outline-variant/70 pr-10`}
-                />
-              </div>
             </section>
 
-            <div className="h-px bg-outline-variant/15" />
+            <div className="h-px bg-[#f3f4f6]" />
 
-            <section className="space-y-8">
+            <section className="space-y-0">
               <button
                 type="button"
                 onClick={() => setMoreOpen((v) => !v)}
@@ -372,88 +322,180 @@ export function NytProjektModal({
               </button>
 
               {moreOpen ? (
-                <div className="grid grid-cols-1 gap-x-12 gap-y-8 md:grid-cols-2">
-                  <div className="md:col-span-2">
-                    <label htmlFor="np-desc" className={labelClass}>
+                <div className="mt-4 space-y-0">
+                  <div className="grid grid-cols-1 gap-3 border-b border-[#f3f4f6] pb-4 md:grid-cols-2">
+                    <div className={cellBoxClass}>
+                      <span className={cellLabelClass}>Status</span>
+                      <select
+                        value={projectStatus}
+                        onChange={(e) =>
+                          setProjectStatus(e.target.value as ProjectStatus)
+                        }
+                        className="mt-0.5 w-full cursor-pointer border-0 bg-transparent p-0 text-[13px] font-medium text-[#0f1923] outline-none"
+                      >
+                        {(
+                          [
+                            "NOT_STARTED",
+                            "IN_PROGRESS",
+                            "WAITING",
+                            "COMPLETED",
+                          ] as const
+                        ).map((s) => (
+                          <option key={s} value={s}>
+                            {statusLabelDa(s)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className={cellBoxClass}>
+                      <span className={cellLabelClass}>Prioritet</span>
+                      <select
+                        value={priority}
+                        onChange={(e) =>
+                          setPriority(e.target.value as Priority)
+                        }
+                        className="mt-0.5 w-full cursor-pointer border-0 bg-transparent p-0 text-[13px] font-medium text-[#0f1923] outline-none"
+                      >
+                        {(["HIGH", "MEDIUM", "LOW"] as const).map((p) => (
+                          <option key={p} value={p}>
+                            {priorityLabelDa(p)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-3 border-b border-[#f3f4f6] py-4 md:grid-cols-2">
+                    <div className={cellBoxClass}>
+                      <span className={cellLabelClass}>Startdato</span>
+                      <div className="mt-0.5 min-w-0 [&_button]:text-[13px] [&_button]:font-medium">
+                        <DatePicker
+                          value={startDate}
+                          onChange={setStartDate}
+                          placeholder="Ingen"
+                          className="!w-full !border-0 !bg-transparent !p-0 !text-[13px] !font-medium !text-[#0f1923] !shadow-none"
+                        />
+                      </div>
+                    </div>
+                    <div className={`${cellBoxClass} justify-center`}>
+                      <span className={cellLabelClass}>Rutineprojekt</span>
+                      <div className="mt-1 flex items-center justify-between gap-3">
+                        <span className="text-[12px] text-[#6b7280]">
+                          Genstart automatisk når afsluttet
+                        </span>
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={isRoutine}
+                          onClick={() => setIsRoutine((v) => !v)}
+                          className={`relative h-5 w-10 shrink-0 rounded-full transition-colors ${
+                            isRoutine ? "bg-[#1a3167]" : "bg-[#d1d5db]"
+                          }`}
+                        >
+                          <span
+                            className={`absolute top-1 h-3 w-3 rounded-full bg-white shadow-sm transition-all ${
+                              isRoutine ? "right-1" : "left-1"
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {isRoutine ? (
+                    <div className="border-b border-[#f3f4f6] py-4">
+                      <span className={cellLabelClass}>Rutineinterval</span>
+                      <div className="relative mt-2">
+                        <select
+                          value={routineInterval}
+                          onChange={(e) =>
+                            setRoutineInterval(e.target.value as RoutineInterval)
+                          }
+                          className={`${inputBaseClass} w-full appearance-none pr-8`}
+                        >
+                          <option value="DAILY">Daglig</option>
+                          <option value="WEEKLY">Ugentlig</option>
+                          <option value="MONTHLY">Månedlig</option>
+                          <option value="CUSTOM">Tilpasset (månedlig frist)</option>
+                        </select>
+                        <ChevronDown
+                          className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9ca3af]"
+                          aria-hidden
+                        />
+                      </div>
+                    </div>
+                  ) : null}
+
+                  <div className="border-b border-[#f3f4f6] py-4">
+                    <label htmlFor="np-desc" className={cellLabelClass}>
                       Beskrivelse
                     </label>
                     <textarea
                       id="np-desc"
-                      rows={3}
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Beskriv projektets formål og succeskriterier..."
-                      className={`${inputUnderlineClass} resize-none bg-surface-container-low`}
+                      placeholder="Beskriv projektets formål…"
+                      className={`${textareaBaseClass} mt-2 w-full`}
                     />
                   </div>
 
-                  <div className="md:col-span-2">
-                    <span className={labelClass}>Prioritet</span>
-                    <div className="flex gap-2">
-                      {priorityBtn("LOW", "Lav")}
-                      {priorityBtn("MEDIUM", "Medium")}
-                      {priorityBtn("HIGH", "Høj")}
+                  <div className="border-b border-[#f3f4f6] py-4">
+                    <span className={cellLabelClass}>Kontaktpersoner</span>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      {contactName.trim() && contactEmail.trim() ? (
+                        <span className="inline-flex items-center gap-2 rounded-full bg-[#f3f4f6] px-3 py-1.5 text-[12px] font-medium text-[#0f1923]">
+                          {contactName.trim()} · {contactEmail.trim()}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setContactName("");
+                              setContactEmail("");
+                            }}
+                            className="text-[#6b7280] hover:text-[#0f1923]"
+                            aria-label="Fjern kontakt"
+                          >
+                            <X className="h-3.5 w-3.5" aria-hidden />
+                          </button>
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      <input
+                        value={contactName}
+                        onChange={(e) => setContactName(e.target.value)}
+                        placeholder="Navn"
+                        className={inputBaseClass}
+                      />
+                      <input
+                        type="email"
+                        value={contactEmail}
+                        onChange={(e) => setContactEmail(e.target.value)}
+                        placeholder="E-mail"
+                        className={inputBaseClass}
+                      />
                     </div>
                   </div>
 
-                  <div className="md:col-span-2">
-                    <span className={labelClass}>Synlighed</span>
-                    <div className="flex items-center gap-4 rounded-lg bg-surface-container-low p-3">
-                      {teamVisible ? (
-                        <Unlock className="h-5 w-5 text-primary/60" aria-hidden />
-                      ) : (
-                        <Lock className="h-5 w-5 text-primary/60" aria-hidden />
-                      )}
-                      <div className="flex min-w-0 flex-1 flex-col">
-                        <span className="text-sm font-semibold text-primary">
-                          {teamVisible ? "Synlig for teamet" : "Kun synlig for ejer"}
-                        </span>
-                        <span className="text-[10px] text-on-surface-variant/60">
-                          {teamVisible
-                            ? "Teammedlemmer kan finde projektet i hubben."
-                            : "Kun den ansvarlige ser projektet."}
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        role="switch"
-                        aria-checked={teamVisible}
-                        onClick={() => setTeamVisible((v) => !v)}
-                        className={`relative h-5 w-10 shrink-0 rounded-full transition-colors ${
-                          teamVisible ? "bg-primary" : "bg-outline-variant/40"
-                        }`}
-                      >
-                        <span
-                          className={`absolute top-1 h-3 w-3 rounded-full bg-white shadow-sm transition-all ${
-                            teamVisible ? "right-1" : "left-1"
-                          }`}
-                        />
-                      </button>
-                    </div>
-                  </div>
-
-                  <ProjectColorPicker value={color} onChange={setColor} />
-
-                  <div className="md:col-span-2">
-                    <span className={labelClass}>Tags</span>
-                    <div className="flex flex-wrap items-center gap-2">
+                  <div className="border-b border-[#f3f4f6] py-4">
+                    <span className={cellLabelClass}>Tags</span>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
                       {tags.map((t) => (
                         <span
                           key={t}
-                          className="flex items-center gap-2 rounded-md bg-surface-container-high px-3 py-1.5 text-[11px] font-bold text-on-surface-variant"
+                          className="inline-flex items-center gap-1.5 rounded-full bg-[#1a3167] px-2.5 py-1 text-[11px] font-semibold text-white"
                         >
                           {t}
                           <button
                             type="button"
                             onClick={() => removeTag(t)}
-                            className="text-primary/70 hover:text-primary"
+                            className="text-white/80 hover:text-white"
                             aria-label={`Fjern ${t}`}
                           >
-                            <X className="h-3.5 w-3.5" aria-hidden />
+                            <X className="h-3 w-3" aria-hidden />
                           </button>
                         </span>
                       ))}
-                      <div className="flex items-center gap-1 rounded-full border-2 border-dashed border-outline-variant/60 px-2 py-1 transition-colors focus-within:border-primary">
+                      <div className="flex min-w-0 flex-1 items-center gap-1 rounded-md border border-[#e8e8e8] px-2 py-1.5 sm:max-w-xs">
                         <input
                           value={tagDraft}
                           onChange={(e) => setTagDraft(e.target.value)}
@@ -463,112 +505,59 @@ export function NytProjektModal({
                               addTag();
                             }
                           }}
-                          placeholder="Tag…"
-                          className="min-w-[120px] border-0 bg-transparent py-1 text-[11px] font-bold text-primary outline-none placeholder:text-outline-variant"
+                          placeholder="Tilføj tag…"
+                          className="min-w-0 flex-1 border-0 bg-transparent py-0.5 text-[13px] text-[#0f1923] outline-none placeholder:text-[#9ca3af]"
                         />
                         <button
                           type="button"
                           onClick={addTag}
-                          className="flex items-center gap-0.5 rounded-full px-1 text-[11px] font-bold text-primary hover:underline"
+                          className="shrink-0 text-[#1a3167]"
+                          aria-label="Tilføj tag"
                         >
-                          <Plus className="h-3.5 w-3.5" aria-hidden />
+                          <Plus className="h-4 w-4" aria-hidden />
                         </button>
                       </div>
                     </div>
                   </div>
 
-                  <div>
-                    <label htmlFor="np-cname" className={labelClass}>
-                      Kontaktperson (navn)
-                    </label>
-                    <input
-                      id="np-cname"
-                      value={contactName}
-                      onChange={(e) => setContactName(e.target.value)}
-                      className={inputUnderlineClass}
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="np-cemail" className={labelClass}>
-                      Kontaktperson (e-mail)
-                    </label>
-                    <input
-                      id="np-cemail"
-                      type="email"
-                      value={contactEmail}
-                      onChange={(e) => setContactEmail(e.target.value)}
-                      className={inputUnderlineClass}
-                    />
-                  </div>
-
-                  <div className="md:col-span-2 flex items-start gap-4 rounded-xl border border-outline-variant/10 bg-surface-bright p-4">
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={isRoutine}
-                      onClick={() => setIsRoutine((v) => !v)}
-                      className={`relative mt-0.5 h-6 w-10 shrink-0 rounded-full transition-colors ${
-                        isRoutine ? "bg-primary" : "bg-outline-variant/30"
-                      }`}
-                    >
-                      <span
-                        className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-all ${
-                          isRoutine ? "right-1" : "left-1"
-                        }`}
-                      />
-                    </button>
-                    <div>
-                      <span className="block text-xs font-bold text-primary">Rutineprojekt</span>
-                      <span className="text-[10px] leading-relaxed text-on-surface-variant/70">
-                        Ved fuldførelse oprettes et nyt identisk projekt med næste frist.
-                      </span>
-                    </div>
-                  </div>
-
-                  {isRoutine ? (
-                    <div className="md:col-span-2">
-                      <label htmlFor="np-routine" className={labelClass}>
-                        Rutineinterval
-                      </label>
-                      <div className="relative">
-                        <select
-                          id="np-routine"
-                          value={routineInterval}
-                          onChange={(e) =>
-                            setRoutineInterval(e.target.value as RoutineInterval)
-                          }
-                          className={`${inputUnderlineClass} appearance-none bg-surface-container-low pr-8`}
-                        >
-                          <option value="DAILY">Daglig</option>
-                          <option value="WEEKLY">Ugentlig</option>
-                          <option value="MONTHLY">Månedlig</option>
-                          <option value="CUSTOM">Tilpasset (månedlig frist)</option>
-                        </select>
-                        <ChevronDown
-                          className="pointer-events-none absolute right-1 top-3 h-6 w-6 text-primary/40"
-                          aria-hidden
-                        />
+                  <div className="grid grid-cols-1 gap-3 py-4 md:grid-cols-2">
+                    <div className={cellBoxClass}>
+                      <span className={cellLabelClass}>Projektfarve</span>
+                      <div className="mt-2">
+                        <ProjectColorPicker value={color} onChange={setColor} />
                       </div>
                     </div>
-                  ) : null}
-
-                  {mode === "create" ? (
-                    <div className="md:col-span-2 flex items-start gap-3 rounded-lg border border-outline-variant/15 bg-surface-container-low/50 px-4 py-3">
-                      <input
-                        id="np-template"
-                        type="checkbox"
-                        checked={saveAsTemplate}
-                        onChange={(e) => setSaveAsTemplate(e.target.checked)}
-                        className="mt-1 h-4 w-4 rounded border-outline-variant text-primary"
-                      />
-                      <label htmlFor="np-template" className="text-sm text-on-surface">
-                        <span className="font-semibold text-primary">Gem som skabelon</span>
-                        <span className="mt-0.5 block text-xs text-on-surface-variant">
-                          Skabelonen vises under Indstillinger og kan genbruges senere.
-                        </span>
-                      </label>
+                    <div className={cellBoxClass}>
+                      <span className={cellLabelClass}>Synlighed</span>
+                      <div className="mt-2 flex items-center justify-between gap-3">
+                        <div className="flex min-w-0 items-start gap-2">
+                          {teamVisible ? (
+                            <Unlock className="h-4 w-4 shrink-0 text-[#1a3167]/70" aria-hidden />
+                          ) : (
+                            <Lock className="h-4 w-4 shrink-0 text-[#1a3167]/70" aria-hidden />
+                          )}
+                          <span className="text-[12px] font-medium text-[#0f1923]">
+                            {teamVisible ? "Synlig for teamet" : "Kun synlig for ejer"}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={teamVisible}
+                          onClick={() => setTeamVisible((v) => !v)}
+                          className={`relative h-5 w-10 shrink-0 rounded-full transition-colors ${
+                            teamVisible ? "bg-[#1a3167]" : "bg-[#d1d5db]"
+                          }`}
+                        >
+                          <span
+                            className={`absolute top-1 h-3 w-3 rounded-full bg-white shadow-sm transition-all ${
+                              teamVisible ? "right-1" : "left-1"
+                            }`}
+                          />
+                        </button>
+                      </div>
                     </div>
-                  ) : null}
+                  </div>
                 </div>
               ) : null}
             </section>
@@ -606,6 +595,6 @@ export function NytProjektModal({
         </form>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

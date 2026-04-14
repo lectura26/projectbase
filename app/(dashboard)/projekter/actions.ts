@@ -150,10 +150,9 @@ export type CreateProjectInput = {
   routineInterval?: RoutineInterval | null;
   contactName?: string;
   contactEmail?: string;
-  /** Opretter en ekstra skabelon-række (vises under Indstillinger). */
-  saveAsTemplate?: boolean;
   /** Must be one of PROJECT_COLORS; otherwise server assigns next free color. */
   color?: string;
+  status?: ProjectStatus;
 };
 
 export type UpdateProjectInput = CreateProjectInput & {
@@ -167,6 +166,7 @@ export type EditProjectInitial = {
   startDate: string;
   deadline: string;
   priority: Priority;
+  status: ProjectStatus;
   visibility: ProjectVisibility;
   tags: string[];
   isRoutine: boolean;
@@ -212,6 +212,7 @@ export async function updateProject(input: UpdateProjectInput) {
         isRoutine: parsed.isRoutine,
         routineInterval: parsed.isRoutine ? parsed.routineInterval ?? "MONTHLY" : null,
         ...(nextColor !== undefined ? { color: nextColor } : {}),
+        ...(parsed.status !== undefined ? { status: parsed.status } : {}),
       },
     });
     await tx.contact.deleteMany({ where: { projectId: parsed.projectId } });
@@ -290,6 +291,7 @@ export async function createProject(input: CreateProjectInput) {
       tags: parsed.tags.filter(Boolean),
       isRoutine: parsed.isRoutine,
       routineInterval: parsed.isRoutine ? parsed.routineInterval ?? "MONTHLY" : null,
+      status: parsed.status ?? "NOT_STARTED",
       ...(contactName && contactEmail
         ? {
             contacts: {
@@ -299,33 +301,6 @@ export async function createProject(input: CreateProjectInput) {
         : {}),
     },
   });
-
-  if (parsed.saveAsTemplate) {
-    await prisma.project.create({
-      data: {
-        name: `${parsed.name} (skabelon)`,
-        userId: user.id,
-        color: colorHex,
-        description,
-        startDate: null,
-        deadline: null,
-        priority: parsed.priority,
-        visibility: parsed.visibility,
-        tags: parsed.tags.filter(Boolean),
-        isRoutine: false,
-        routineInterval: null,
-        isTemplate: true,
-        ...(contactName && contactEmail
-          ? {
-              contacts: {
-                create: [{ name: contactName, email: contactEmail }],
-              },
-            }
-          : {}),
-      },
-    });
-    revalidatePath("/indstillinger");
-  }
 
   revalidatePath("/projekter");
 }

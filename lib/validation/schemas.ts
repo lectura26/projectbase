@@ -78,8 +78,8 @@ export const createProjectActionSchema = z.object({
   routineInterval: routineZ.nullable().optional(),
   contactName: z.string().max(MAX_CONTACT_LEN).optional(),
   contactEmail: z.string().max(MAX_CONTACT_LEN).optional(),
-  saveAsTemplate: z.boolean().optional(),
   color: optionalProjectColorZ,
+  status: projectStatusZ.optional(),
 });
 
 export const updateProjectActionSchema = createProjectActionSchema.extend({

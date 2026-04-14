@@ -5,6 +5,7 @@ import { CalendarRange, ChevronRight, LayoutGrid, List } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Priority, ProjectStatus } from "@prisma/client";
 import type { ProjectListItem } from "@/types/projekter";
+import { taskProgress } from "@/components/projekter/project-helpers";
 import GanttView from "./GanttView";
 import { NytProjektModal } from "./NytProjektModal";
 import { ProjekterCompletedListView, ProjekterListView } from "./ProjectCard";
@@ -19,6 +20,72 @@ type FristFilter = "alle" | "overskredet" | "uden" | "med";
 type OpenFilter = null | "status" | "priority" | "frist";
 
 const PAGE_SIZE = 10;
+
+type SortableColumn = "name" | "status" | "priority" | "deadline" | "progress";
+
+type SortState =
+  | { key: null }
+  | { key: SortableColumn; dir: "asc" | "desc" };
+
+function statusOrder(s: ProjectStatus): number {
+  return { NOT_STARTED: 0, IN_PROGRESS: 1, WAITING: 2, COMPLETED: 3 }[s];
+}
+
+function priorityOrder(p: Priority): number {
+  return { HIGH: 0, MEDIUM: 1, LOW: 2 }[p];
+}
+
+/** Deadline ascending, nulls last (default list order). */
+function compareDeadlineAscNullsLast(a: string | null, b: string | null): number {
+  if (a == null && b == null) return 0;
+  if (a == null) return 1;
+  if (b == null) return -1;
+  return new Date(a).getTime() - new Date(b).getTime();
+}
+
+function sortProjectList(projects: ProjectListItem[], sort: SortState): ProjectListItem[] {
+  const out = [...projects];
+  if (sort.key === null) {
+    return out.sort((a, b) => compareDeadlineAscNullsLast(a.deadline, b.deadline));
+  }
+  return out.sort((a, b) => {
+    let cmp = 0;
+    switch (sort.key) {
+      case "name":
+        cmp = a.name.localeCompare(b.name, "da");
+        break;
+      case "status":
+        cmp = statusOrder(a.status) - statusOrder(b.status);
+        break;
+      case "priority":
+        cmp = priorityOrder(a.priority) - priorityOrder(b.priority);
+        break;
+      case "deadline":
+        cmp = compareDeadlineAscNullsLast(a.deadline, b.deadline);
+        break;
+      case "progress": {
+        const pa = taskProgress(a.tasks);
+        const pb = taskProgress(b.tasks);
+        if (pa == null && pb == null) cmp = 0;
+        else if (pa == null) cmp = 1;
+        else if (pb == null) cmp = -1;
+        else cmp = pa - pb;
+        break;
+      }
+      default:
+        break;
+    }
+    return sort.dir === "asc" ? cmp : -cmp;
+  });
+}
+
+function cycleSort(prev: SortState, column: SortableColumn): SortState {
+  if (prev.key !== column) {
+    return { key: column, dir: "asc" };
+  }
+  if (prev.dir === "asc") return { key: column, dir: "desc" };
+  return { key: null };
+}
 
 function applyTableFilters(
   projects: ProjectListItem[],
@@ -112,6 +179,7 @@ export default function ProjekterPageClient({
   const [fristFilter, setFristFilter] = useState<FristFilter>("alle");
   const [page, setPage] = useState(1);
   const [openFilter, setOpenFilter] = useState<OpenFilter>(null);
+  const [sortState, setSortState] = useState<SortState>({ key: null });
 
   useEffect(() => {
     setProjects(initialProjects);
@@ -134,14 +202,23 @@ export default function ProjekterPageClient({
     [projects, statusFilter, priorityFilter, fristFilter],
   );
 
-  const total = filtered.length;
+  const sortedFiltered = useMemo(
+    () => sortProjectList(filtered, sortState),
+    [filtered, sortState],
+  );
+
+  const total = sortedFiltered.length;
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const pageSafe = Math.min(page, pageCount);
 
   const paged = useMemo(
-    () => filtered.slice((pageSafe - 1) * PAGE_SIZE, pageSafe * PAGE_SIZE),
-    [filtered, pageSafe],
+    () => sortedFiltered.slice((pageSafe - 1) * PAGE_SIZE, pageSafe * PAGE_SIZE),
+    [sortedFiltered, pageSafe],
   );
+
+  const onSortColumn = useCallback((column: SortableColumn) => {
+    setSortState((prev) => cycleSort(prev, column));
+  }, []);
 
   const completedTotal = completedProjects.length;
   const completedPageCount = Math.max(1, Math.ceil(completedTotal / PAGE_SIZE));
@@ -483,7 +560,11 @@ export default function ProjekterPageClient({
         ) : view === "liste" ? (
           <>
             <div className="overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white">
-              <ProjekterListView projects={paged} onNytProjekt={() => setCreateOpen(true)} />
+              <ProjekterListView
+                projects={paged}
+                onNytProjekt={() => setCreateOpen(true)}
+                onSortColumn={onSortColumn}
+              />
             </div>
             {total > 0 ? (
               <div className="mt-6 flex flex-wrap items-center justify-between gap-4">

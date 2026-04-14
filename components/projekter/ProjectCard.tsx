@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Repeat } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { Priority, ProjectStatus } from "@prisma/client";
@@ -260,12 +261,51 @@ export function ProjekterCompletedListView({ projects }: { projects: ProjectList
   );
 }
 
+export type ProjekterSortColumn = "name" | "status" | "priority" | "deadline" | "progress";
+
+function SortableTh({
+  column,
+  children,
+  className,
+  align = "left",
+  onSort,
+}: {
+  column: ProjekterSortColumn;
+  children: ReactNode;
+  className?: string;
+  align?: "left" | "right";
+  onSort?: (column: ProjekterSortColumn) => void;
+}) {
+  const base =
+    "font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]";
+  if (!onSort) {
+    return (
+      <th className={className}>
+        <span className={base}>{children}</span>
+      </th>
+    );
+  }
+  return (
+    <th className={className}>
+      <button
+        type="button"
+        onClick={() => onSort(column)}
+        className={`${base} w-full cursor-pointer border-0 bg-transparent p-0 ${align === "right" ? "text-right" : "text-left"}`}
+      >
+        {children}
+      </button>
+    </th>
+  );
+}
+
 export function ProjekterListView({
   projects,
   onNytProjekt,
+  onSortColumn,
 }: {
   projects: ProjectListItem[];
   onNytProjekt: () => void;
+  onSortColumn?: (column: ProjekterSortColumn) => void;
 }) {
   return (
     <div className="w-full min-w-0 overflow-x-auto">
@@ -284,21 +324,41 @@ export function ProjekterListView({
         <table className="w-full min-w-[720px] table-fixed border-collapse">
           <thead className="bg-[#f8f9fa]">
             <tr className="border-b border-[#e8e8e8]">
-              <th className="w-[28%] px-4 py-[10px] text-left font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
+              <SortableTh
+                column="name"
+                onSort={onSortColumn}
+                className="w-[28%] px-4 py-[10px] text-left"
+              >
                 Projekt navn
-              </th>
-              <th className="w-[14%] px-4 py-[10px] text-left font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
+              </SortableTh>
+              <SortableTh
+                column="status"
+                onSort={onSortColumn}
+                className="w-[14%] px-4 py-[10px] text-left"
+              >
                 Status
-              </th>
-              <th className="w-[14%] px-4 py-[10px] text-left font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
+              </SortableTh>
+              <SortableTh
+                column="priority"
+                onSort={onSortColumn}
+                className="w-[14%] px-4 py-[10px] text-left"
+              >
                 Prioritet
-              </th>
-              <th className="w-[14%] px-4 py-[10px] text-left font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
+              </SortableTh>
+              <SortableTh
+                column="deadline"
+                onSort={onSortColumn}
+                className="w-[14%] px-4 py-[10px] text-left"
+              >
                 Frist
-              </th>
-              <th className="w-[22%] px-4 py-[10px] text-left font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
+              </SortableTh>
+              <SortableTh
+                column="progress"
+                onSort={onSortColumn}
+                className="w-[22%] px-4 py-[10px] text-left"
+              >
                 Fremdrift
-              </th>
+              </SortableTh>
               <th className="w-[8%] px-4 py-[10px] text-right font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
                 Ejer
               </th>

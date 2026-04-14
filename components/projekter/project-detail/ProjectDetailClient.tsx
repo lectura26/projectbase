@@ -332,6 +332,7 @@ export default function ProjectDetailClient({
       startDate: isoToYmd(initial.startDate),
       deadline: isoToYmd(initial.deadline),
       priority: initial.priority,
+      status: initial.status,
       visibility: initial.visibility,
       tags: initial.tags,
       isRoutine: initial.isRoutine,
