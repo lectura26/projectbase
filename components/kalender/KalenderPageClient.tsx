@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
 import { useCallback, useMemo, useState } from "react";
 import { MeetingModal } from "@/components/calendar/MeetingModal";
+import { MeetingSidePanel } from "@/components/kalender/MeetingSidePanel";
 import type { CalendarMeetingDTO, CalendarProjectOption } from "@/types/calendar";
 
 type ViewMode = "week" | "month";
@@ -94,17 +95,24 @@ function upcomingSorted(meetings: CalendarMeetingDTO[]): CalendarMeetingDTO[] {
 type Props = {
   meetings: CalendarMeetingDTO[];
   projects: CalendarProjectOption[];
+  currentUserId: string;
 };
 
-export default function KalenderPageClient({ meetings, projects }: Props) {
+export default function KalenderPageClient({
+  meetings,
+  projects,
+  currentUserId,
+}: Props) {
   const router = useRouter();
   const [view, setView] = useState<ViewMode>("week");
   const [anchor, setAnchor] = useState(() => new Date());
   const [monthPickDay, setMonthPickDay] = useState<Date | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
-  const [editMeeting, setEditMeeting] = useState<CalendarMeetingDTO | null>(null);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
   const [defaultProjectId, setDefaultProjectId] = useState<string | null>(null);
+  const [panelMeetingId, setPanelMeetingId] = useState<string | null>(null);
+  const [panelInitial, setPanelInitial] = useState<CalendarMeetingDTO | null>(
+    null,
+  );
 
   const weekDays = useMemo(() => {
     const start = startOfWeek(anchor, { weekStartsOn: 1 });
@@ -143,17 +151,19 @@ export default function KalenderPageClient({ meetings, projects }: Props) {
   };
 
   const openCreate = (pid?: string | null) => {
-    setModalMode("create");
-    setEditMeeting(null);
     setDefaultProjectId(pid ?? null);
-    setModalOpen(true);
+    setCreateModalOpen(true);
   };
 
-  const openEdit = (m: CalendarMeetingDTO) => {
-    setModalMode("edit");
-    setEditMeeting(m);
-    setDefaultProjectId(null);
-    setModalOpen(true);
+  const openMeetingPanel = (m: CalendarMeetingDTO) => {
+    setPanelInitial(m);
+    setPanelMeetingId(m.id);
+  };
+
+  const closeMeetingPanel = () => {
+    setPanelMeetingId(null);
+    setPanelInitial(null);
+    router.refresh();
   };
 
   const onSaved = useCallback(() => {
@@ -264,7 +274,7 @@ export default function KalenderPageClient({ meetings, projects }: Props) {
                         <button
                           key={m.id}
                           type="button"
-                          onClick={() => openEdit(m)}
+                          onClick={() => openMeetingPanel(m)}
                           className="w-full rounded px-2 py-1 text-left text-[12px] font-medium text-white"
                           style={{
                             backgroundColor: m.project?.color ?? "#1a3167",
@@ -285,7 +295,7 @@ export default function KalenderPageClient({ meetings, projects }: Props) {
                         <button
                           key={m.id}
                           type="button"
-                          onClick={() => openEdit(m)}
+                          onClick={() => openMeetingPanel(m)}
                           className="z-10 overflow-hidden text-left text-[12px] font-medium leading-tight text-white"
                           style={{
                             ...meetingBlockStyle(m),
@@ -335,16 +345,21 @@ export default function KalenderPageClient({ meetings, projects }: Props) {
                     <span className="font-semibold">{d.getDate()}</span>
                     <div className="mt-1 space-y-0.5">
                       {pills.map((m) => (
-                        <div
+                        <button
                           key={m.id}
-                          className="truncate rounded-full px-1.5 py-0.5 text-[9px] font-medium text-white"
+                          type="button"
+                          onClick={(ev) => {
+                            ev.stopPropagation();
+                            openMeetingPanel(m);
+                          }}
+                          className="block w-full truncate rounded-full px-1.5 py-0.5 text-left text-[9px] font-medium text-white"
                           style={{
                             backgroundColor: m.project?.color ?? "#1a3167",
                           }}
                           title={m.title}
                         >
                           {m.title}
-                        </div>
+                        </button>
                       ))}
                       {more > 0 ? (
                         <span className="text-[9px] text-[#6b7280]">+{more} flere</span>
@@ -365,7 +380,7 @@ export default function KalenderPageClient({ meetings, projects }: Props) {
                   <li key={m.id}>
                     <button
                       type="button"
-                      onClick={() => openEdit(m)}
+                      onClick={() => openMeetingPanel(m)}
                       className="flex w-full items-center justify-between rounded-lg border border-[#e8e8e8] px-3 py-2 text-left hover:bg-[#f8f9fa]"
                     >
                       <span className="font-medium text-[#0f1923]">{m.title}</span>
@@ -411,7 +426,7 @@ export default function KalenderPageClient({ meetings, projects }: Props) {
                   </div>
                   <button
                     type="button"
-                    onClick={() => openEdit(m)}
+                    onClick={() => openMeetingPanel(m)}
                     className="shrink-0 rounded p-1 text-[#9ca3af] opacity-0 hover:bg-[#f3f4f6] group-hover:opacity-100"
                     aria-label="Rediger"
                   >
@@ -425,13 +440,26 @@ export default function KalenderPageClient({ meetings, projects }: Props) {
       </section>
 
       <MeetingModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        mode={modalMode}
-        initial={editMeeting}
+        open={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        mode="create"
+        initial={null}
         defaultProjectId={defaultProjectId}
         projects={projects}
-        onSaved={onSaved}
+        onSaved={() => {
+          setCreateModalOpen(false);
+          onSaved();
+        }}
+      />
+
+      <MeetingSidePanel
+        open={panelMeetingId != null}
+        meetingId={panelMeetingId}
+        initialRow={panelInitial}
+        projects={projects}
+        currentUserId={currentUserId}
+        onClose={closeMeetingPanel}
+        onRefresh={onSaved}
       />
     </div>
   );

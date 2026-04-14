@@ -1,3 +1,5 @@
+import type { CommentDTO, TaskNoteDTO } from "@/types/project-detail";
+
 export type CalendarMeetingDTO = {
   id: string;
   title: string;
@@ -5,7 +7,21 @@ export type CalendarMeetingDTO = {
   startTime: string | null;
   endTime: string | null;
   projectId: string | null;
+  completed: boolean;
   project: { id: string; name: string; color: string } | null;
+};
+
+export type MeetingDetailDTO = {
+  id: string;
+  title: string;
+  date: string;
+  startTime: string | null;
+  endTime: string | null;
+  projectId: string | null;
+  completed: boolean;
+  project: { id: string; name: string; color: string } | null;
+  notes: TaskNoteDTO[];
+  comments: CommentDTO[];
 };
 
 export type CalendarProjectOption = {

@@ -179,14 +179,17 @@ model Task {
 model TaskNote {
   id        String   @id @default(cuid())
   content   String
-  taskId    String
+  taskId    String?
+  meetingId String?
   authorId  String
   createdAt DateTime @default(now())
 
-  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  task    Task?          @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  meeting CalendarEvent? @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  author  User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([taskId])
+  @@index([meetingId])
 }
 
 model Comment {
@@ -195,15 +198,18 @@ model Comment {
   authorId  String
   projectId String?
   taskId    String?
+  meetingId String?
   createdAt DateTime @default(now())
 
-  author  User    @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  task    Task?    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author  User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  project Project?       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task    Task?          @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  meeting CalendarEvent? @relation(fields: [meetingId], references: [id], onDelete: Cascade)
 
   @@index([authorId])
   @@index([projectId])
   @@index([taskId])
+  @@index([meetingId])
 }
 
 model Activity {
@@ -250,10 +256,13 @@ model CalendarEvent {
   endTime   String?
   projectId String?
   userId    String
+  completed Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project  Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notes    TaskNote[]
+  comments Comment[]
 
   @@index([projectId])
   @@index([userId])

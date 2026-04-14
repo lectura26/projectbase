@@ -69,6 +69,7 @@ export type CalendarEventDTO = {
   startTime: string | null;
   endTime: string | null;
   projectId: string | null;
+  completed: boolean;
 };
 
 export type ProjectDetailPayload = {

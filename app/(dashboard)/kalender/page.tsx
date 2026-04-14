@@ -34,6 +34,7 @@ export default async function KalenderPage() {
     startTime: e.startTime,
     endTime: e.endTime,
     projectId: e.projectId,
+    completed: e.completed,
     project: e.project,
   }));
 
@@ -44,6 +45,10 @@ export default async function KalenderPage() {
   }));
 
   return (
-    <KalenderPageClient meetings={meetingPayload} projects={projectPayload} />
+    <KalenderPageClient
+      meetings={meetingPayload}
+      projects={projectPayload}
+      currentUserId={user.id}
+    />
   );
 }

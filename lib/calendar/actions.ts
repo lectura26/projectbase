@@ -1,11 +1,17 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { ensureAppUser } from "@/lib/auth/ensure-app-user";
 import { getSessionUser } from "@/lib/auth/session-user";
 import { prisma } from "@/lib/prisma";
 import { projectAccessWhere } from "@/lib/projekter/project-access";
 import { parseOrThrow } from "@/lib/validation/parse";
-import { cuidLikeSchema } from "@/lib/validation/schemas";
+import {
+  createMeetingCommentSchema,
+  createMeetingNoteSchema,
+  cuidLikeSchema,
+  updateMeetingFieldSchema,
+} from "@/lib/validation/schemas";
 
 function parseIsoDateOnly(s: string): Date {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s.trim());
@@ -233,4 +239,181 @@ export async function getMeetingsForUser(userId: string) {
     },
     orderBy: [{ date: "asc" }, { startTime: "asc" }],
   });
+}
+
+export async function updateMeetingField(
+  meetingId: string,
+  field: "title" | "date" | "startTime" | "endTime",
+  value: string | null,
+) {
+  const user = await getSessionUser();
+  if (!user) throw new Error("Ikke logget ind.");
+
+  const parsed = parseOrThrow(updateMeetingFieldSchema, {
+    meetingId,
+    field,
+    value,
+  });
+  await assertMeetingOwner(parsed.meetingId, user.id);
+
+  if (parsed.field === "title") {
+    const t = parsed.value?.trim() ?? "";
+    if (!t) throw new Error("Titel er påkrævet.");
+    await updateMeeting(parsed.meetingId, { title: t });
+    return;
+  }
+  if (parsed.field === "date") {
+    const d = parsed.value?.trim() ?? "";
+    if (!d) throw new Error("Dato er påkrævet.");
+    await updateMeeting(parsed.meetingId, { date: d });
+    return;
+  }
+  if (parsed.field === "startTime") {
+    await updateMeeting(parsed.meetingId, { startTime: parsed.value });
+    return;
+  }
+  if (parsed.field === "endTime") {
+    await updateMeeting(parsed.meetingId, { endTime: parsed.value });
+    return;
+  }
+}
+
+export async function toggleMeetingCompleted(meetingId: string) {
+  const user = await getSessionUser();
+  if (!user) throw new Error("Ikke logget ind.");
+
+  const mid = parseOrThrow(cuidLikeSchema, meetingId);
+  await assertMeetingOwner(mid, user.id);
+
+  const row = await prisma.calendarEvent.findUnique({
+    where: { id: mid },
+    select: { completed: true, projectId: true },
+  });
+  if (!row) throw new Error("Møde ikke fundet.");
+
+  await prisma.calendarEvent.update({
+    where: { id: mid },
+    data: { completed: !row.completed },
+  });
+
+  revalidatePath("/kalender");
+  revalidatePath("/oversigt");
+  if (row.projectId) revalidatePath(`/projekter/${row.projectId}`);
+}
+
+export async function createMeetingNote(meetingId: string, content: string) {
+  const user = await getSessionUser();
+  if (!user?.email) throw new Error("Ikke logget ind.");
+
+  const parsed = parseOrThrow(createMeetingNoteSchema, { meetingId, content });
+  await assertMeetingOwner(parsed.meetingId, user.id);
+  await ensureAppUser(user);
+
+  const row = await prisma.taskNote.create({
+    data: {
+      meetingId: parsed.meetingId,
+      taskId: null,
+      authorId: user.id,
+      content: parsed.content,
+    },
+    include: {
+      author: { select: { id: true, name: true, email: true, image: true } },
+    },
+  });
+
+  const meeting = await prisma.calendarEvent.findUnique({
+    where: { id: parsed.meetingId },
+    select: { projectId: true },
+  });
+  revalidatePath("/kalender");
+  revalidatePath("/oversigt");
+  if (meeting?.projectId) revalidatePath(`/projekter/${meeting.projectId}`);
+
+  return {
+    id: row.id,
+    content: row.content,
+    createdAt: row.createdAt.toISOString(),
+    author: row.author,
+  };
+}
+
+export async function createMeetingComment(meetingId: string, content: string) {
+  const user = await getSessionUser();
+  if (!user?.email) throw new Error("Ikke logget ind.");
+
+  const parsed = parseOrThrow(createMeetingCommentSchema, {
+    meetingId,
+    content,
+  });
+  await assertMeetingOwner(parsed.meetingId, user.id);
+  await ensureAppUser(user);
+
+  const meeting = await prisma.calendarEvent.findUnique({
+    where: { id: parsed.meetingId },
+    select: { projectId: true },
+  });
+  if (!meeting) throw new Error("Møde ikke fundet.");
+
+  await prisma.comment.create({
+    data: {
+      content: parsed.content,
+      authorId: user.id,
+      meetingId: parsed.meetingId,
+    },
+  });
+
+  revalidatePath("/kalender");
+  revalidatePath("/oversigt");
+  if (meeting.projectId) revalidatePath(`/projekter/${meeting.projectId}`);
+}
+
+export async function getMeetingWithDetails(meetingId: string) {
+  const user = await getSessionUser();
+  if (!user) throw new Error("Ikke logget ind.");
+
+  const mid = parseOrThrow(cuidLikeSchema, meetingId);
+  await assertMeetingOwner(mid, user.id);
+
+  const row = await prisma.calendarEvent.findUnique({
+    where: { id: mid },
+    include: {
+      project: { select: { id: true, name: true, color: true } },
+      notes: {
+        orderBy: { createdAt: "asc" },
+        include: {
+          author: { select: { id: true, name: true, email: true, image: true } },
+        },
+      },
+      comments: {
+        orderBy: { createdAt: "asc" },
+        include: {
+          author: { select: { id: true, name: true, email: true, image: true } },
+        },
+      },
+    },
+  });
+  if (!row) throw new Error("Møde ikke fundet.");
+
+  return {
+    id: row.id,
+    title: row.title,
+    date: row.date.toISOString(),
+    startTime: row.startTime,
+    endTime: row.endTime,
+    projectId: row.projectId,
+    completed: row.completed,
+    project: row.project,
+    notes: row.notes.map((n) => ({
+      id: n.id,
+      content: n.content,
+      createdAt: n.createdAt.toISOString(),
+      author: n.author,
+    })),
+    comments: row.comments.map((c) => ({
+      id: c.id,
+      content: c.content,
+      createdAt: c.createdAt.toISOString(),
+      author: c.author,
+    })),
+  };
 }

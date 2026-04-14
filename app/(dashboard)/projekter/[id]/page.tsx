@@ -115,6 +115,7 @@ export default async function ProjectDetailPage({ params }: Props) {
     startTime: e.startTime,
     endTime: e.endTime,
     projectId: e.projectId,
+    completed: e.completed,
   });
 
   const initial: ProjectDetailPayload = {

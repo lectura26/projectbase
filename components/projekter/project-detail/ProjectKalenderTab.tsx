@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { MeetingModal } from "@/components/calendar/MeetingModal";
+import { MeetingSidePanel } from "@/components/kalender/MeetingSidePanel";
 import {
   linkMeetingToProject,
   unlinkMeetingFromProject,
@@ -38,6 +39,7 @@ function toMeetingDto(
     startTime: e.startTime,
     endTime: e.endTime,
     projectId: e.projectId,
+    completed: e.completed,
     project: proj
       ? { id: proj.id, name: proj.name, color: proj.color }
       : null,
@@ -47,14 +49,21 @@ function toMeetingDto(
 type Props = {
   initial: ProjectDetailPayload;
   onRefresh: () => void;
+  currentUserId: string;
 };
 
-export function ProjectKalenderTab({ initial, onRefresh }: Props) {
+export function ProjectKalenderTab({
+  initial,
+  onRefresh,
+  currentUserId,
+}: Props) {
   const router = useRouter();
   const [search, setSearch] = useState("");
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
-  const [editMeeting, setEditMeeting] = useState<CalendarMeetingDTO | null>(null);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [panelMeetingId, setPanelMeetingId] = useState<string | null>(null);
+  const [panelInitial, setPanelInitial] = useState<CalendarMeetingDTO | null>(
+    null,
+  );
 
   const projectMeetings = initial.calendarEvents;
 
@@ -66,15 +75,19 @@ export function ProjectKalenderTab({ initial, onRefresh }: Props) {
   }, [initial.linkableMeetings, search]);
 
   const openCreate = () => {
-    setModalMode("create");
-    setEditMeeting(null);
-    setModalOpen(true);
+    setCreateModalOpen(true);
   };
 
-  const openEdit = (e: CalendarEventDTO) => {
-    setModalMode("edit");
-    setEditMeeting(toMeetingDto(e, initial.calendarProjectOptions));
-    setModalOpen(true);
+  const openMeetingPanel = (e: CalendarEventDTO) => {
+    setPanelInitial(toMeetingDto(e, initial.calendarProjectOptions));
+    setPanelMeetingId(e.id);
+  };
+
+  const closeMeetingPanel = () => {
+    setPanelMeetingId(null);
+    setPanelInitial(null);
+    router.refresh();
+    onRefresh();
   };
 
   const onUnlink = async (meetingId: string) => {
@@ -127,7 +140,7 @@ export function ProjectKalenderTab({ initial, onRefresh }: Props) {
                 <div className="flex shrink-0 gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                   <button
                     type="button"
-                    onClick={() => openEdit(e)}
+                    onClick={() => openMeetingPanel(e)}
                     className="rounded p-1 text-[#6b7280] hover:bg-[#f3f4f6]"
                     aria-label="Rediger"
                   >
@@ -196,13 +209,27 @@ export function ProjectKalenderTab({ initial, onRefresh }: Props) {
       </section>
 
       <MeetingModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        mode={modalMode}
-        initial={editMeeting}
-        defaultProjectId={modalMode === "create" ? initial.id : null}
+        open={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        mode="create"
+        initial={null}
+        defaultProjectId={initial.id}
         projects={initial.calendarProjectOptions}
         onSaved={() => {
+          setCreateModalOpen(false);
+          router.refresh();
+          onRefresh();
+        }}
+      />
+
+      <MeetingSidePanel
+        open={panelMeetingId != null}
+        meetingId={panelMeetingId}
+        initialRow={panelInitial}
+        projects={initial.calendarProjectOptions}
+        currentUserId={currentUserId}
+        onClose={closeMeetingPanel}
+        onRefresh={() => {
           router.refresh();
           onRefresh();
         }}

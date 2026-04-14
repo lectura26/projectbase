@@ -650,6 +650,7 @@ export default function ProjectDetailClient({
         {activeTab === "kalender" ? (
           <ProjectKalenderTab
             initial={initial}
+            currentUserId={currentUserId}
             onRefresh={() => router.refresh()}
           />
         ) : null}

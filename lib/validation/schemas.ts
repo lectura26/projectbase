@@ -147,6 +147,22 @@ export const createTaskNoteSchema = z.object({
   content: commentContentSchema,
 });
 
+export const createMeetingNoteSchema = z.object({
+  meetingId: cuidLikeSchema,
+  content: commentContentSchema,
+});
+
+export const createMeetingCommentSchema = z.object({
+  meetingId: cuidLikeSchema,
+  content: commentContentSchema,
+});
+
+export const updateMeetingFieldSchema = z.object({
+  meetingId: cuidLikeSchema,
+  field: z.enum(["title", "date", "startTime", "endTime"]),
+  value: z.union([z.string(), z.null()]),
+});
+
 const allowedFileType = z.enum([
   "application/pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
