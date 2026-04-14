@@ -17,7 +17,13 @@ import { da } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
-import { useCallback, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { MeetingModal } from "@/components/calendar/MeetingModal";
 import { MeetingSidePanel } from "@/components/kalender/MeetingSidePanel";
 import type { CalendarMeetingDTO, CalendarProjectOption } from "@/types/calendar";
@@ -41,24 +47,38 @@ function parseTimeToMin(t: string | null | undefined): number | null {
   return Number(m[1]) * 60 + Number(m[2]);
 }
 
-const DAY_START_MIN = 8 * 60;
-const DAY_END_MIN = 20 * 60;
-const DAY_RANGE = DAY_END_MIN - DAY_START_MIN;
-const COLUMN_BODY_PX = 520;
+/** Week time grid: 07:00–20:00, 13 hour rows × 48px = 624px */
+const FIRST_HOUR = 7;
+const LAST_HOUR = 20;
+const HOUR_ROW_PX = 48;
+const TIME_AXIS_W = 48;
+const ALL_DAY_H = 32;
+const DAY_START_MIN = FIRST_HOUR * 60;
+const DAY_END_MIN = LAST_HOUR * 60;
+const TIME_GRID_PX = (LAST_HOUR - FIRST_HOUR) * HOUR_ROW_PX;
 
-function meetingBlockStyle(m: CalendarMeetingDTO): CSSProperties {
+function minutesFromMidnight(d: Date): number {
+  return d.getHours() * 60 + d.getMinutes();
+}
+
+function meetingTimedStyle(m: CalendarMeetingDTO): CSSProperties {
   const start = parseTimeToMin(m.startTime);
   const endM = parseTimeToMin(m.endTime);
   if (start == null) {
-    return { position: "relative", marginBottom: 4 };
+    return {};
   }
   const end = endM ?? start + 60;
-  const topPct = ((start - DAY_START_MIN) / DAY_RANGE) * 100;
-  const hPct = Math.max(8, ((end - start) / DAY_RANGE) * 100);
+  const visStart = Math.max(start, DAY_START_MIN);
+  const visEnd = Math.min(end, DAY_END_MIN);
+  if (visEnd <= visStart) {
+    return { display: "none" };
+  }
+  const top = ((visStart - DAY_START_MIN) / 60) * HOUR_ROW_PX;
+  const height = Math.max(24, ((visEnd - visStart) / 60) * HOUR_ROW_PX);
   return {
     position: "absolute",
-    top: `${topPct}%`,
-    height: `${hPct}%`,
+    top,
+    height,
     left: 4,
     right: 4,
   };
@@ -113,6 +133,25 @@ export default function KalenderPageClient({
   const [panelInitial, setPanelInitial] = useState<CalendarMeetingDTO | null>(
     null,
   );
+
+  const weekScrollRef = useRef<HTMLDivElement>(null);
+  const [nowTick, setNowTick] = useState(0);
+
+  useEffect(() => {
+    if (view !== "week") return;
+    const id = window.setInterval(() => setNowTick((t) => t + 1), 60_000);
+    return () => clearInterval(id);
+  }, [view]);
+
+  useEffect(() => {
+    if (view !== "week") return;
+    const el = weekScrollRef.current;
+    if (!el) return;
+    const raf = window.requestAnimationFrame(() => {
+      el.scrollTop = HOUR_ROW_PX;
+    });
+    return () => window.cancelAnimationFrame(raf);
+  }, [view, anchor]);
 
   const weekDays = useMemo(() => {
     const start = startOfWeek(anchor, { weekStartsOn: 1 });
@@ -172,6 +211,22 @@ export default function KalenderPageClient({
 
   const today = new Date();
   const todayKey = dayKeyLocal(today);
+
+  const nowLineTopPx = useMemo(() => {
+    const now = new Date();
+    const m = minutesFromMidnight(now);
+    if (m < DAY_START_MIN || m > DAY_END_MIN) return null;
+    return ((m - DAY_START_MIN) / 60) * HOUR_ROW_PX;
+  }, [nowTick, view]);
+
+  const hourLabels = useMemo(
+    () =>
+      Array.from(
+        { length: LAST_HOUR - FIRST_HOUR },
+        (_, i) => FIRST_HOUR + i,
+      ),
+    [],
+  );
 
   return (
     <div className="space-y-6">
@@ -248,74 +303,156 @@ export default function KalenderPageClient({
       </div>
 
       {view === "week" ? (
-        <div className="overflow-x-auto rounded-xl border border-outline-variant/20 bg-white p-2">
-          <div className="grid min-w-[720px] grid-cols-7 gap-1">
-            {weekDays.map((d) => {
-              const key = dayKeyLocal(d);
-              const dayMeetings = meetingsByDay.get(key) ?? [];
-              const allDay = dayMeetings.filter((m) => !m.startTime?.trim());
-              const timed = dayMeetings.filter((m) => m.startTime?.trim());
-              const isToday = key === todayKey;
-              return (
+        <div className="overflow-x-auto rounded-xl border border-outline-variant/20 bg-white">
+          <div className="min-w-[720px]">
+            <div className="sticky top-0 z-20 bg-white">
+              <div className="flex border-b border-[#e8e8e8]">
                 <div
-                  key={key}
-                  className={`flex min-h-0 flex-col rounded-lg border border-transparent ${
-                    isToday ? "border-t-2 border-t-[#1a3167] bg-[#f0f6ff]" : "bg-white"
-                  }`}
-                >
-                  <div className="shrink-0 border-b border-[#e8e8e8] px-1 py-2 text-center">
-                    <span className="whitespace-pre-line text-[11px] font-semibold uppercase text-[#6b7280]">
-                      {`${format(d, "EEE", { locale: da })}\n${d.getDate()}`}
-                    </span>
-                  </div>
-                  <div className="flex min-h-0 flex-1 flex-col px-0 pt-1">
-                    <div className="shrink-0 space-y-1">
-                      {allDay.map((m) => (
-                        <button
-                          key={m.id}
-                          type="button"
-                          onClick={() => openMeetingPanel(m)}
-                          className="w-full rounded px-2 py-1 text-left text-[12px] font-medium text-white"
-                          style={{
-                            backgroundColor: m.project?.color ?? "#1a3167",
-                            borderRadius: 4,
-                            padding: "4px 8px",
-                          }}
-                        >
-                          {m.title}
-                          <span className="block text-[10px] opacity-90">Hele dagen</span>
-                        </button>
-                      ))}
-                    </div>
+                  className="shrink-0 border-r border-[#e8e8e8] bg-white"
+                  style={{ width: TIME_AXIS_W }}
+                />
+                {weekDays.map((d) => {
+                  const key = dayKeyLocal(d);
+                  const isToday = key === todayKey;
+                  return (
                     <div
-                      className="relative mt-1 w-full flex-1"
-                      style={{ minHeight: COLUMN_BODY_PX }}
+                      key={`h-${key}`}
+                      className={`min-w-0 flex-1 border-r border-[#e8e8e8] px-1 py-2 text-center last:border-r-0 ${
+                        isToday ? "border-t-2 border-t-[#1a3167] bg-[#f0f6ff]" : ""
+                      }`}
                     >
-                      {timed.map((m) => (
-                        <button
-                          key={m.id}
-                          type="button"
-                          onClick={() => openMeetingPanel(m)}
-                          className="z-10 overflow-hidden text-left text-[12px] font-medium leading-tight text-white"
-                          style={{
-                            ...meetingBlockStyle(m),
-                            backgroundColor: m.project?.color ?? "#1a3167",
-                            borderRadius: 4,
-                            padding: "4px 8px",
-                          }}
-                        >
-                          <span className="line-clamp-2">{m.title}</span>
-                          <span className="block text-[10px] opacity-90">
-                            {m.startTime}
-                            {m.endTime ? `–${m.endTime}` : ""}
-                          </span>
-                        </button>
-                      ))}
+                      <span className="whitespace-pre-line text-[11px] font-semibold uppercase text-[#6b7280]">
+                        {`${format(d, "EEE", { locale: da })}\n${d.getDate()}`}
+                      </span>
                     </div>
+                  );
+                })}
+              </div>
+              <div
+                className="flex border-b border-[#e8e8e8] bg-white"
+                style={{ minHeight: ALL_DAY_H }}
+              >
+                <div
+                  className="flex shrink-0 items-center justify-end border-r border-[#e8e8e8] pr-2 text-[10px] text-[#9ca3af]"
+                  style={{ width: TIME_AXIS_W }}
+                >
+                  Hele dagen
+                </div>
+                {weekDays.map((d) => {
+                  const key = dayKeyLocal(d);
+                  const dayMeetings = meetingsByDay.get(key) ?? [];
+                  const allDay = dayMeetings.filter((m) => !m.startTime?.trim());
+                  const isToday = key === todayKey;
+                  return (
+                    <div
+                      key={`ad-${key}`}
+                      className={`min-w-0 flex-1 border-r border-[#e8e8e8] px-1 py-0.5 last:border-r-0 ${
+                        isToday ? "bg-[#f0f6ff]" : ""
+                      }`}
+                    >
+                      <div className="flex flex-wrap gap-0.5">
+                        {allDay.map((m) => (
+                          <button
+                            key={m.id}
+                            type="button"
+                            onClick={() => openMeetingPanel(m)}
+                            className="max-w-full truncate rounded px-1.5 py-0.5 text-left text-[10px] font-medium text-white"
+                            style={{
+                              backgroundColor: m.project?.color ?? "#1a3167",
+                              borderRadius: 4,
+                            }}
+                            title={m.title}
+                          >
+                            {m.title}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div
+              ref={weekScrollRef}
+              className="max-h-[min(70vh,820px)] overflow-y-auto overflow-x-hidden"
+            >
+              <div className="flex">
+                <div
+                  className="shrink-0 border-r border-[#e8e8e8] bg-white"
+                  style={{ width: TIME_AXIS_W }}
+                >
+                  <div style={{ height: TIME_GRID_PX }}>
+                    {hourLabels.map((h) => (
+                      <div
+                        key={h}
+                        className="flex items-start justify-end pr-2 text-[11px] font-normal text-[#9ca3af]"
+                        style={{ height: HOUR_ROW_PX }}
+                      >
+                        {pad2(h)}
+                      </div>
+                    ))}
                   </div>
                 </div>
-              );
-            })}
+
+                <div className="grid min-w-0 flex-1 grid-cols-7">
+                  {weekDays.map((d) => {
+                    const key = dayKeyLocal(d);
+                    const dayMeetings = meetingsByDay.get(key) ?? [];
+                    const timed = dayMeetings.filter((m) => m.startTime?.trim());
+                    const isToday = key === todayKey;
+                    return (
+                      <div
+                        key={key}
+                        className={`relative border-r border-[#e8e8e8] last:border-r-0 ${
+                          isToday ? "bg-[#f0f6ff]" : ""
+                        }`}
+                        style={{ height: TIME_GRID_PX }}
+                      >
+                        {Array.from(
+                          { length: LAST_HOUR - FIRST_HOUR + 1 },
+                          (_, i) => (
+                            <div
+                              key={i}
+                              className="pointer-events-none absolute left-0 right-0 border-t border-[#f3f4f6]"
+                              style={{ top: i * HOUR_ROW_PX }}
+                            />
+                          ),
+                        )}
+
+                        {isToday && nowLineTopPx != null ? (
+                          <div
+                            className="pointer-events-none absolute left-0 right-0 z-20 border-t-2 border-[#1a3167]"
+                            style={{ top: nowLineTopPx }}
+                          />
+                        ) : null}
+
+                        {timed.map((m) => (
+                          <button
+                            key={m.id}
+                            type="button"
+                            onClick={() => openMeetingPanel(m)}
+                            className="z-10 overflow-hidden text-left text-[12px] font-medium leading-tight text-white"
+                            style={{
+                              ...meetingTimedStyle(m),
+                              backgroundColor: m.project?.color ?? "#1a3167",
+                              borderRadius: 4,
+                              padding: "4px 8px",
+                            }}
+                          >
+                            <span className="line-clamp-2">{m.title}</span>
+                            <span className="block text-[10px] opacity-90">
+                              {m.startTime}
+                              {m.endTime ? `–${m.endTime}` : ""}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       ) : (
