@@ -10,7 +10,12 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Projectbase",
-  description: "Projectbase — projekt management",
+  description: "Projektstyring for finansielle teams",
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({

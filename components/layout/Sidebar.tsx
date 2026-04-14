@@ -23,7 +23,13 @@ export function Sidebar({ userLabel }: { userLabel: string }) {
       aria-label="Hovednavigation"
     >
       <div className="flex items-center gap-2 p-[20px]">
-        <Logo className="h-8 w-auto" />
+        <Link
+          href="/oversigt"
+          className="inline-block cursor-pointer"
+          aria-label="Gå til oversigt"
+        >
+          <Logo className="h-8 w-auto" />
+        </Link>
       </div>
       <nav className="flex flex-1 flex-col gap-2 px-3">
         {NAV_ITEMS.map((item) => {

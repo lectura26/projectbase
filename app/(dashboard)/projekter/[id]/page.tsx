@@ -90,7 +90,7 @@ export default async function ProjectDetailPage({ params }: Props) {
 
   if (!row) notFound();
 
-  const activityNotesRaw = await prisma.taskNote.findMany({
+  const allNotes = await prisma.taskNote.findMany({
     where: {
       OR: [
         { task: { projectId: row.id } },
@@ -114,6 +114,22 @@ export default async function ProjectDetailPage({ params }: Props) {
       author: { select: { id: true, name: true, email: true, image: true } },
     },
     orderBy: { createdAt: "desc" },
+  });
+
+  const seenTasks = new Set<string>();
+  const seenMeetings = new Set<string>();
+  const activityNotesRaw = allNotes.filter((note) => {
+    if (note.taskId) {
+      if (seenTasks.has(note.taskId)) return false;
+      seenTasks.add(note.taskId);
+      return true;
+    }
+    if (note.meetingId) {
+      if (seenMeetings.has(note.meetingId)) return false;
+      seenMeetings.add(note.meetingId);
+      return true;
+    }
+    return false;
   });
 
   const [linkableRows, calendarProjectOptions] = await Promise.all([
