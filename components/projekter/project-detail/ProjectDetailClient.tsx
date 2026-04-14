@@ -42,7 +42,7 @@ import {
   priorityLabelDa,
 } from "@/components/projekter/project-helpers";
 import { routineIntervalLabel } from "@/lib/projekter/routine";
-import type { ProjectDetailPayload, TaskDetailDTO } from "@/types/project-detail";
+import type { ProjectDetailPayload, TaskDetailDTO, UserMini } from "@/types/project-detail";
 import { NytProjektModal } from "@/components/projekter/NytProjektModal";
 import { TaskSidePanel } from "@/components/projekter/project-detail/TaskSidePanel";
 import { DatePicker } from "@/components/ui/DatePicker";
@@ -188,6 +188,12 @@ function taskHasUnreadComments(task: TaskDetailDTO, sync: number): boolean {
   );
   if (!raw || !Number.isFinite(last)) return true;
   return latest > last;
+}
+
+function resolveCurrentUserMini(initial: ProjectDetailPayload, currentUserId: string): UserMini {
+  if (initial.owner.id === currentUserId) return initial.owner;
+  const m = initial.members.find((x) => x.user.id === currentUserId);
+  return m?.user ?? initial.owner;
 }
 
 type Props = {
@@ -488,6 +494,7 @@ export default function ProjectDetailClient({
             setExpandedTaskId={setExpandedTaskId}
             highlightTaskId={highlightTaskId}
             currentUserId={currentUserId}
+            currentUserMini={resolveCurrentUserMini(initial, currentUserId)}
             routerRefresh={() => router.refresh()}
           />
         ) : null}
@@ -557,6 +564,7 @@ function OpgaverTab({
   setExpandedTaskId,
   highlightTaskId,
   currentUserId,
+  currentUserMini,
   routerRefresh,
 }: {
   projectId: string;
@@ -568,6 +576,7 @@ function OpgaverTab({
   setExpandedTaskId: (id: string | null) => void;
   highlightTaskId: string | null;
   currentUserId: string;
+  currentUserMini: UserMini;
   routerRefresh: () => void;
 }) {
   const [addTaskOpen, setAddTaskOpen] = useState(false);
@@ -736,6 +745,7 @@ function OpgaverTab({
         projectId={projectId}
         projectName={projectName}
         currentUserId={currentUserId}
+        currentUserMini={currentUserMini}
         patchTask={patchTask}
         onRefresh={routerRefresh}
         onClose={() => setExpandedTaskId(null)}

@@ -20,7 +20,7 @@ import {
   isoToYmd,
   ymdToIsoDate,
 } from "@/lib/datetime/ymd";
-import type { TaskDetailDTO } from "@/types/project-detail";
+import type { TaskDetailDTO, TaskNoteDTO, UserMini } from "@/types/project-detail";
 import { DatePicker } from "@/components/ui/DatePicker";
 
 function formatNoteDetailTimestamp(iso: string): string {
@@ -107,6 +107,7 @@ type Props = {
   projectId: string;
   projectName: string;
   currentUserId: string;
+  currentUserMini: UserMini;
   patchTask: (taskId: string, patch: Partial<TaskDetailDTO>) => void;
   onRefresh: () => void;
   onClose: () => void;
@@ -119,6 +120,7 @@ export function TaskSidePanel({
   projectId,
   projectName,
   currentUserId,
+  currentUserMini,
   patchTask,
   onRefresh,
   onClose,
@@ -136,6 +138,7 @@ export function TaskSidePanel({
   const [commentDraft, setCommentDraft] = useState("");
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [viewTick, setViewTick] = useState(0);
+  const [noteError, setNoteError] = useState("");
 
   useEffect(() => {
     if (!task) return;
@@ -143,6 +146,7 @@ export function TaskSidePanel({
     setStartYmd(isoToYmd(task.startDate));
     setDeadlineYmd(isoToYmd(task.deadline));
     setNoteDraft("");
+    setNoteError("");
     setCommentDraft("");
     setCommentsOpen(false);
   }, [task?.id, task?.title, task?.startDate, task?.deadline, task]);
@@ -266,13 +270,27 @@ export function TaskSidePanel({
     if (!task) return;
     const t = noteDraft.trim();
     if (!t) return;
+    setNoteError("");
+    const prevNotes = task.notes;
+    const optimisticId = `optimistic-${Date.now()}`;
+    const optimistic: TaskNoteDTO = {
+      id: optimisticId,
+      content: t,
+      createdAt: new Date().toISOString(),
+      author: currentUserMini,
+    };
+    patchTask(task.id, { notes: [...prevNotes, optimistic] });
+    setNoteDraft("");
     try {
-      await createTaskNote(task.id, t);
-      setNoteDraft("");
-      toast.success("Note gemt");
+      const created = await createTaskNote(task.id, t);
+      patchTask(task.id, {
+        notes: [...prevNotes, created].sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
+      });
       onRefresh();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Fejl");
+      patchTask(task.id, { notes: prevNotes });
+      setNoteDraft(t);
+      setNoteError(e instanceof Error ? e.message : "Kunne ikke gemme beskrivelsen.");
     }
   };
 
@@ -476,11 +494,11 @@ export function TaskSidePanel({
                   </div>
 
                   <p className="px-5 pb-2 pt-3 text-[11px] font-medium uppercase tracking-wide text-[#9ca3af]">
-                    NOTER
+                    BESKRIVELSE
                   </p>
                   <div className="px-5 pb-2">
                     {notes.length === 0 ? (
-                      <p className="text-[13px] text-[#9ca3af]">Ingen noter endnu.</p>
+                      <p className="text-[13px] text-[#9ca3af]">Ingen beskrivelse endnu.</p>
                     ) : (
                       <div className="relative pl-0">
                         {notes.length > 1 ? (
@@ -513,18 +531,28 @@ export function TaskSidePanel({
                     )}
                     <textarea
                       value={noteDraft}
-                      onChange={(e) => setNoteDraft(e.target.value)}
-                      placeholder="Tilføj en note..."
+                      onChange={(e) => {
+                        setNoteDraft(e.target.value);
+                        if (noteError) setNoteError("");
+                      }}
+                      placeholder="Tilføj en beskrivelse..."
                       rows={3}
+                      aria-invalid={noteError ? true : undefined}
+                      aria-describedby={noteError ? "task-note-error" : undefined}
                       className="mt-3 min-h-[72px] w-full resize-none rounded-md border border-[#e8e8e8] px-3 py-2 font-body text-[13px] text-[#0f1923] outline-none placeholder:text-[#9ca3af] focus:border-[#1a3167]"
                     />
+                    {noteError ? (
+                      <p id="task-note-error" className="mt-2 text-[12px] text-[#dc2626]" role="alert">
+                        {noteError}
+                      </p>
+                    ) : null}
                     <div className="mt-2 flex justify-end">
                       <button
                         type="button"
                         onClick={() => void saveNote()}
                         className="rounded-[5px] bg-[#1a3167] px-[14px] py-[5px] font-body text-[12px] font-medium text-white hover:opacity-90"
                       >
-                        Gem note
+                        Gem
                       </button>
                     </div>
                   </div>

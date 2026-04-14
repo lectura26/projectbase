@@ -22,7 +22,7 @@ import {
   updateTaskFieldsSchema,
   updateTaskTitleSchema,
 } from "@/lib/validation/schemas";
-import type { TaskDetailDTO } from "@/types/project-detail";
+import type { TaskDetailDTO, TaskNoteDTO } from "@/types/project-detail";
 
 async function assertProjectMember(projectId: string, userId: string) {
   const p = await prisma.project.findFirst({
@@ -269,7 +269,7 @@ export async function createTask(projectId: string, input: CreateTaskInput): Pro
   };
 }
 
-export async function createTaskNote(taskId: string, content: string) {
+export async function createTaskNote(taskId: string, content: string): Promise<TaskNoteDTO> {
   const user = await getSessionUser();
   if (!user?.email) throw new Error("Ikke logget ind.");
 
@@ -282,14 +282,26 @@ export async function createTaskNote(taskId: string, content: string) {
   if (!task) throw new Error("Opgave ikke fundet.");
 
   await ensureAppUser(user);
-  await prisma.taskNote.create({
+
+  const row = await prisma.taskNote.create({
     data: {
       taskId: parsed.taskId,
       authorId: user.id,
       content: parsed.content,
     },
+    include: {
+      author: { select: { id: true, name: true, email: true, image: true } },
+    },
   });
+
   revalidatePath(`/projekter/${task.projectId}`);
+
+  return {
+    id: row.id,
+    content: row.content,
+    createdAt: row.createdAt.toISOString(),
+    author: row.author,
+  };
 }
 
 export async function addProjectComment(projectId: string, content: string) {
