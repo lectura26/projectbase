@@ -408,7 +408,7 @@ export default function ProjekterPageClient({
               ) : null}
             </div>
 
-            <div className="relative" ref={fristFilterRef}>
+            <div className="relative overflow-visible" ref={fristFilterRef}>
               <button
                 type="button"
                 className={filterTriggerClass}
@@ -423,7 +423,7 @@ export default function ProjekterPageClient({
               </button>
               {openFilter === "frist" ? (
                 <div
-                  className="absolute left-0 top-full z-40 mt-1 min-w-[200px] rounded-md border border-[#e8e8e8] bg-white py-1 shadow-lg"
+                  className="absolute right-0 top-full z-50 mt-1 max-w-[180px] overflow-hidden rounded-md border border-[#e8e8e8] bg-white py-1 shadow-lg"
                   role="menu"
                 >
                   <button

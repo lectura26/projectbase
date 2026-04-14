@@ -30,7 +30,10 @@ export const getCachedProjekterPageBundle = cache(async (userId: string) => {
         isTemplate: false,
         status: { not: "COMPLETED" },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: [
+        { deadline: { sort: "asc", nulls: "last" } },
+        { createdAt: "desc" },
+      ],
       include: projekterListInclude,
     }),
     prisma.project.findMany({
@@ -39,7 +42,10 @@ export const getCachedProjekterPageBundle = cache(async (userId: string) => {
         isTemplate: false,
         status: "COMPLETED",
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: [
+        { deadline: { sort: "asc", nulls: "last" } },
+        { createdAt: "desc" },
+      ],
       include: projekterListInclude,
     }),
   ]);
