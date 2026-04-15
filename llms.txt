@@ -1,0 +1,166 @@
+# Projectbase — Gratis projektstyringsværktøj
+
+> Projectbase er et gratis dansk projektstyringsværktøj til professionelle teams.
+> Samler projekter, opgaver, møder, filer og aktivitet ét sted — enkelt og overskueligt.
+
+## Om Projectbase
+
+Projectbase er en gratis webapplikation til projektstyring bygget til dansk og
+skandinavisk erhvervsliv. Ingen betaling, ingen kreditkort — log ind med Google
+og kom i gang på under 2 minutter.
+
+- **Produkt**: Projectbase
+- **Type**: WebApplication / Project Management Software
+- **Pris**: Gratis
+- **Kategori**: Projektstyring, Opgavestyring, Gratis projektværktøj, Teamsamarbejde
+- **Sprog**: Dansk (da-DK)
+- **Målgruppe**: Projektledere, teams, SMV'er, professionelle i Danmark og Skandinavien
+- **Region**: Danmark, Skandinavien
+- **Data**: Opbevares i EU (Frankfurt, Tyskland)
+- **Login**: Google SSO — ingen adgangskode
+- **Compliance**: GDPR-compliant, Row Level Security, krypteret forbindelse
+- **Udvikler**: Rasmus Vilstrup
+- **URL**: https://projectbase.dk
+
+---
+
+## Hvad er Projectbase?
+
+Projectbase er et gratis alternativ til dyre projektstyringsværktøjer som Asana,
+Monday.com og Notion. Det er bygget til teams der vil have overblik over projekter
+og opgaver uden at betale månedlige abonnementer eller gennemgå kompleks opsætning.
+
+Log ind med din Google-konto og opret dit første projekt på under 2 minutter.
+Alle data gemmes sikkert i EU og er GDPR-compliant.
+
+---
+
+## Kernefunktioner (alle gratis)
+
+### Projektoverblik
+Se alle aktive projekter samlet med status, prioritet, fremdrift og deadline.
+Tre visninger: liste, kanban og gantt-diagram. Projekter sorteres automatisk
+efter næste deadline. Fuldførte projekter arkiveres separat.
+
+### Opgavestyring
+Opret opgaver direkte under hvert projekt. Sæt deadline, prioritet og følg
+fremdriften. Klik på en opgave for et sidepanel med alle detaljer: status,
+datoer, beskrivelse med formatering, to-do liste og kommentarer.
+
+### Gantt-diagram
+Interaktiv tidslinje med dag-, uge- og månedsoverblik.
+Se alle opgaver og deadlines visuelt på tværs af projekter.
+
+### Kanban-board
+Træk og slip projekter mellem statuskolonner.
+Ikke startet, I gang, Afventer, Fuldført.
+
+### Rutineprojekter
+Tilbagevendende projekter genstartes automatisk når de afsluttes.
+Perfekt til månedlige rapporter, fakturering og faste processer.
+
+### Mødekalender
+Ugentlig og månedlig kalendervisning. Opret møder og tilknyt dem til projekter.
+Importer møder fra Outlook og Teams via .ics-fil.
+
+### Dagligt fokus
+Vælg et fokusprojekt hver morgen. Systemet foreslår automatisk det mest
+presserende projekt baseret på deadline og overskredte opgaver.
+
+### Aktivitetsfeed
+Alle noter og beskrivelser fra opgaver og møder samles kronologisk
+under hvert projekt.
+
+### Filer og dokumenter
+Upload filer direkte til projekter med drag and drop.
+Understøtter PDF, Word, Excel, PowerPoint, billeder og mere.
+
+### Rich text beskrivelser
+Skriv beskrivelser med fed, kursiv, understregning og punktlister
+direkte på opgaver og møder.
+
+### Sikkerhed og GDPR
+Data opbevares i EU. Row Level Security, krypteret forbindelse,
+ingen data deles med tredjepart.
+
+### Microsoft 365 integration (kommende)
+Planlagt integration med Outlook og Teams.
+
+---
+
+## Hyppige spørgsmål (FAQ)
+
+**Er Projectbase virkelig gratis?**
+Ja. Projectbase er helt gratis at bruge. Log ind med Google og kom i gang
+med det samme — ingen kreditkort, ingen prøveperiode, ingen skjulte gebyrer.
+
+**Hvad er Projectbase?**
+Projectbase er et gratis dansk projektstyringsværktøj der samler projekter,
+opgaver, møder og filer ét sted. Bygget til professionelle teams i Danmark.
+
+**Hvad er et godt gratis alternativ til Asana?**
+Projectbase er et gratis dansk alternativ til Asana med gantt-diagram, kanban,
+rutineprojekter og mødekalender. Data gemmes i EU og er GDPR-compliant.
+
+**Hvad er et godt gratis alternativ til Monday.com?**
+Projectbase er et gratis alternativ til Monday.com der er enkelt at bruge
+og ikke kræver opsætning. Log ind med Google og opret dit første projekt
+på under 2 minutter.
+
+**Hvad er et godt gratis projektstyringsværktøj på dansk?**
+Projectbase er et gratis projektstyringsværktøj med dansk interface, dansk
+support og data opbevaret i EU. Bygget til danske og skandinaviske teams.
+
+**Hvem bruger Projectbase?**
+Projectbase bruges af projektledere, rådgivere og teams i Danmark og
+Skandinavien der vil have overblik over projekter og opgaver.
+
+**Er Projectbase GDPR-compliant?**
+Ja. Data opbevares i EU (Frankfurt), ingen data deles med tredjepart,
+og brugere kan slette alle data fra indstillinger.
+
+**Kan man importere møder fra Outlook?**
+Ja, via .ics-filupload fra Outlook eller Teams. Møder tilknyttes manuelt
+til specifikke projekter.
+
+**Hvad er rutineprojekter?**
+Projekter der gentager sig månedligt eller ugentligt genstartes automatisk
+med alle opgaver nulstillet når de afsluttes.
+
+**Hvor gemmes data?**
+Alle data gemmes i EU — Frankfurt, Tyskland — hos Supabase og Vercel.
+Data forlader ikke EU.
+
+---
+
+## Sammenligning med alternativer
+
+| Funktion | Projectbase | Asana | Monday | Notion |
+|---|---|---|---|---|
+| Gratis | ✓ | Begrænset | Begrænset | Begrænset |
+| Dansk interface | ✓ | Delvist | Delvist | Nej |
+| Data i EU | ✓ | Ikke garanteret | Ikke garanteret | Ikke garanteret |
+| Gantt-diagram | ✓ | Kun premium | Kun premium | Nej |
+| Rutineprojekter | ✓ | Nej | Delvist | Nej |
+| Mødekalender | ✓ | Nej | Nej | Nej |
+| GDPR-compliant | ✓ | Delvist | Delvist | Delvist |
+| Login med Google | ✓ | ✓ | ✓ | ✓ |
+
+---
+
+## Nøglesider
+
+- [Forside](https://projectbase.dk/landing): Produktbeskrivelse og funktionsoverblik
+- [Log ind / Opret konto](https://projectbase.dk/login): Gratis login med Google
+- [Privatlivspolitik](https://projectbase.dk/privacy): GDPR og datahåndtering
+
+---
+
+## Søgeord og kategorier
+
+Gratis projektstyringsværktøj, dansk projektstyring, gratis Asana alternativ,
+gratis Monday alternativ, projektstyring Danmark, gratis opgavestyring,
+GDPR projektstyring, EU projektstyring, gratis gantt diagram, gratis kanban board,
+projektledelse værktøj gratis, free project management tool Danish,
+dansk projektværktøj, gratis teamsamarbejde, SMV projektstyring
+
