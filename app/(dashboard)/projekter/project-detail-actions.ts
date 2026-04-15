@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import type { Priority, TaskStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
@@ -8,6 +9,14 @@ import { getSessionUser } from "@/lib/auth/session-user";
 import { createNotification } from "@/lib/notifications/service";
 import { PRIVATE_FILE_PLACEHOLDER } from "@/lib/files/private-file-url";
 import { ymdStringToDateOrNull } from "@/lib/datetime/ymd";
+import {
+  ALLOWED_TYPES,
+  mimeFromExt,
+  sanitizeOriginalFilename,
+  validateUploadFile,
+} from "@/lib/storage/file-validation";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { SUPABASE_STORAGE_BUCKET } from "@/lib/supabase/storage-bucket";
 import { projectAccessWhere } from "@/lib/projekter/project-access";
 import { removeStorageObject } from "@/lib/supabase/storage-remove";
 import { parseOrThrow } from "@/lib/validation/parse";
@@ -17,7 +26,6 @@ import {
   createTaskNoteSchema,
   createTodoItemSchema,
   cuidLikeSchema,
-  projectFileRecordSchema,
   setTaskStatusSchema,
   updateTaskFieldsSchema,
   updateTaskTitleSchema,
@@ -507,31 +515,73 @@ export async function deleteActivity(activityId: string) {
   revalidatePath(`/projekter/${row.projectId}`);
 }
 
-export async function createProjectFileRecord(input: {
-  projectId: string;
-  name: string;
-  fileType: string;
-  storagePath: string;
-}) {
+/** Upload a project file via Storage (service role) and persist the DB row. */
+export async function uploadProjectFile(formData: FormData) {
   const user = await getSessionUser();
   if (!user?.email) throw new Error("Ikke logget ind.");
 
-  const parsed = parseOrThrow(projectFileRecordSchema, input);
+  const projectIdRaw = formData.get("projectId");
+  const file = formData.get("file");
+  if (typeof projectIdRaw !== "string" || !(file instanceof File)) {
+    throw new Error("Ugyldig anmodning.");
+  }
 
-  await assertProjectMember(parsed.projectId, user.id);
+  const projectId = parseOrThrow(cuidLikeSchema, projectIdRaw);
+
+  const checked = validateUploadFile({
+    size: file.size,
+    name: file.name,
+    type: file.type,
+  });
+  if (!checked.ok) {
+    throw new Error(checked.reason);
+  }
+
+  await assertProjectMember(projectId, user.id);
   await ensureAppUser(user);
 
-  await prisma.file.create({
-    data: {
-      projectId: parsed.projectId,
-      name: parsed.name,
-      fileType: parsed.fileType,
-      url: PRIVATE_FILE_PLACEHOLDER,
-      storagePath: parsed.storagePath,
-      uploadedById: user.id,
-    },
+  const storagePath = `${projectId}/${randomUUID()}.${checked.ext}`;
+
+  const admin = createSupabaseAdminClient();
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const contentType =
+    file.type && (ALLOWED_TYPES as readonly string[]).includes(file.type)
+      ? file.type
+      : mimeFromExt(checked.ext);
+
+  const { error } = await admin.storage.from(SUPABASE_STORAGE_BUCKET).upload(storagePath, buffer, {
+    contentType,
+    upsert: false,
   });
-  revalidatePath(`/projekter/${parsed.projectId}`);
+
+  if (error) {
+    console.error("[uploadProjectFile]", error.message);
+    throw new Error("STORAGE");
+  }
+
+  const fileTypeToStore =
+    file.type && (ALLOWED_TYPES as readonly string[]).includes(file.type)
+      ? file.type
+      : mimeFromExt(checked.ext);
+
+  await prisma.$transaction(async (tx) => {
+    const row = await tx.file.create({
+      data: {
+        projectId,
+        name: sanitizeOriginalFilename(file.name),
+        fileType: fileTypeToStore,
+        url: PRIVATE_FILE_PLACEHOLDER,
+        storagePath,
+        uploadedById: user.id,
+      },
+    });
+    await tx.file.update({
+      where: { id: row.id },
+      data: { url: `/api/files/${row.id}/signed` },
+    });
+  });
+
+  revalidatePath(`/projekter/${projectId}`);
 }
 
 export async function deleteProjectFile(fileId: string) {

@@ -32,14 +32,12 @@ import {
 } from "@/app/(dashboard)/projekter/actions";
 import {
   addProjectComment,
-  createProjectFileRecord,
   createTask,
   deleteProjectFile,
   setTaskStatus,
+  uploadProjectFile,
 } from "@/app/(dashboard)/projekter/project-detail-actions";
 import { validateUploadFile } from "@/lib/storage/file-validation";
-import { createClient } from "@/lib/supabase/client";
-import { SUPABASE_STORAGE_BUCKET } from "@/lib/supabase/storage-bucket";
 import {
   displayName,
   initialsFromString,
@@ -1085,21 +1083,11 @@ function FilerTab({
   const [uploading, setUploading] = useState(false);
 
   const uploadValidatedFile = useCallback(
-    async (file: File, checked: { ok: true; ext: string }) => {
-      const supabase = createClient();
-      const path = `${initial.id}/${crypto.randomUUID()}.${checked.ext}`;
-      const { error: upErr } = await supabase.storage
-        .from(SUPABASE_STORAGE_BUCKET)
-        .upload(path, file, { upsert: false });
-      if (upErr) {
-        throw new Error("STORAGE");
-      }
-      await createProjectFileRecord({
-        projectId: initial.id,
-        name: file.name,
-        fileType: file.type || checked.ext,
-        storagePath: path,
-      });
+    async (file: File) => {
+      const formData = new FormData();
+      formData.append("projectId", initial.id);
+      formData.append("file", file);
+      await uploadProjectFile(formData);
     },
     [initial.id],
   );
@@ -1122,13 +1110,15 @@ function FilerTab({
       return;
     }
     try {
-      await uploadValidatedFile(file, checked);
+      await uploadValidatedFile(file);
       toast.success("Fil uploadet");
       onRefresh();
     } catch (err) {
       console.error("[upload file]", err);
       if (err instanceof Error && err.message === "STORAGE") {
         toast.error("Upload fejlede. Prøv igen.");
+      } else if (err instanceof Error) {
+        toast.error(err.message);
       } else {
         toast.error("Upload fejlede");
       }
@@ -1159,7 +1149,7 @@ function FilerTab({
     const files = Array.from(e.dataTransfer.files ?? []);
     if (files.length === 0) return;
 
-    const queue: { file: File; checked: { ok: true; ext: string } }[] = [];
+    const queue: File[] = [];
     let hasInvalid = false;
     for (const file of files) {
       const checked = validateUploadFile({
@@ -1171,7 +1161,7 @@ function FilerTab({
         hasInvalid = true;
         continue;
       }
-      queue.push({ file, checked });
+      queue.push(file);
     }
     if (hasInvalid) {
       toast.error("Filen er for stor eller har et ugyldigt format");
@@ -1181,14 +1171,16 @@ function FilerTab({
     setUploading(true);
     let successCount = 0;
     try {
-      for (const { file, checked } of queue) {
+      for (const file of queue) {
         try {
-          await uploadValidatedFile(file, checked);
+          await uploadValidatedFile(file);
           successCount++;
         } catch (err) {
           console.error("[upload file drop]", err);
           if (err instanceof Error && err.message === "STORAGE") {
             toast.error("Upload fejlede. Prøv igen.");
+          } else if (err instanceof Error) {
+            toast.error(err.message);
           } else {
             toast.error("Upload fejlede");
           }

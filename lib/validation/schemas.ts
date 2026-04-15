@@ -9,7 +9,7 @@ import {
 } from "@prisma/client";
 import { z } from "zod";
 import { isAllowedProjectColor } from "@/lib/projekter/project-colors";
-import { MAX_FILE_BYTES } from "@/lib/storage/file-validation";
+import { ALLOWED_TYPES, MAX_FILE_BYTES } from "@/lib/storage/file-validation";
 
 /** Project / task / comment text limits (defense-in-depth with DB). */
 export const MAX_PROJECT_NAME = 200;
@@ -181,14 +181,12 @@ export const updateMeetingFieldSchema = z.object({
   value: z.union([z.string(), z.null()]),
 });
 
-const allowedFileType = z.enum([
-  "application/pdf",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  "image/png",
-  "image/jpeg",
-  "image/jpg",
-]);
+const allowedFileMimeSchema = z
+  .string()
+  .refine(
+    (s) => (ALLOWED_TYPES as readonly string[]).includes(s),
+    "Filtype ikke tilladt.",
+  );
 
 export const projectFileRecordSchema = z.object({
   projectId: cuidLikeSchema,
@@ -196,7 +194,7 @@ export const projectFileRecordSchema = z.object({
     .string()
     .transform((s) => s.trim())
     .pipe(z.string().min(1).max(255)),
-  fileType: allowedFileType,
+  fileType: allowedFileMimeSchema,
   storagePath: z.string().min(1).max(512),
 });
 
