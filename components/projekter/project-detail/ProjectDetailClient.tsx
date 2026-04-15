@@ -2,7 +2,17 @@
 
 import type { Priority, ProjectStatus, TaskStatus } from "@prisma/client";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, ChevronDown, Pencil, Plus, Repeat, Trash2, X } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  Loader2,
+  Pencil,
+  Plus,
+  Repeat,
+  Trash2,
+  UploadCloud,
+  X,
+} from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import {
@@ -1071,6 +1081,29 @@ function FilerTab({
   setHoverFileId: (id: string | null) => void;
   onRefresh: () => void;
 }) {
+  const [dragActive, setDragActive] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const uploadValidatedFile = useCallback(
+    async (file: File, checked: { ok: true; ext: string }) => {
+      const supabase = createClient();
+      const path = `${initial.id}/${crypto.randomUUID()}.${checked.ext}`;
+      const { error: upErr } = await supabase.storage
+        .from(SUPABASE_STORAGE_BUCKET)
+        .upload(path, file, { upsert: false });
+      if (upErr) {
+        throw new Error("STORAGE");
+      }
+      await createProjectFileRecord({
+        projectId: initial.id,
+        name: file.name,
+        fileType: file.type || checked.ext,
+        storagePath: path,
+      });
+    },
+    [initial.id],
+  );
+
   const pick = useCallback(() => {
     fileInputRef.current?.click();
   }, [fileInputRef]);
@@ -1089,26 +1122,84 @@ function FilerTab({
       return;
     }
     try {
-      const supabase = createClient();
-      const path = `${initial.id}/${crypto.randomUUID()}.${checked.ext}`;
-      const { error: upErr } = await supabase.storage
-        .from(SUPABASE_STORAGE_BUCKET)
-        .upload(path, file, { upsert: false });
-      if (upErr) {
-        toast.error("Upload fejlede. Prøv igen.");
-        return;
-      }
-      await createProjectFileRecord({
-        projectId: initial.id,
-        name: file.name,
-        fileType: file.type || checked.ext,
-        storagePath: path,
-      });
+      await uploadValidatedFile(file, checked);
       toast.success("Fil uploadet");
       onRefresh();
     } catch (err) {
       console.error("[upload file]", err);
-      toast.error("Upload fejlede");
+      if (err instanceof Error && err.message === "STORAGE") {
+        toast.error("Upload fejlede. Prøv igen.");
+      } else {
+        toast.error("Upload fejlede");
+      }
+    }
+  };
+
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (uploading) return;
+    setDragActive(true);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const next = e.relatedTarget as Node | null;
+    if (next && e.currentTarget.contains(next)) return;
+    setDragActive(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragActive(false);
+    const files = Array.from(e.dataTransfer.files ?? []);
+    if (files.length === 0) return;
+
+    const queue: { file: File; checked: { ok: true; ext: string } }[] = [];
+    let hasInvalid = false;
+    for (const file of files) {
+      const checked = validateUploadFile({
+        size: file.size,
+        name: file.name,
+        type: file.type,
+      });
+      if (!checked.ok) {
+        hasInvalid = true;
+        continue;
+      }
+      queue.push({ file, checked });
+    }
+    if (hasInvalid) {
+      toast.error("Filen er for stor eller har et ugyldigt format");
+    }
+    if (queue.length === 0) return;
+
+    setUploading(true);
+    let successCount = 0;
+    try {
+      for (const { file, checked } of queue) {
+        try {
+          await uploadValidatedFile(file, checked);
+          successCount++;
+        } catch (err) {
+          console.error("[upload file drop]", err);
+          if (err instanceof Error && err.message === "STORAGE") {
+            toast.error("Upload fejlede. Prøv igen.");
+          } else {
+            toast.error("Upload fejlede");
+          }
+        }
+      }
+      if (successCount > 0) {
+        toast.success("Fil uploadet");
+        onRefresh();
+      }
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -1123,7 +1214,13 @@ function FilerTab({
   };
 
   return (
-    <div>
+    <div
+      className="relative min-h-[120px] rounded-[8px]"
+      onDragEnter={handleDragEnter}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={(ev) => void handleDrop(ev)}
+    >
       <div className="mb-4 flex justify-end">
         <input
           ref={fileInputRef}
@@ -1177,6 +1274,25 @@ function FilerTab({
           </li>
         ))}
       </ul>
+
+      {uploading ? (
+        <div
+          className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-[8px] bg-[rgba(240,246,255,0.9)]"
+          aria-live="polite"
+          aria-busy="true"
+        >
+          <Loader2 className="h-10 w-10 animate-spin text-[#1a3167]" aria-hidden />
+          <p className="mt-3 text-[16px] font-medium text-[#1a3167]">Uploader...</p>
+        </div>
+      ) : dragActive ? (
+        <div
+          className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center rounded-[8px] border-2 border-dashed border-[#1a3167] bg-[rgba(240,246,255,0.9)]"
+          aria-hidden
+        >
+          <UploadCloud className="h-10 w-10 text-[#1a3167]" aria-hidden />
+          <p className="mt-3 text-[16px] font-medium text-[#1a3167]">Slip filen her for at uploade</p>
+        </div>
+      ) : null}
     </div>
   );
 }
