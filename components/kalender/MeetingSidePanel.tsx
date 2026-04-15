@@ -33,7 +33,13 @@ import type {
   MeetingDetailDTO,
 } from "@/types/calendar";
 import { DatePicker } from "@/components/ui/DatePicker";
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import { TodoSection } from "@/components/projekter/project-detail/TodoSection";
+import {
+  normalizeNoteForCompare,
+  notesAreEqual,
+  stripHtmlForDisplay,
+} from "@/lib/richtext/note-html";
 
 function formatNoteDetailTimestamp(iso: string): string {
   const d = new Date(iso);
@@ -307,13 +313,13 @@ export function MeetingSidePanel({
     }
   };
 
-  const descriptionDirty =
-    noteDraft.trim() !== latestNoteContent.trim();
+  const descriptionDirty = !notesAreEqual(noteDraft, latestNoteContent);
 
   const saveNote = async () => {
     if (!detail) return;
+    if (!descriptionDirty) return;
+    if (!normalizeNoteForCompare(noteDraft)) return;
     const t = noteDraft.trim();
-    if (!t || !descriptionDirty) return;
     setNoteError("");
     const prevNotes = detail.notes;
     try {
@@ -378,7 +384,7 @@ export function MeetingSidePanel({
             role="dialog"
             aria-modal="true"
             aria-labelledby={panelTitleId}
-            className="fixed bottom-0 right-0 top-0 z-50 flex w-[540px] min-[1280px]:w-[620px] flex-col overflow-hidden border-l border-[#e8e8e8] bg-white shadow-[0_0_24px_rgba(0,0,0,0.06)]"
+            className="fixed bottom-0 left-[220px] right-0 top-0 z-50 flex w-[calc(100vw-220px)] flex-col overflow-hidden border-l border-[#e8e8e8] bg-white shadow-[0_0_24px_rgba(0,0,0,0.06)]"
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
@@ -606,7 +612,7 @@ export function MeetingSidePanel({
                                     </span>
                                   </div>
                                   <p className="ml-4 mt-1 whitespace-pre-wrap text-[13px] leading-[1.6] text-[#0f1923]">
-                                    {n.content}
+                                    {stripHtmlForDisplay(n.content)}
                                   </p>
                                 </li>
                               ))}
@@ -615,17 +621,19 @@ export function MeetingSidePanel({
                         </div>
                       ) : null}
 
-                      <div className="px-[20px]">
-                        <textarea
-                          value={noteDraft}
-                          onChange={(e) => {
-                            setNoteDraft(e.target.value);
+                      <div
+                        className="px-[20px]"
+                        aria-invalid={noteError ? true : undefined}
+                      >
+                        <RichTextEditor
+                          key={detail.id}
+                          content={noteDraft}
+                          onChange={(html) => {
+                            setNoteDraft(html);
                             if (noteError) setNoteError("");
                           }}
                           placeholder="Tilføj en beskrivelse..."
-                          rows={5}
-                          aria-invalid={noteError ? true : undefined}
-                          className="min-h-[120px] max-h-[300px] w-full resize-y rounded-[6px] border border-[#e8e8e8] px-[14px] py-[10px] font-body text-[13px] leading-[1.7] text-[#0f1923] outline-none placeholder:text-[#9ca3af] focus:border-[#1a3167]"
+                          minHeight={240}
                         />
                         {noteError ? (
                           <p

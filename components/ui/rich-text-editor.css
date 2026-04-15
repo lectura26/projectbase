@@ -1,0 +1,22 @@
+.rich-text-editor-inner .ProseMirror {
+  min-height: inherit;
+  outline: none;
+}
+
+.rich-text-editor-inner .ProseMirror ul {
+  list-style-type: disc;
+  padding-left: 1.25rem;
+  margin: 0.25rem 0;
+}
+
+.rich-text-editor-inner .ProseMirror p {
+  margin: 0.25rem 0;
+}
+
+.rich-text-editor-inner .ProseMirror p:first-child {
+  margin-top: 0;
+}
+
+.rich-text-editor-inner .ProseMirror p:last-child {
+  margin-bottom: 0;
+}
