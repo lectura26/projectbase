@@ -38,7 +38,7 @@ function tableStatusLabelUpper(status: ProjectStatus): string {
     case "IN_PROGRESS":
       return "I GANG";
     case "WAITING":
-      return "STOPPET";
+      return "AFVENTER";
     case "COMPLETED":
       return "FÆRDIG";
   }

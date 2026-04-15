@@ -179,12 +179,11 @@ function taskStatusLabelDa(status: TaskStatus): string {
 
 function projectBarColor(status: ProjectStatus, projectHex: string): string {
   switch (status) {
-    case "WAITING":
-      return "#9ca3af";
     case "COMPLETED":
       return "#16a34a";
     case "NOT_STARTED":
     case "IN_PROGRESS":
+    case "WAITING":
     default:
       return projectHex;
   }

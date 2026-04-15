@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   Check,
   ChevronDown,
+  ChevronRight,
   Loader2,
   Pencil,
   Plus,
@@ -34,6 +35,7 @@ import {
   addProjectComment,
   createTask,
   deleteProjectFile,
+  deleteTask,
   setTaskStatus,
   uploadProjectFile,
 } from "@/app/(dashboard)/projekter/project-detail-actions";
@@ -79,12 +81,15 @@ const EASE_STANDARD: [number, number, number, number] = [0.25, 0.1, 0.25, 1];
 function TaskCycleButton({
   task,
   onCycle,
+  completedSection,
 }: {
   task: TaskDetailDTO;
   onCycle: () => void;
+  completedSection?: boolean;
 }) {
   const done = task.status === "DONE";
   const inProgress = task.status === "IN_PROGRESS";
+  const doneFill = completedSection && done ? "#16a34a" : "#1a3167";
   return (
     <button
       type="button"
@@ -105,7 +110,7 @@ function TaskCycleButton({
         className="pointer-events-none flex h-full w-full items-center justify-center rounded-full border-2"
         animate={
           done
-            ? { borderColor: "#1a3167", backgroundColor: "#1a3167" }
+            ? { borderColor: doneFill, backgroundColor: doneFill }
             : inProgress
               ? {
                   borderColor: "#1a3167",
@@ -137,7 +142,22 @@ function TaskCycleButton({
   );
 }
 
-function TaskTitleAnimated({ task, done }: { task: TaskDetailDTO; done: boolean }) {
+function TaskTitleAnimated({
+  task,
+  done,
+  completedSection,
+}: {
+  task: TaskDetailDTO;
+  done: boolean;
+  completedSection?: boolean;
+}) {
+  if (completedSection && done) {
+    return (
+      <span className="block min-w-0 font-body text-sm font-medium text-[#9ca3af] line-through">
+        {task.title}
+      </span>
+    );
+  }
   return (
     <motion.span
       className={`block min-w-0 font-body text-sm font-medium text-on-surface ${
@@ -703,6 +723,17 @@ function OpgaverTab({
   const [createError, setCreateError] = useState("");
   const [creating, setCreating] = useState(false);
   const [taskViewSync, setTaskViewSync] = useState(0);
+  const [completedOpen, setCompletedOpen] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  const activeTasks = useMemo(
+    () => tasks.filter((t) => t.status !== "DONE"),
+    [tasks],
+  );
+  const doneTasks = useMemo(
+    () => tasks.filter((t) => t.status === "DONE"),
+    [tasks],
+  );
 
   const markTaskViewed = useCallback(() => {
     setTaskViewSync((n) => n + 1);
@@ -763,6 +794,21 @@ function OpgaverTab({
       ? undefined
       : tasks.find((t) => t.id === expandedTaskId);
 
+  const confirmDeleteTask = async (taskId: string) => {
+    setDeleteConfirmId(null);
+    const snapshot = tasks;
+    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    if (expandedTaskId === taskId) setExpandedTaskId(null);
+    try {
+      await deleteTask(taskId);
+      toast.success("Opgave slettet");
+      routerRefresh();
+    } catch (err) {
+      setTasks(snapshot);
+      toast.error(err instanceof Error ? err.message : "Kunne ikke slette opgaven.");
+    }
+  };
+
   const submitNewTask = async () => {
     const t = draftTitle.trim();
     if (!t) {
@@ -792,67 +838,158 @@ function OpgaverTab({
     }
   };
 
+  const renderTaskRow = (task: TaskDetailDTO, completedSection: boolean) => {
+    const done = task.status === "DONE";
+    const selected = expandedTaskId === task.id;
+    const showUnreadDot = taskHasUnreadComments(task, taskViewSync);
+    return (
+      <div
+        key={task.id}
+        id={`task-row-${task.id}`}
+        className={`group rounded-lg border border-outline-variant/15 transition-[background-color] duration-1000 ease-out ${
+          completedSection ? "opacity-75" : ""
+        } ${
+          selected
+            ? "border-l-2 border-l-[#1a3167] bg-[#f0f6ff]"
+            : highlightTaskId === task.id
+              ? "bg-[#f0f6ff]"
+              : "bg-surface-container-low/50"
+        }`}
+      >
+        <div className="flex w-full items-center gap-3 px-4 py-3">
+          <TaskCycleButton
+            task={task}
+            onCycle={() => cycle(task.id)}
+            completedSection={completedSection}
+          />
+          <div
+            role="button"
+            tabIndex={0}
+            className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left outline-none"
+            onClick={() => openTaskPanel(task.id)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                openTaskPanel(task.id);
+              }
+            }}
+          >
+            <div className="flex min-w-0 flex-1 items-center gap-1.5 truncate text-left">
+              <TaskTitleAnimated task={task} done={done} completedSection={completedSection} />
+              {showUnreadDot ? (
+                <span
+                  className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#dc2626]"
+                  title="Ulæste kommentarer"
+                  aria-hidden
+                />
+              ) : null}
+            </div>
+            {task.assignee ? (
+              <span className="hidden shrink-0 rounded-full bg-primary-container/15 px-2 py-0.5 text-[11px] font-bold text-primary-container sm:inline">
+                {initialsFromUser(task.assignee)}
+              </span>
+            ) : null}
+            {task.deadline ? (
+              <span className="hidden text-xs text-on-surface-variant sm:inline">
+                {formatDanishDate(task.deadline)}
+              </span>
+            ) : null}
+            <PriorityBadge priority={task.priority} />
+          </div>
+          <div
+            className="flex shrink-0 items-center"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            {deleteConfirmId === task.id ? (
+              <span className="flex items-center gap-2 whitespace-nowrap text-[12px] text-[#dc2626]">
+                Slet?
+                <button
+                  type="button"
+                  className="border-0 bg-transparent p-0 font-medium underline"
+                  onClick={() => void confirmDeleteTask(task.id)}
+                >
+                  Ja
+                </button>
+                <button
+                  type="button"
+                  className="border-0 bg-transparent p-0 font-medium underline"
+                  onClick={() => setDeleteConfirmId(null)}
+                >
+                  Nej
+                </button>
+              </span>
+            ) : (
+              <button
+                type="button"
+                aria-label="Slet opgave"
+                className="border-0 bg-transparent p-0 opacity-0 transition-opacity group-hover:opacity-100"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDeleteConfirmId(task.id);
+                }}
+              >
+                <Trash2 className="h-[14px] w-[14px] text-[#d1d5db] hover:text-[#dc2626]" aria-hidden />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-1">
       {tasks.length === 0 ? (
         <p className="py-2 text-sm text-on-surface-variant/90">Ingen opgaver endnu.</p>
       ) : null}
-      {tasks.map((task) => {
-        const done = task.status === "DONE";
-        const selected = expandedTaskId === task.id;
-        const showUnreadDot = taskHasUnreadComments(task, taskViewSync);
-        return (
-          <div
-            key={task.id}
-            id={`task-row-${task.id}`}
-            className={`rounded-lg border border-outline-variant/15 transition-[background-color] duration-1000 ease-out ${
-              selected
-                ? "border-l-2 border-l-[#1a3167] bg-[#f0f6ff]"
-                : highlightTaskId === task.id
-                  ? "bg-[#f0f6ff]"
-                  : "bg-surface-container-low/50"
-            }`}
+      {tasks.length > 0 && activeTasks.length === 0 ? (
+        <p className="py-2 text-sm text-on-surface-variant/90">Ingen aktive opgaver.</p>
+      ) : null}
+      {activeTasks.map((task) => renderTaskRow(task, false))}
+
+      {doneTasks.length > 0 ? (
+        <div className="pt-4">
+          <button
+            type="button"
+            onClick={() => setCompletedOpen((o) => !o)}
+            className="flex w-full items-center justify-between py-3 text-left"
+            aria-expanded={completedOpen}
           >
-            <div className="flex w-full cursor-pointer items-center gap-3 px-4 py-3">
-              <TaskCycleButton task={task} onCycle={() => cycle(task.id)} />
-              <div
-                role="button"
-                tabIndex={0}
-                className="flex min-w-0 flex-1 items-center gap-3 text-left outline-none"
-                onClick={() => openTaskPanel(task.id)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    openTaskPanel(task.id);
-                  }
-                }}
+            <span className="flex min-w-0 items-center gap-2">
+              <ChevronRight
+                className={`h-4 w-4 shrink-0 text-[#6b7280] transition-transform duration-200 ${
+                  completedOpen ? "rotate-90" : ""
+                }`}
+                aria-hidden
+              />
+              <span className="font-body text-[13px] font-medium text-[#6b7280]">
+                Fuldførte opgaver
+              </span>
+            </span>
+            <span className="shrink-0 font-body text-[12px] text-[#9ca3af]">
+              ({doneTasks.length})
+            </span>
+          </button>
+          <AnimatePresence initial={false}>
+            {completedOpen ? (
+              <motion.div
+                key="completed-tasks"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
               >
-                <div className="flex min-w-0 flex-1 items-center gap-1.5 truncate text-left">
-                  <TaskTitleAnimated task={task} done={done} />
-                  {showUnreadDot ? (
-                    <span
-                      className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#dc2626]"
-                      title="Ulæste kommentarer"
-                      aria-hidden
-                    />
-                  ) : null}
+                <div className="space-y-1">
+                  {doneTasks.map((task) => renderTaskRow(task, true))}
                 </div>
-                {task.assignee ? (
-                  <span className="hidden shrink-0 rounded-full bg-primary-container/15 px-2 py-0.5 text-[11px] font-bold text-primary-container sm:inline">
-                    {initialsFromUser(task.assignee)}
-                  </span>
-                ) : null}
-                {task.deadline ? (
-                  <span className="hidden text-xs text-on-surface-variant sm:inline">
-                    {formatDanishDate(task.deadline)}
-                  </span>
-                ) : null}
-                <PriorityBadge priority={task.priority} />
-              </div>
-            </div>
-          </div>
-        );
-      })}
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        </div>
+      ) : null}
       <TaskSidePanel
         open={expandedTaskId !== null}
         task={selectedTask}

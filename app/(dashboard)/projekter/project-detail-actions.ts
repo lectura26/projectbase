@@ -131,6 +131,25 @@ export async function setTaskStatus(taskId: string, status: TaskStatus) {
   await prisma.task.update({ where: { id: taskId }, data: { status } });
 }
 
+export async function deleteTask(taskId: string) {
+  const user = await getSessionUser();
+  if (!user) throw new Error("Ikke logget ind.");
+
+  parseOrThrow(cuidLikeSchema, taskId);
+
+  const task = await prisma.task.findFirst({
+    where: {
+      id: taskId,
+      project: projectAccessWhere(user.id),
+    },
+    select: { id: true, projectId: true },
+  });
+  if (!task) throw new Error("Opgave ikke fundet.");
+
+  await prisma.task.delete({ where: { id: taskId } });
+  revalidatePath(`/projekter/${task.projectId}`);
+}
+
 export async function updateTaskFields(input: {
   taskId: string;
   description?: string | null;

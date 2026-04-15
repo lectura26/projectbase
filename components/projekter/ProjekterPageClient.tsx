@@ -119,7 +119,7 @@ function statusFilterButtonLabel(v: StatusFilter): string {
     case "IN_PROGRESS":
       return "I gang";
     case "WAITING":
-      return "Stoppet";
+      return "Afventer";
     case "COMPLETED":
       return "Fuldført";
   }
@@ -413,7 +413,7 @@ export default function ProjekterPageClient({
                       setOpenFilter(null);
                     }}
                   >
-                    Stoppet
+                    Afventer
                   </button>
                 </div>
               ) : null}
