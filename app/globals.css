@@ -19,3 +19,37 @@ h2,
 h3 {
   font-family: var(--font-headline), ui-sans-serif, system-ui, sans-serif;
 }
+
+.prose-content p {
+  margin: 0 0 4px 0;
+  font-size: 13px;
+  color: #0f1923;
+  line-height: 1.6;
+}
+
+.prose-content strong {
+  font-weight: 600;
+}
+
+.prose-content em {
+  font-style: italic;
+}
+
+.prose-content u {
+  text-decoration: underline;
+}
+
+.prose-content ul {
+  margin: 4px 0 4px 16px;
+  list-style-type: disc;
+}
+
+.prose-content li {
+  font-size: 13px;
+  color: #0f1923;
+  line-height: 1.6;
+}
+
+.prose-content p:last-child {
+  margin-bottom: 0;
+}

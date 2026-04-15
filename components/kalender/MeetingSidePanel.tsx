@@ -36,9 +36,9 @@ import { DatePicker } from "@/components/ui/DatePicker";
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import { TodoSection } from "@/components/projekter/project-detail/TodoSection";
 import {
+  initialContentFromNote,
   normalizeNoteForCompare,
   notesAreEqual,
-  stripHtmlForDisplay,
 } from "@/lib/richtext/note-html";
 
 function formatNoteDetailTimestamp(iso: string): string {
@@ -611,9 +611,12 @@ export function MeetingSidePanel({
                                       {formatNoteDetailTimestamp(n.createdAt)}
                                     </span>
                                   </div>
-                                  <p className="ml-4 mt-1 whitespace-pre-wrap text-[13px] leading-[1.6] text-[#0f1923]">
-                                    {stripHtmlForDisplay(n.content)}
-                                  </p>
+                                  <div
+                                    className="prose-content ml-4 mt-1"
+                                    dangerouslySetInnerHTML={{
+                                      __html: initialContentFromNote(n.content),
+                                    }}
+                                  />
                                 </li>
                               ))}
                             </ul>

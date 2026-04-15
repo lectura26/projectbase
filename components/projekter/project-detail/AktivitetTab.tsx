@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useLayoutEffect, useRef, useState } from "react";
 import { MeetingSidePanel } from "@/components/kalender/MeetingSidePanel";
 import { displayName } from "@/lib/projekter/display";
+import { initialContentFromNote } from "@/lib/richtext/note-html";
 import type { CalendarMeetingDTO } from "@/types/calendar";
 import type { ActivityNoteFeedItem } from "@/types/project-detail";
 
@@ -111,14 +112,13 @@ function ActivityNoteRow({
           {displayName(note.author)}
         </p>
         <div className="mt-1">
-          <p
+          <div
             ref={contentRef}
-            className={`whitespace-pre-wrap text-[13px] leading-[1.6] text-[#0f1923] ${
-              !expanded ? "line-clamp-4" : ""
-            }`}
-          >
-            {note.content}
-          </p>
+            className={`prose-content ${!expanded ? "line-clamp-4" : ""}`}
+            dangerouslySetInnerHTML={{
+              __html: initialContentFromNote(note.content),
+            }}
+          />
           {showToggle ? (
             <button
               type="button"
