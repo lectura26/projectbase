@@ -14,7 +14,7 @@ export const getCachedUserBasic = cache(async (userId: string) => {
 const projekterListInclude = {
   user: { select: { id: true, name: true, email: true } },
   contacts: { select: { id: true, name: true } },
-  tasks: { select: { status: true } },
+  tasks: { select: { status: true, deadline: true } },
 } as const;
 
 /** Profile + owned active projects + owned completed projects (separate lists). */

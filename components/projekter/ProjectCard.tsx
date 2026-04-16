@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { Repeat } from "lucide-react";
 import { useRouter } from "next/navigation";
-import type { Priority, ProjectStatus } from "@prisma/client";
+import type { Priority, ProjectStatus, TaskStatus } from "@prisma/client";
 import { formatDanishDate } from "@/lib/datetime/format-danish";
 import type { ProjectListItem } from "@/types/projekter";
 import {
@@ -61,6 +61,31 @@ function progressBarFillClass(status: ProjectStatus, pct: number): string {
   return "bg-[#1a3167]";
 }
 
+function listTaskOverdue(t: { status: TaskStatus; deadline: string | null }): boolean {
+  if (t.status === "DONE" || !t.deadline) return false;
+  const d = new Date(t.deadline);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime() < today.getTime();
+}
+
+function projectTaskCountDisplay(project: ProjectListItem): { text: string; className: string } {
+  const tasks = project.tasks;
+  const total = tasks.length;
+  if (total === 0) {
+    return { text: "—", className: "text-[#9ca3af]" };
+  }
+  const completed = tasks.filter((t) => t.status === "DONE").length;
+  if (completed === total && total > 0) {
+    return { text: `${completed} / ${total}`, className: "text-[#16a34a]" };
+  }
+  if (tasks.some(listTaskOverdue)) {
+    return { text: `${completed} / ${total}`, className: "text-[#dc2626]" };
+  }
+  return { text: `${completed} / ${total}`, className: "text-[#6b7280]" };
+}
+
 const BADGE_TABLE_CLASS =
   "inline-flex max-w-full items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase leading-tight tracking-wide";
 
@@ -69,6 +94,7 @@ function ProjectListRow({ project }: { project: ProjectListItem }) {
   const progress = taskProgress(project.tasks);
   const pct = progress ?? 0;
   const deadline = project.deadline ? new Date(project.deadline) : null;
+  const taskCount = projectTaskCountDisplay(project);
 
   const go = () => router.push(`/projekter/${project.id}`);
 
@@ -114,6 +140,13 @@ function ProjectListRow({ project }: { project: ProjectListItem }) {
           {priorityLabelDa(project.priority)}
         </span>
       </td>
+      <td className="w-[80px] min-w-[80px] max-w-[80px] px-2 py-[14px] align-middle text-center">
+        <span
+          className={`inline-block font-body text-[12px] tabular-nums ${taskCount.className}`}
+        >
+          {taskCount.text}
+        </span>
+      </td>
       <td className="px-4 py-[14px] align-middle">
         <span className="whitespace-nowrap font-body text-[12px] text-[#6b7280]">
           {deadline ? formatDanishDate(deadline) : "—"}
@@ -149,6 +182,7 @@ function CompletedProjectListRow({ project }: { project: ProjectListItem }) {
   const progress = taskProgress(project.tasks);
   const pct = progress ?? 0;
   const deadline = project.deadline ? new Date(project.deadline) : null;
+  const taskCount = projectTaskCountDisplay(project);
 
   const go = () => router.push(`/projekter/${project.id}`);
 
@@ -194,6 +228,13 @@ function CompletedProjectListRow({ project }: { project: ProjectListItem }) {
           {priorityLabelDa(project.priority)}
         </span>
       </td>
+      <td className="w-[80px] min-w-[80px] max-w-[80px] px-2 py-[14px] align-middle text-center">
+        <span
+          className={`inline-block font-body text-[12px] tabular-nums ${taskCount.className}`}
+        >
+          {taskCount.text}
+        </span>
+      </td>
       <td className="px-4 py-[14px] align-middle">
         <span className="whitespace-nowrap font-body text-[12px] text-[#9ca3af]">
           {deadline ? formatDanishDate(deadline) : "—"}
@@ -228,22 +269,25 @@ function CompletedProjectListRow({ project }: { project: ProjectListItem }) {
 export function ProjekterCompletedListView({ projects }: { projects: ProjectListItem[] }) {
   return (
     <div className="w-full min-w-0 overflow-x-auto">
-      <table className="w-full min-w-[720px] table-fixed border-collapse">
+      <table className="w-full min-w-[800px] table-fixed border-collapse">
         <thead className="bg-[#f8f9fa]">
           <tr className="border-b border-[#e8e8e8]">
-            <th className="w-[28%] px-4 py-[10px] text-left font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
+            <th className="w-[26%] px-4 py-[10px] text-left font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
               Projekt navn
             </th>
-            <th className="w-[14%] px-4 py-[10px] text-left font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
+            <th className="w-[12%] px-4 py-[10px] text-left font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
               Status
             </th>
-            <th className="w-[14%] px-4 py-[10px] text-left font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
+            <th className="w-[12%] px-4 py-[10px] text-left font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
               Prioritet
             </th>
-            <th className="w-[14%] px-4 py-[10px] text-left font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
+            <th className="w-[80px] px-2 py-[10px] text-center font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
+              OPGAVER
+            </th>
+            <th className="w-[12%] px-4 py-[10px] text-left font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
               Frist
             </th>
-            <th className="w-[22%] px-4 py-[10px] text-left font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
+            <th className="w-[20%] px-4 py-[10px] text-left font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
               Fremdrift
             </th>
             <th className="w-[8%] px-4 py-[10px] text-right font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
@@ -321,41 +365,44 @@ export function ProjekterListView({
           </button>
         </div>
       ) : (
-        <table className="w-full min-w-[720px] table-fixed border-collapse">
+        <table className="w-full min-w-[800px] table-fixed border-collapse">
           <thead className="bg-[#f8f9fa]">
             <tr className="border-b border-[#e8e8e8]">
               <SortableTh
                 column="name"
                 onSort={onSortColumn}
-                className="w-[28%] px-4 py-[10px] text-left"
+                className="w-[26%] px-4 py-[10px] text-left"
               >
                 Projekt navn
               </SortableTh>
               <SortableTh
                 column="status"
                 onSort={onSortColumn}
-                className="w-[14%] px-4 py-[10px] text-left"
+                className="w-[12%] px-4 py-[10px] text-left"
               >
                 Status
               </SortableTh>
               <SortableTh
                 column="priority"
                 onSort={onSortColumn}
-                className="w-[14%] px-4 py-[10px] text-left"
+                className="w-[12%] px-4 py-[10px] text-left"
               >
                 Prioritet
               </SortableTh>
+              <th className="w-[80px] px-2 py-[10px] text-center font-body text-[11px] font-medium uppercase tracking-[0.06em] text-[#9ca3af]">
+                OPGAVER
+              </th>
               <SortableTh
                 column="deadline"
                 onSort={onSortColumn}
-                className="w-[14%] px-4 py-[10px] text-left"
+                className="w-[12%] px-4 py-[10px] text-left"
               >
                 Frist
               </SortableTh>
               <SortableTh
                 column="progress"
                 onSort={onSortColumn}
-                className="w-[22%] px-4 py-[10px] text-left"
+                className="w-[20%] px-4 py-[10px] text-left"
               >
                 Fremdrift
               </SortableTh>

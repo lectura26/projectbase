@@ -1,5 +1,4 @@
-import type { Priority, ProjectStatus } from "@prisma/client";
-import type { ProjectListItem } from "@/types/projekter";
+import type { Priority, ProjectStatus, TaskStatus } from "@prisma/client";
 
 /** Shared shell for status and priority chips (projekter list, oversigt, etc.). */
 export const BADGE_CHIP_CLASS =
@@ -12,7 +11,7 @@ export function contactInitials(name: string): string {
   return `${parts[0]![0]}${parts[1]![0]}`.toUpperCase();
 }
 
-export function taskProgress(tasks: ProjectListItem["tasks"]): number | null {
+export function taskProgress(tasks: { status: TaskStatus }[]): number | null {
   if (!tasks.length) return null;
   const done = tasks.filter((t) => t.status === "DONE").length;
   return Math.round((done / tasks.length) * 100);

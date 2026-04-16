@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import {
   addTaskComment,
   createTaskNote,
+  migrateTaskDescription,
   setTaskStatus,
   updateTaskFields,
   updateTaskTitle,
@@ -157,6 +158,34 @@ export function TaskSidePanel({
     setNoteDraft(latestNoteContent);
     setNoteError("");
   }, [task?.id, latestNoteContent]);
+
+  useEffect(() => {
+    if (!open || !task) return;
+    const desc = task.description?.trim();
+    if (!desc) return;
+    if ((task.notes?.length ?? 0) > 0) return;
+
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const r = await migrateTaskDescription(task.id, desc);
+        if (cancelled) return;
+        if (r.migrated && r.note) {
+          patchTask(task.id, { description: null, notes: [r.note] });
+          onRefresh();
+        }
+      } catch (e) {
+        if (!cancelled) {
+          toast.error(e instanceof Error ? e.message : "Kunne ikke migrere beskrivelse.");
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, task?.id, task?.description, task?.notes?.length, patchTask, onRefresh]);
 
   useEffect(() => {
     if (open && task && typeof window !== "undefined") {

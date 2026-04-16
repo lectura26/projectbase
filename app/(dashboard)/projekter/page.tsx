@@ -51,7 +51,10 @@ async function ProjekterPageContent() {
     createdAt: r.createdAt.toISOString(),
     owner: { id: r.user.id, name: r.user.name ?? r.user.email },
     contacts: r.contacts,
-    tasks: r.tasks,
+    tasks: r.tasks.map((t) => ({
+      status: t.status,
+      deadline: t.deadline ? t.deadline.toISOString() : null,
+    })),
   });
 
   const initialProjects: ProjectListItem[] = bundle.activeOwnedProjects.map(mapProject);

@@ -31,5 +31,5 @@ export type ProjectListItem = {
   createdAt: string;
   owner: { id: string; name: string };
   contacts: { id: string; name: string }[];
-  tasks: { status: TaskStatus }[];
+  tasks: { status: TaskStatus; deadline: string | null }[];
 };

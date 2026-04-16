@@ -259,6 +259,67 @@ export async function updateTaskDescription(taskId: string, description: string 
   return updateTaskFields({ taskId, description });
 }
 
+/**
+ * Moves legacy `task.description` into a TaskNote (single source of truth for rich text).
+ * No-op if the task already has any TaskNotes. Clears `task.description` after success.
+ */
+export async function migrateTaskDescription(
+  taskId: string,
+  description: string,
+): Promise<{ migrated: boolean; note?: TaskNoteDTO }> {
+  const user = await getSessionUser();
+  if (!user?.email) throw new Error("Ikke logget ind.");
+
+  parseOrThrow(cuidLikeSchema, taskId);
+  const content = parseOrThrow(commentContentSchema, description);
+
+  const task = await prisma.task.findFirst({
+    where: { id: taskId, project: projectAccessWhere(user.id) },
+    select: { id: true, projectId: true },
+  });
+  if (!task) throw new Error("Opgave ikke fundet.");
+
+  await ensureAppUser(user);
+
+  const row = await prisma.$transaction(async (tx) => {
+    const existing = await tx.taskNote.count({ where: { taskId } });
+    if (existing > 0) return null;
+    return tx.taskNote.create({
+      data: {
+        taskId,
+        authorId: user.id,
+        content,
+      },
+      include: {
+        author: { select: { id: true, name: true, email: true, image: true } },
+      },
+    });
+  });
+
+  if (!row) return { migrated: false };
+
+  await prisma.task.update({
+    where: { id: taskId },
+    data: { description: null },
+  });
+
+  revalidatePath(`/projekter/${task.projectId}`);
+
+  const note: TaskNoteDTO = {
+    id: row.id,
+    content: row.content,
+    createdAt: row.createdAt.toISOString(),
+    author: {
+      id: row.author.id,
+      name: row.author.name,
+      email: row.author.email,
+      image: row.author.image,
+    },
+  };
+
+  return { migrated: true, note };
+}
+
 export const updateTaskField = updateTaskFields;
 
 export type CreateTaskInput = {
@@ -326,11 +387,18 @@ export async function createTask(projectId: string, input: CreateTaskInput): Pro
     });
   }
 
+  let notesOut: TaskNoteDTO[] = [];
+  const descTrim = parsed.description?.trim() ?? "";
+  if (descTrim) {
+    const mig = await migrateTaskDescription(row.id, descTrim);
+    if (mig.note) notesOut = [mig.note];
+  }
+
   revalidatePath(`/projekter/${projectId}`);
   return {
     id: row.id,
     title: row.title,
-    description: row.description,
+    description: descTrim && notesOut.length > 0 ? null : row.description,
     status: row.status,
     priority: row.priority,
     startDate: row.startDate ? row.startDate.toISOString() : null,
@@ -344,7 +412,7 @@ export async function createTask(projectId: string, input: CreateTaskInput): Pro
         }
       : null,
     comments: [],
-    notes: [],
+    notes: notesOut,
     todos: [],
   };
 }
