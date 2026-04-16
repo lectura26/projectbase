@@ -174,8 +174,8 @@ export default function OversigtPageClient({
 
   const navigateActivity = useCallback(
     (a: OversigtActivityItem) => {
-      if (a.taskId && a.projectId) {
-        router.push(`/projekter/${a.projectId}?taskId=${a.taskId}`);
+      if (a.projectId) {
+        router.push(`/projekter/${a.projectId}?tab=aktivitet`);
         return;
       }
       router.push("/kalender");

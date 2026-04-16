@@ -324,6 +324,14 @@ export default function ProjectDetailClient({
   const taskIdFromQuery = searchParams.get("taskId");
 
   useEffect(() => {
+    if (taskIdFromQuery) return;
+    const tab = searchParams.get("tab");
+    if (tab === "aktivitet") {
+      setActiveTab("aktivitet");
+    }
+  }, [searchParams, taskIdFromQuery]);
+
+  useEffect(() => {
     if (!taskIdFromQuery) {
       deepLinkHandledFor.current = null;
       return;

@@ -129,7 +129,7 @@ export default async function OversigtPage() {
     projectColor: e.project?.color ?? null,
   }));
 
-  const [focusProject, focusPick, activityNotesRaw] = await Promise.all([
+  const [focusProject, focusPick, allNotesRaw] = await Promise.all([
     getFocusProjectCardData(user.id),
     selectAutoFocusProject(user.id),
     prisma.taskNote.findMany({
@@ -141,19 +141,35 @@ export default async function OversigtPage() {
       },
       include: {
         task: { select: { id: true, title: true, projectId: true } },
-        meeting: { select: { id: true, title: true } },
+        meeting: { select: { id: true, title: true, projectId: true } },
       },
       orderBy: { createdAt: "desc" },
-      take: 4,
+      take: 20,
     }),
   ]);
 
-  const recentActivity: OversigtActivityItem[] = activityNotesRaw.map((n) => ({
+  const seenTasks = new Set<string>();
+  const seenMeetings = new Set<string>();
+  const latestActivity = allNotesRaw.filter((note) => {
+    if (note.taskId) {
+      if (seenTasks.has(note.taskId)) return false;
+      seenTasks.add(note.taskId);
+      return true;
+    }
+    if (note.meetingId) {
+      if (seenMeetings.has(note.meetingId)) return false;
+      seenMeetings.add(note.meetingId);
+      return true;
+    }
+    return false;
+  }).slice(0, 4);
+
+  const recentActivity: OversigtActivityItem[] = latestActivity.map((n) => ({
     id: n.id,
     content: n.content,
     createdAt: n.createdAt.toISOString(),
     taskId: n.taskId,
-    projectId: n.task?.projectId ?? null,
+    projectId: n.task?.projectId ?? n.meeting?.projectId ?? null,
     taskTitle: n.task?.title ?? null,
     meetingId: n.meetingId,
     meetingTitle: n.meeting?.title ?? null,
