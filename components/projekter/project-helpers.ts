@@ -24,7 +24,7 @@ export function statusBadgeClass(status: ProjectStatus): string {
     case "IN_PROGRESS":
       return "bg-[#dbeafe] text-[#1e40af]";
     case "WAITING":
-      return "bg-[#fef3c7] text-[#b45309]";
+      return "bg-[#fef9c3] text-[#854d0e]";
     case "COMPLETED":
       return "bg-[#dcfce7] text-[#15803d]";
     default:

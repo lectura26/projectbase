@@ -56,13 +56,14 @@ import { NytProjektModal } from "@/components/projekter/NytProjektModal";
 import { AktivitetTab } from "@/components/projekter/project-detail/AktivitetTab";
 import { ProjectKalenderTab } from "@/components/projekter/project-detail/ProjectKalenderTab";
 import { TaskSidePanel } from "@/components/projekter/project-detail/TaskSidePanel";
+import { VisualsTab } from "@/components/projekter/project-detail/VisualsTab";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { formatDanishDate } from "@/lib/datetime/format-danish";
 import { commitYmdString, isoToYmd } from "@/lib/datetime/ymd";
 
 type UserOption = { id: string; name: string; email: string };
 
-type TabKey = "opgaver" | "kommentarer" | "aktivitet" | "kalender" | "filer";
+type TabKey = "opgaver" | "kommentarer" | "aktivitet" | "kalender" | "filer" | "visuals";
 
 const PROJECT_STATUS_OPTIONS: { value: ProjectStatus; label: string }[] = [
   { value: "NOT_STARTED", label: "Ikke startet" },
@@ -312,9 +313,10 @@ export default function ProjectDetailClient({
     }
   };
 
-  // Always show Kalender/Filer so the first event/file can be added (Kommentarer-style UX).
+  // Always show Kalender/Filer/Visuals so the first item can be added (Kommentarer-style UX).
   const showKalender = true;
   const showFiler = true;
+  const showVisuals = true;
 
   const progress = useMemo(() => {
     const n = tasks.length;
@@ -330,6 +332,9 @@ export default function ProjectDetailClient({
     const tab = searchParams.get("tab");
     if (tab === "aktivitet") {
       setActiveTab("aktivitet");
+    }
+    if (tab === "visuals") {
+      setActiveTab("visuals");
     }
   }, [searchParams, taskIdFromQuery]);
 
@@ -632,6 +637,7 @@ export default function ProjectDetailClient({
         {tabBtn("kommentarer", "Kommentarer", true)}
         {tabBtn("kalender", "Kalender", showKalender)}
         {tabBtn("filer", "Filer", showFiler)}
+        {tabBtn("visuals", "Visuals", showVisuals)}
       </div>
 
       <div className="p-6">
@@ -682,6 +688,9 @@ export default function ProjectDetailClient({
             setHoverFileId={setHoverFileId}
             onRefresh={() => router.refresh()}
           />
+        ) : null}
+        {activeTab === "visuals" ? (
+          <VisualsTab initial={initial} onRefresh={() => router.refresh()} />
         ) : null}
       </div>
 
@@ -960,59 +969,6 @@ function OpgaverTab({
       ) : null}
       {activeTasks.map((task) => renderTaskRow(task, false))}
 
-      {doneTasks.length > 0 ? (
-        <div className="pt-4">
-          <button
-            type="button"
-            onClick={() => setCompletedOpen((o) => !o)}
-            className="flex w-full items-center justify-between py-3 text-left"
-            aria-expanded={completedOpen}
-          >
-            <span className="flex min-w-0 items-center gap-2">
-              <ChevronRight
-                className={`h-4 w-4 shrink-0 text-[#6b7280] transition-transform duration-200 ${
-                  completedOpen ? "rotate-90" : ""
-                }`}
-                aria-hidden
-              />
-              <span className="font-body text-[13px] font-medium text-[#6b7280]">
-                Fuldførte opgaver
-              </span>
-            </span>
-            <span className="shrink-0 font-body text-[12px] text-[#9ca3af]">
-              ({doneTasks.length})
-            </span>
-          </button>
-          <AnimatePresence initial={false}>
-            {completedOpen ? (
-              <motion.div
-                key="completed-tasks"
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <div className="space-y-1">
-                  {doneTasks.map((task) => renderTaskRow(task, true))}
-                </div>
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
-        </div>
-      ) : null}
-      <TaskSidePanel
-        open={expandedTaskId !== null}
-        task={selectedTask}
-        projectId={projectId}
-        projectName={projectName}
-        currentUserId={currentUserId}
-        currentUserMini={currentUserMini}
-        patchTask={patchTask}
-        onRefresh={routerRefresh}
-        onClose={() => setExpandedTaskId(null)}
-        onMarkTaskViewed={markTaskViewed}
-      />
       <div className="rounded-lg border border-outline-variant/15 bg-surface-container-low/50">
         {!addTaskOpen ? (
           <button
@@ -1133,6 +1089,61 @@ function OpgaverTab({
           </div>
         )}
       </div>
+
+      {doneTasks.length > 0 ? (
+        <div className="pt-4">
+          <button
+            type="button"
+            onClick={() => setCompletedOpen((o) => !o)}
+            className="flex w-full items-center justify-between py-3 text-left"
+            aria-expanded={completedOpen}
+          >
+            <span className="flex min-w-0 items-center gap-2">
+              <ChevronRight
+                className={`h-4 w-4 shrink-0 text-[#6b7280] transition-transform duration-200 ${
+                  completedOpen ? "rotate-90" : ""
+                }`}
+                aria-hidden
+              />
+              <span className="font-body text-[13px] font-medium text-[#6b7280]">
+                Fuldførte opgaver
+              </span>
+            </span>
+            <span className="shrink-0 font-body text-[12px] text-[#9ca3af]">
+              ({doneTasks.length})
+            </span>
+          </button>
+          <AnimatePresence initial={false}>
+            {completedOpen ? (
+              <motion.div
+                key="completed-tasks"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="space-y-1">
+                  {doneTasks.map((task) => renderTaskRow(task, true))}
+                </div>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        </div>
+      ) : null}
+
+      <TaskSidePanel
+        open={expandedTaskId !== null}
+        task={selectedTask}
+        projectId={projectId}
+        projectName={projectName}
+        currentUserId={currentUserId}
+        currentUserMini={currentUserMini}
+        patchTask={patchTask}
+        onRefresh={routerRefresh}
+        onClose={() => setExpandedTaskId(null)}
+        onMarkTaskViewed={markTaskViewed}
+      />
     </div>
   );
 }

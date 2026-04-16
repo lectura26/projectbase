@@ -33,6 +33,18 @@ export type TodoItemDTO = {
   content: string;
   done: boolean;
   createdAt: string;
+  /** Sort order within task/meeting (0-based). */
+  sortOrder: number;
+};
+
+export type VisualDTO = {
+  id: string;
+  name: string;
+  fileType: string;
+  url: string;
+  storagePath: string;
+  createdAt: string;
+  uploadedBy: UserMini;
 };
 
 export type TaskDetailDTO = {
@@ -124,6 +136,8 @@ export type ProjectDetailPayload = {
   projectComments: CommentDTO[];
   activities: ActivityDTO[];
   files: FileDTO[];
+  /** Image/SVG assets for the Visuals tab (separate from Filer). */
+  visuals: VisualDTO[];
   calendarEvents: CalendarEventDTO[];
   /** User's meetings not linked to this project (or linked elsewhere) for "Tilknyt eksisterende" */
   linkableMeetings: CalendarEventDTO[];

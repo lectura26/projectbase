@@ -390,7 +390,7 @@ export async function getMeetingWithDetails(meetingId: string) {
           author: { select: { id: true, name: true, email: true, image: true } },
         },
       },
-      todos: { orderBy: { createdAt: "asc" } },
+      todos: { orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] },
     },
   });
   if (!row) throw new Error("Møde ikke fundet.");
@@ -421,6 +421,7 @@ export async function getMeetingWithDetails(meetingId: string) {
       content: t.content,
       done: t.done,
       createdAt: t.createdAt.toISOString(),
+      sortOrder: t.sortOrder,
     })),
   };
 }

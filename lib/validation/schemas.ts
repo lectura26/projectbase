@@ -175,6 +175,24 @@ export const createTodoItemSchema = z
     { message: "Angiv enten opgave eller møde." },
   );
 
+export const updateTodoItemSchema = z.object({
+  todoId: cuidLikeSchema,
+  content: todoContentSchema,
+});
+
+export const reorderTodoItemsSchema = z
+  .object({
+    taskId: cuidLikeSchema.nullable(),
+    meetingId: cuidLikeSchema.nullable(),
+    orderedIds: z.array(cuidLikeSchema).min(1),
+  })
+  .refine(
+    (d) =>
+      (d.taskId != null && d.meetingId == null) ||
+      (d.taskId == null && d.meetingId != null),
+    { message: "Angiv enten opgave eller møde." },
+  );
+
 export const updateMeetingFieldSchema = z.object({
   meetingId: cuidLikeSchema,
   field: z.enum(["title", "date", "startTime", "endTime"]),

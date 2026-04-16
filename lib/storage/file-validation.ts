@@ -130,3 +130,45 @@ export function validateUploadFile(file: {
 export function sanitizeOriginalFilename(name: string): string {
   return name.replace(/[^\w.\-()+ ]/g, "_").slice(0, 200);
 }
+
+const VISUAL_EXT = new Set(["png", "jpg", "jpeg", "svg"]);
+
+/** Visuals tab: PNG, JPEG, SVG only (max 10 MB). */
+export function validateVisualUpload(file: {
+  size: number;
+  name: string;
+  type: string;
+}): { ok: true; ext: string } | { ok: false; reason: string } {
+  if (file.size > MAX_FILE_BYTES) {
+    return { ok: false, reason: "Filen er for stor (maks. 10 MB)." };
+  }
+  if (file.size <= 0) {
+    return { ok: false, reason: "Tom fil." };
+  }
+
+  const extFromName = extensionFromFilename(file.name);
+  if (extFromName && VISUAL_EXT.has(extFromName)) {
+    const e = extFromName === "jpeg" ? "jpg" : extFromName;
+    return { ok: true, ext: e };
+  }
+
+  if (
+    file.type === "image/png" ||
+    file.type === "image/jpeg" ||
+    file.type === "image/jpg" ||
+    file.type === "image/svg+xml"
+  ) {
+    const ext =
+      file.type === "image/png"
+        ? "png"
+        : file.type === "image/svg+xml"
+          ? "svg"
+          : "jpg";
+    return { ok: true, ext };
+  }
+
+  return {
+    ok: false,
+    reason: "Kun PNG, JPG eller SVG er tilladt.",
+  };
+}

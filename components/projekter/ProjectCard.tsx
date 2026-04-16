@@ -23,7 +23,7 @@ function tableStatusBadgeClass(status: ProjectStatus): string {
     case "IN_PROGRESS":
       return "bg-[#dbeafe] text-[#1e40af]";
     case "WAITING":
-      return "bg-[#fee2e2] text-[#dc2626]";
+      return "bg-[#fef9c3] text-[#854d0e]";
     case "COMPLETED":
       return "bg-[#dcfce7] text-[#16a34a]";
     default:
@@ -56,7 +56,7 @@ function priorityDotClass(priority: Priority): string {
 }
 
 function progressBarFillClass(status: ProjectStatus, pct: number): string {
-  if (status === "WAITING") return "bg-[#dc2626]";
+  if (status === "WAITING") return "bg-[#854d0e]";
   if (status === "COMPLETED" || pct >= 100) return "bg-[#16a34a]";
   return "bg-[#1a3167]";
 }

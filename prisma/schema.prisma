@@ -87,6 +87,7 @@ model User {
   taskNotes      TaskNote[]
   comments       Comment[]
   uploadedFiles  File[]
+  visuals        Visual[]
   notifications  Notification[]
   teamInvitesSent PendingTeamMember[] @relation("TeamInviteInviter")
 
@@ -123,6 +124,7 @@ model Project {
   comments       Comment[]
   activities     Activity[]
   files          File[]
+  visuals        Visual[]
   calendarEvents CalendarEvent[]
   icsEvents      IcsEvent[]
 
@@ -275,6 +277,8 @@ model TodoItem {
   id        String         @id @default(cuid())
   content   String
   done      Boolean        @default(false)
+  /// Sort order within task/meeting (DB column "order").
+  sortOrder Int            @default(0) @map("order")
   taskId    String?
   meetingId String?
   createdAt DateTime       @default(now())
@@ -283,6 +287,25 @@ model TodoItem {
 
   @@index([taskId])
   @@index([meetingId])
+  @@index([taskId, sortOrder])
+  @@index([meetingId, sortOrder])
+}
+
+model Visual {
+  id           String   @id @default(cuid())
+  name         String
+  url          String
+  storagePath  String
+  fileType     String
+  projectId    String
+  uploadedById String
+  createdAt    DateTime @default(now())
+
+  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploadedBy User    @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([uploadedById])
 }
 
 model IcsEvent {

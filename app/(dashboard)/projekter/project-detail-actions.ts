@@ -14,17 +14,21 @@ import {
   mimeFromExt,
   sanitizeOriginalFilename,
   validateUploadFile,
+  validateVisualUpload,
 } from "@/lib/storage/file-validation";
 import { ensureProjectFilesBucket, getSupabaseAdmin } from "@/lib/supabase/admin";
 import { SUPABASE_STORAGE_BUCKET } from "@/lib/supabase/storage-bucket";
 import { projectAccessWhere } from "@/lib/projekter/project-access";
 import { removeStorageObject } from "@/lib/supabase/storage-remove";
+import { createSignedStorageUrl } from "@/lib/supabase/storage-signed";
 import { parseOrThrow } from "@/lib/validation/parse";
 import {
   commentContentSchema,
   createTaskActionSchema,
   createTaskNoteSchema,
   createTodoItemSchema,
+  reorderTodoItemsSchema,
+  updateTodoItemSchema,
   cuidLikeSchema,
   setTaskStatusSchema,
   updateTaskFieldsSchema,
@@ -45,12 +49,14 @@ function mapTodoItem(row: {
   content: string;
   done: boolean;
   createdAt: Date;
+  sortOrder: number;
 }): TodoItemDTO {
   return {
     id: row.id,
     content: row.content,
     done: row.done,
     createdAt: row.createdAt.toISOString(),
+    sortOrder: row.sortOrder,
   };
 }
 
@@ -438,8 +444,14 @@ export async function createTodoItem(
     });
     if (!t) throw new Error("Opgave ikke fundet.");
 
+    const maxOrder = await prisma.todoItem.aggregate({
+      where: { taskId: t.id },
+      _max: { sortOrder: true },
+    });
+    const sortOrder = (maxOrder._max.sortOrder ?? -1) + 1;
+
     const row = await prisma.todoItem.create({
-      data: { content: parsed.content, taskId: t.id },
+      data: { content: parsed.content, taskId: t.id, sortOrder },
     });
     revalidatePath(`/projekter/${t.projectId}`);
     return mapTodoItem(row);
@@ -451,8 +463,14 @@ export async function createTodoItem(
   });
   if (!m) throw new Error("Møde ikke fundet.");
 
+  const maxOrderM = await prisma.todoItem.aggregate({
+    where: { meetingId: m.id },
+    _max: { sortOrder: true },
+  });
+  const sortOrderM = (maxOrderM._max.sortOrder ?? -1) + 1;
+
   const row = await prisma.todoItem.create({
-    data: { content: parsed.content, meetingId: m.id },
+    data: { content: parsed.content, meetingId: m.id, sortOrder: sortOrderM },
   });
   revalidateAfterTodoChange({ kind: "meeting", projectId: m.projectId });
   return mapTodoItem(row);
@@ -486,6 +504,89 @@ export async function deleteTodoItem(todoId: string) {
   const access = await assertTodoAccess(id, user.id);
   await prisma.todoItem.delete({ where: { id } });
   revalidateAfterTodoChange(access);
+}
+
+export async function updateTodoItem(todoId: string, content: string): Promise<TodoItemDTO> {
+  const user = await getSessionUser();
+  if (!user) throw new Error("Ikke logget ind.");
+
+  const parsed = parseOrThrow(updateTodoItemSchema, { todoId, content });
+  const access = await assertTodoAccess(parsed.todoId, user.id);
+
+  const row = await prisma.todoItem.update({
+    where: { id: parsed.todoId },
+    data: { content: parsed.content },
+  });
+  revalidateAfterTodoChange(access);
+  return mapTodoItem(row);
+}
+
+export async function reorderTodoItems(
+  taskId: string | null,
+  meetingId: string | null,
+  orderedIds: string[],
+): Promise<void> {
+  const user = await getSessionUser();
+  if (!user) throw new Error("Ikke logget ind.");
+
+  const parsed = parseOrThrow(reorderTodoItemsSchema, {
+    taskId,
+    meetingId,
+    orderedIds,
+  });
+
+  if (parsed.taskId) {
+    const t = await prisma.task.findFirst({
+      where: { id: parsed.taskId, project: projectAccessWhere(user.id) },
+      select: { id: true, projectId: true },
+    });
+    if (!t) throw new Error("Opgave ikke fundet.");
+
+    const existing = await prisma.todoItem.findMany({
+      where: { taskId: t.id },
+      select: { id: true },
+    });
+    const set = new Set(existing.map((e) => e.id));
+    if (parsed.orderedIds.length !== set.size || parsed.orderedIds.some((id) => !set.has(id))) {
+      throw new Error("Ugyldig rækkefølge.");
+    }
+
+    await prisma.$transaction(
+      parsed.orderedIds.map((id, index) =>
+        prisma.todoItem.update({
+          where: { id },
+          data: { sortOrder: index },
+        }),
+      ),
+    );
+    revalidatePath(`/projekter/${t.projectId}`);
+    return;
+  }
+
+  const m = await prisma.calendarEvent.findFirst({
+    where: { id: parsed.meetingId!, userId: user.id },
+    select: { id: true, projectId: true },
+  });
+  if (!m) throw new Error("Møde ikke fundet.");
+
+  const existing = await prisma.todoItem.findMany({
+    where: { meetingId: m.id },
+    select: { id: true },
+  });
+  const set = new Set(existing.map((e) => e.id));
+  if (parsed.orderedIds.length !== set.size || parsed.orderedIds.some((id) => !set.has(id))) {
+    throw new Error("Ugyldig rækkefølge.");
+  }
+
+  await prisma.$transaction(
+    parsed.orderedIds.map((id, index) =>
+      prisma.todoItem.update({
+        where: { id },
+        data: { sortOrder: index },
+      }),
+    ),
+  );
+  revalidateAfterTodoChange({ kind: "meeting", projectId: m.projectId });
 }
 
 export async function createTaskNote(taskId: string, content: string): Promise<TaskNoteDTO> {
@@ -692,4 +793,122 @@ export async function deleteProjectFile(fileId: string) {
     }
   }
   revalidatePath(`/projekter/${file.projectId}`);
+}
+
+/** Signed URL for a visual (1 hour). Verifies project access via storage path. */
+export async function getSignedVisualUrl(storagePath: string): Promise<string> {
+  const user = await getSessionUser();
+  if (!user) throw new Error("Ikke logget ind.");
+
+  const v = await prisma.visual.findFirst({
+    where: { storagePath, project: projectAccessWhere(user.id) },
+    select: { id: true },
+  });
+  if (!v) throw new Error("Ingen adgang.");
+
+  const signed = await createSignedStorageUrl(storagePath, 3600);
+  if ("error" in signed) throw new Error(signed.error);
+  return signed.signedUrl;
+}
+
+export async function uploadVisual(formData: FormData) {
+  const user = await getSessionUser();
+  if (!user?.email) throw new Error("Ikke logget ind.");
+
+  const projectIdRaw = formData.get("projectId");
+  const file = formData.get("file");
+  if (typeof projectIdRaw !== "string" || !(file instanceof File)) {
+    throw new Error("Ugyldig anmodning.");
+  }
+
+  const projectId = parseOrThrow(cuidLikeSchema, projectIdRaw);
+
+  const checked = validateVisualUpload({
+    size: file.size,
+    name: file.name,
+    type: file.type,
+  });
+  if (!checked.ok) {
+    throw new Error(checked.reason);
+  }
+
+  await assertProjectMember(projectId, user.id);
+  await ensureAppUser(user);
+
+  const storagePath = `visuals/${projectId}/${randomUUID()}.${checked.ext}`;
+
+  await ensureProjectFilesBucket();
+  const admin = getSupabaseAdmin();
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const contentType =
+    checked.ext === "svg"
+      ? "image/svg+xml"
+      : checked.ext === "png"
+        ? "image/png"
+        : "image/jpeg";
+
+  const { error } = await admin.storage.from(SUPABASE_STORAGE_BUCKET).upload(storagePath, buffer, {
+    contentType,
+    upsert: false,
+  });
+
+  if (error) {
+    console.error("Storage upload error (visual):", error);
+    throw new Error(error.message || "Upload af visual fejlede.");
+  }
+
+  const fileTypeToStore = contentType;
+
+  const row = await prisma.$transaction(async (tx) => {
+    const created = await tx.visual.create({
+      data: {
+        projectId,
+        name: sanitizeOriginalFilename(file.name),
+        fileType: fileTypeToStore,
+        url: PRIVATE_FILE_PLACEHOLDER,
+        storagePath,
+        uploadedById: user.id,
+      },
+    });
+    return tx.visual.update({
+      where: { id: created.id },
+      data: { url: `/api/visuals/${created.id}/signed` },
+      include: {
+        uploadedBy: { select: { id: true, name: true, email: true, image: true } },
+      },
+    });
+  });
+
+  revalidatePath(`/projekter/${projectId}`);
+  return {
+    id: row.id,
+    name: row.name,
+    fileType: row.fileType,
+    url: row.url,
+    storagePath: row.storagePath,
+    createdAt: row.createdAt.toISOString(),
+    uploadedBy: row.uploadedBy,
+  };
+}
+
+export async function deleteVisual(visualId: string) {
+  const user = await getSessionUser();
+  if (!user) throw new Error("Ikke logget ind.");
+
+  parseOrThrow(cuidLikeSchema, visualId);
+
+  const visual = await prisma.visual.findFirst({
+    where: { id: visualId, project: projectAccessWhere(user.id) },
+    select: { id: true, projectId: true, storagePath: true },
+  });
+  if (!visual) throw new Error("Visual ikke fundet.");
+
+  await prisma.visual.delete({ where: { id: visualId } });
+  if (visual.storagePath) {
+    const removed = await removeStorageObject(visual.storagePath);
+    if (!removed.ok) {
+      console.error("[deleteVisual] storage remove failed", visual.storagePath);
+    }
+  }
+  revalidatePath(`/projekter/${visual.projectId}`);
 }

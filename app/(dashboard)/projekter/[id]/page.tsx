@@ -64,7 +64,7 @@ export default async function ProjectDetailPage({ params }: Props) {
               },
             },
           },
-          todos: { orderBy: { createdAt: "asc" } },
+          todos: { orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] },
         },
       },
       comments: {
@@ -78,6 +78,14 @@ export default async function ProjectDetailPage({ params }: Props) {
       },
       activities: { orderBy: { date: "desc" } },
       files: {
+        orderBy: { createdAt: "desc" },
+        include: {
+          uploadedBy: {
+            select: { id: true, name: true, email: true, image: true },
+          },
+        },
+      },
+      visuals: {
         orderBy: { createdAt: "desc" },
         include: {
           uploadedBy: {
@@ -207,6 +215,7 @@ export default async function ProjectDetailPage({ params }: Props) {
         content: td.content,
         done: td.done,
         createdAt: td.createdAt.toISOString(),
+        sortOrder: td.sortOrder,
       })),
     })),
     projectComments: row.comments.map((c) => ({
@@ -233,6 +242,15 @@ export default async function ProjectDetailPage({ params }: Props) {
       storagePath: f.storagePath,
       createdAt: f.createdAt.toISOString(),
       uploadedBy: f.uploadedBy,
+    })),
+    visuals: row.visuals.map((v) => ({
+      id: v.id,
+      name: v.name,
+      fileType: v.fileType,
+      url: v.url,
+      storagePath: v.storagePath,
+      createdAt: v.createdAt.toISOString(),
+      uploadedBy: v.uploadedBy,
     })),
     calendarEvents: row.calendarEvents.map(mapCal),
     linkableMeetings: linkableRows.map(mapCal),
