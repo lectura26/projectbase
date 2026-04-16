@@ -823,18 +823,24 @@ export async function uploadVisual(formData: FormData) {
       console.error("[uploadVisual] missing or invalid projectId");
       throw new Error("Ugyldig anmodning.");
     }
-    if (!(fileRaw instanceof File)) {
-      console.error("[uploadVisual] file field is not a File:", typeof fileRaw, fileRaw);
+    // Next.js / Node may supply Blob (or a File from another realm where instanceof File is false).
+    if (!(fileRaw instanceof Blob)) {
+      console.error("[uploadVisual] file field is not a Blob:", typeof fileRaw, fileRaw);
       throw new Error("Ugyldig anmodning.");
     }
     const file = fileRaw;
+    const fileName =
+      typeof (fileRaw as File).name === "string" && (fileRaw as File).name.length > 0
+        ? (fileRaw as File).name
+        : "upload.png";
+    const fileType = fileRaw.type ?? "";
 
     const projectId = parseOrThrow(cuidLikeSchema, projectIdRaw);
 
     const checked = validateVisualUpload({
       size: file.size,
-      name: file.name,
-      type: file.type,
+      name: fileName,
+      type: fileType,
     });
     if (!checked.ok) {
       throw new Error(checked.reason);
@@ -878,7 +884,7 @@ export async function uploadVisual(formData: FormData) {
       const created = await tx.visual.create({
         data: {
           projectId,
-          name: sanitizeOriginalFilename(file.name),
+          name: sanitizeOriginalFilename(fileName),
           fileType: fileTypeToStore,
           url: PRIVATE_FILE_PLACEHOLDER,
           storagePath,

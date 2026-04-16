@@ -37,6 +37,7 @@ export function VisualsTab({ initial, onRefresh }: Props) {
   const [lightbox, setLightbox] = useState<VisualDTO | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const projectIdRef = useRef(initial.id);
 
   const sortedVisuals = useMemo(
     () =>
@@ -48,9 +49,23 @@ export function VisualsTab({ initial, onRefresh }: Props) {
     [visuals],
   );
 
+  /** Merge server payload with local state so a fast router.refresh() cannot wipe a new upload if the RSC payload is briefly stale. */
   useEffect(() => {
-    setVisuals(initial.visuals);
-  }, [initial.visuals, initial.updatedAt]);
+    if (projectIdRef.current !== initial.id) {
+      projectIdRef.current = initial.id;
+      setVisuals(initial.visuals);
+      return;
+    }
+    setVisuals((prev) => {
+      const serverIds = new Set(initial.visuals.map((v) => v.id));
+      const notYetOnServer = prev.filter((v) => !serverIds.has(v.id));
+      return [...initial.visuals, ...notYetOnServer].sort((a, b) =>
+        a.sortOrder !== b.sortOrder
+          ? a.sortOrder - b.sortOrder
+          : a.createdAt.localeCompare(b.createdAt),
+      );
+    });
+  }, [initial.id, initial.visuals, initial.updatedAt]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
