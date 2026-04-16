@@ -140,8 +140,22 @@ export default async function OversigtPage() {
         ],
       },
       include: {
-        task: { select: { id: true, title: true, projectId: true } },
-        meeting: { select: { id: true, title: true, projectId: true } },
+        task: {
+          select: {
+            id: true,
+            title: true,
+            projectId: true,
+            project: { select: { id: true, name: true, color: true } },
+          },
+        },
+        meeting: {
+          select: {
+            id: true,
+            title: true,
+            projectId: true,
+            project: { select: { id: true, name: true, color: true } },
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
       take: 20,
@@ -173,6 +187,8 @@ export default async function OversigtPage() {
     taskTitle: n.task?.title ?? null,
     meetingId: n.meetingId,
     meetingTitle: n.meeting?.title ?? null,
+    projectName: n.task?.project?.name ?? n.meeting?.project?.name ?? null,
+    projectColor: n.task?.project?.color ?? n.meeting?.project?.color ?? null,
   }));
 
   const focusPickerFirstName =

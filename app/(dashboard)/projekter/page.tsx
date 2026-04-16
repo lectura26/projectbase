@@ -7,6 +7,7 @@ import type { ProjectListItem } from "@/types/projekter";
 import { getSessionUser } from "@/lib/auth/session-user";
 import { ensureAppUser } from "@/lib/auth/ensure-app-user";
 import { getCachedProjekterPageBundle } from "@/lib/data/cached-queries";
+import { prisma } from "@/lib/prisma";
 
 export const revalidate = 30;
 
@@ -64,12 +65,20 @@ async function ProjekterPageContent() {
     },
   ];
 
+  const usedColors = await prisma.project
+    .findMany({
+      where: { userId: user.id },
+      select: { color: true },
+    })
+    .then((projects) => projects.map((p) => p.color));
+
   return (
     <ProjekterPageClient
       initialProjects={initialProjects}
       initialCompletedProjects={initialCompletedProjects}
       usersForCreate={usersForCreate}
       currentUserId={user.id}
+      usedColors={usedColors}
     />
   );
 }

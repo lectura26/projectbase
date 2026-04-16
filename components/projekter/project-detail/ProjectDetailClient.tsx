@@ -241,12 +241,14 @@ type Props = {
   initial: ProjectDetailPayload;
   usersForModal: UserOption[];
   currentUserId: string;
+  usedColors: string[];
 };
 
 export default function ProjectDetailClient({
   initial,
   usersForModal,
   currentUserId,
+  usedColors,
 }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -691,6 +693,7 @@ export default function ProjectDetailClient({
         mode="edit"
         projectId={initial.id}
         initialEdit={editInitial}
+        usedColors={usedColors}
       />
     </div>
   );

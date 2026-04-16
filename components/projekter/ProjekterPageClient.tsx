@@ -160,11 +160,13 @@ export default function ProjekterPageClient({
   initialCompletedProjects,
   usersForCreate,
   currentUserId: _currentUserId,
+  usedColors,
 }: {
   initialProjects: ProjectListItem[];
   initialCompletedProjects: ProjectListItem[];
   usersForCreate: { id: string; name: string; email: string }[];
   currentUserId: string;
+  usedColors: string[];
 }) {
   void _currentUserId;
   const [view, setView] = useState<ViewMode>("liste");
@@ -709,6 +711,7 @@ export default function ProjekterPageClient({
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         users={usersForCreate}
+        usedColors={usedColors}
       />
     </div>
   );

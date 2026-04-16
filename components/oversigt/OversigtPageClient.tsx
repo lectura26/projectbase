@@ -491,6 +491,20 @@ export default function OversigtPageClient({
                               {formatActivityRelative(a.createdAt)}
                             </span>
                           </div>
+                          {a.projectName ? (
+                            <div className="mt-1 flex min-w-0 items-center gap-1.5">
+                              <span
+                                className="h-2 w-2 shrink-0 rounded-full"
+                                style={{
+                                  backgroundColor: a.projectColor ?? "#9ca3af",
+                                }}
+                                aria-hidden
+                              />
+                              <span className="min-w-0 truncate font-body text-[11px] text-[#6b7280]">
+                                {a.projectName}
+                              </span>
+                            </div>
+                          ) : null}
                           <p className="mt-0.5 font-body text-[13px] leading-[1.5] text-[#6b7280]">
                             {activitySnippet(a.content)}
                           </p>

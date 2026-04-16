@@ -33,6 +33,8 @@ type NytProjektModalProps = {
   mode?: "create" | "edit";
   projectId?: string;
   initialEdit?: EditProjectInitial | null;
+  /** Hex colors already used by this user's projects (edit: current project may still use its color). */
+  usedColors: string[];
 };
 
 const cellLabelClass =
@@ -51,6 +53,7 @@ export function NytProjektModal({
   mode = "create",
   projectId,
   initialEdit = null,
+  usedColors,
 }: NytProjektModalProps) {
   const router = useRouter();
   const titleId = useId();
@@ -524,7 +527,15 @@ export function NytProjektModal({
                     <div className={cellBoxClass}>
                       <span className={cellLabelClass}>Projektfarve</span>
                       <div className="mt-2">
-                        <ProjectColorPicker value={color} onChange={setColor} />
+                        <ProjectColorPicker
+                          value={color}
+                          onChange={setColor}
+                          usedColors={usedColors}
+                          currentProjectColor={
+                            mode === "edit" && initialEdit ? initialEdit.color : null
+                          }
+                          showLabel={false}
+                        />
                       </div>
                     </div>
                     <div className={cellBoxClass}>

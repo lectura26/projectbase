@@ -275,6 +275,13 @@ export default async function ProjectDetailPage({ params }: Props) {
     a.name.localeCompare(b.name, "da"),
   );
 
+  const usedColors = await prisma.project
+    .findMany({
+      where: { userId: user.id },
+      select: { color: true },
+    })
+    .then((projects) => projects.map((p) => p.color));
+
   return (
     <div className="space-y-4">
       <Link
@@ -296,6 +303,7 @@ export default async function ProjectDetailPage({ params }: Props) {
           initial={initial}
           usersForModal={usersForModal}
           currentUserId={user.id}
+          usedColors={usedColors}
         />
       </Suspense>
     </div>
