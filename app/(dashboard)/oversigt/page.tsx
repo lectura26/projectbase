@@ -11,7 +11,10 @@ import {
   selectAutoFocusProject,
 } from "@/lib/focus/get-focus-project";
 import { getCachedOversigtDashboardData } from "@/lib/data/cached-queries";
+import { projectAccessWhere } from "@/lib/projekter/project-access";
+import { prisma } from "@/lib/prisma";
 import type {
+  OversigtActivityItem,
   OversigtDeadlineItem,
   OversigtMeetingItem,
   OversigtPulseProject,
@@ -126,10 +129,35 @@ export default async function OversigtPage() {
     projectColor: e.project?.color ?? null,
   }));
 
-  const [focusProject, focusPick] = await Promise.all([
+  const [focusProject, focusPick, activityNotesRaw] = await Promise.all([
     getFocusProjectCardData(user.id),
     selectAutoFocusProject(user.id),
+    prisma.taskNote.findMany({
+      where: {
+        OR: [
+          { task: { project: projectAccessWhere(user.id) } },
+          { meeting: { userId: user.id } },
+        ],
+      },
+      include: {
+        task: { select: { id: true, title: true, projectId: true } },
+        meeting: { select: { id: true, title: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 4,
+    }),
   ]);
+
+  const recentActivity: OversigtActivityItem[] = activityNotesRaw.map((n) => ({
+    id: n.id,
+    content: n.content,
+    createdAt: n.createdAt.toISOString(),
+    taskId: n.taskId,
+    projectId: n.task?.projectId ?? null,
+    taskTitle: n.task?.title ?? null,
+    meetingId: n.meetingId,
+    meetingTitle: n.meeting?.title ?? null,
+  }));
 
   const focusPickerFirstName =
     displayName.split(/\s+/).filter(Boolean)[0] ?? displayName;
@@ -148,6 +176,7 @@ export default async function OversigtPage() {
       isFocusSetToday={focusProject !== null}
       focusPickerTodayLabel={formatFocusPickerDate(now)}
       focusPickerDisplayName={focusPickerFirstName}
+      recentActivity={recentActivity}
     />
   );
 }

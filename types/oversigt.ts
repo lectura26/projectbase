@@ -41,6 +41,17 @@ export type OversigtMeetingItem = {
   projectColor?: string | null;
 };
 
+export type OversigtActivityItem = {
+  id: string;
+  content: string;
+  createdAt: string;
+  taskId: string | null;
+  projectId: string | null;
+  taskTitle: string | null;
+  meetingId: string | null;
+  meetingTitle: string | null;
+};
+
 export type OversigtFocusSuggestion = {
   id: string;
   name: string;
