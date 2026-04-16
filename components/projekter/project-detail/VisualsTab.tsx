@@ -1,11 +1,22 @@
 "use client";
 
-import { Download, Loader2, Trash2, Upload, UploadCloud, X } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  DragDropContext,
+  Draggable,
+  Droppable,
+  type DropResult,
+} from "@hello-pangea/dnd";
+import { AnimatePresence, motion } from "framer-motion";
+import { GripVertical, Loader2, Trash2, UploadCloud, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { deleteVisual, uploadVisual } from "@/app/(dashboard)/projekter/project-detail-actions";
-import { validateVisualUpload } from "@/lib/storage/file-validation";
+import {
+  deleteVisual,
+  reorderVisuals,
+  uploadVisual,
+} from "@/app/(dashboard)/projekter/project-detail-actions";
 import { formatDanishDate } from "@/lib/datetime/format-danish";
+import { validateVisualUpload } from "@/lib/storage/file-validation";
 import type { ProjectDetailPayload, VisualDTO } from "@/types/project-detail";
 
 type Props = {
@@ -13,13 +24,30 @@ type Props = {
   onRefresh: () => void;
 };
 
+function reorder<T>(list: T[], startIndex: number, endIndex: number): T[] {
+  const result = Array.from(list);
+  const [removed] = result.splice(startIndex, 1);
+  result.splice(endIndex, 0, removed!);
+  return result;
+}
+
 export function VisualsTab({ initial, onRefresh }: Props) {
   const [visuals, setVisuals] = useState<VisualDTO[]>(initial.visuals);
   const [uploading, setUploading] = useState(false);
-  const [dragActive, setDragActive] = useState(false);
+  const [uploadZoneActive, setUploadZoneActive] = useState(false);
   const [lightbox, setLightbox] = useState<VisualDTO | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const sortedVisuals = useMemo(
+    () =>
+      [...visuals].sort((a, b) =>
+        a.sortOrder !== b.sortOrder
+          ? a.sortOrder - b.sortOrder
+          : a.createdAt.localeCompare(b.createdAt),
+      ),
+    [visuals],
+  );
 
   useEffect(() => {
     setVisuals(initial.visuals);
@@ -35,8 +63,11 @@ export function VisualsTab({ initial, onRefresh }: Props) {
     }
   }, [lightbox]);
 
-  const runUpload = useCallback(
-    async (file: File) => {
+  const runUploadOne = useCallback(
+    async (
+      file: File,
+      options?: { silentToast?: boolean; skipParentRefresh?: boolean },
+    ) => {
       const checked = validateVisualUpload({
         size: file.size,
         name: file.name,
@@ -46,37 +77,96 @@ export function VisualsTab({ initial, onRefresh }: Props) {
         toast.error(checked.reason);
         return;
       }
+      const fd = new FormData();
+      fd.append("projectId", initial.id);
+      fd.append("file", file);
+      const created = await uploadVisual(fd);
+      setVisuals((prev) =>
+        [...prev, created].sort((a, b) =>
+          a.sortOrder !== b.sortOrder
+            ? a.sortOrder - b.sortOrder
+            : a.createdAt.localeCompare(b.createdAt),
+        ),
+      );
+      if (!options?.silentToast) {
+        toast.success("Billede uploadet");
+      }
+      if (!options?.skipParentRefresh) {
+        onRefresh();
+      }
+    },
+    [initial.id, onRefresh],
+  );
+
+  const runUpload = useCallback(
+    async (file: File) => {
       setUploading(true);
       try {
-        const fd = new FormData();
-        fd.append("projectId", initial.id);
-        fd.append("file", file);
-        const created = await uploadVisual(fd);
-        setVisuals((prev) => [created, ...prev]);
-        toast.success("Billede uploadet");
-        onRefresh();
+        await runUploadOne(file);
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "Upload fejlede");
       } finally {
         setUploading(false);
       }
     },
-    [initial.id, onRefresh],
+    [runUploadOne],
   );
 
-  const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const runUploadMany = useCallback(
+    async (files: FileList | File[]) => {
+      const list = Array.from(files);
+      if (list.length === 0) return;
+      setUploading(true);
+      try {
+        let ok = 0;
+        for (const file of list) {
+          try {
+            await runUploadOne(file, { silentToast: true, skipParentRefresh: true });
+            ok += 1;
+          } catch (e) {
+            toast.error(e instanceof Error ? e.message : "Upload fejlede");
+          }
+        }
+        if (ok > 0) {
+          toast.success(ok === 1 ? "Billede uploadet" : `${ok} billeder uploadet`);
+          onRefresh();
+        }
+      } finally {
+        setUploading(false);
+      }
+    },
+    [runUploadOne, onRefresh],
+  );
+
+  const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
     e.target.value = "";
-    if (!file) return;
-    await runUpload(file);
+    if (!files?.length) return;
+    void runUploadMany(files);
   };
 
-  const handleDrop = async (e: React.DragEvent) => {
+  const handleUploadZoneDrop = async (e: React.DragEvent) => {
     e.preventDefault();
-    setDragActive(false);
-    const file = e.dataTransfer.files?.[0];
-    if (!file) return;
-    await runUpload(file);
+    e.stopPropagation();
+    setUploadZoneActive(false);
+    const files = e.dataTransfer.files;
+    if (!files?.length) return;
+    await runUploadMany(files);
+  };
+
+  const onDragEnd = async (result: DropResult) => {
+    if (!result.destination) return;
+    if (result.destination.index === result.source.index) return;
+    const reordered = reorder(sortedVisuals, result.source.index, result.destination.index);
+    const next = reordered.map((item, i) => ({ ...item, sortOrder: i }));
+    const prev = visuals;
+    setVisuals(next);
+    try {
+      await reorderVisuals(reordered.map((v) => v.id));
+    } catch (e) {
+      setVisuals(prev);
+      toast.error(e instanceof Error ? e.message : "Kunne ikke gemme rækkefølge.");
+    }
   };
 
   const remove = async (v: VisualDTO) => {
@@ -92,170 +182,217 @@ export function VisualsTab({ initial, onRefresh }: Props) {
     }
   };
 
-  return (
+  const droppableId = `visuals-${initial.id}`;
+
+  const uploadZone = (
     <div
-      className="relative min-h-[120px]"
+      className={`relative mb-12 w-full rounded-[8px] border-2 border-dashed p-8 text-center transition-colors ${
+        uploadZoneActive
+          ? "border-[#1a3167] bg-[#f0f6ff]"
+          : "border-[#e8e8e8] bg-[#f8f9fa]"
+      }`}
       onDragEnter={(e) => {
         e.preventDefault();
-        setDragActive(true);
+        e.stopPropagation();
+        setUploadZoneActive(true);
       }}
       onDragOver={(e) => {
         e.preventDefault();
+        e.stopPropagation();
         e.dataTransfer.dropEffect = "copy";
       }}
       onDragLeave={(e) => {
         e.preventDefault();
         const next = e.relatedTarget as Node | null;
         if (next && e.currentTarget.contains(next)) return;
-        setDragActive(false);
+        setUploadZoneActive(false);
       }}
-      onDrop={(e) => void handleDrop(e)}
+      onDrop={(e) => void handleUploadZoneDrop(e)}
     >
-      <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/png,image/jpeg,image/jpg,image/svg+xml,.png,.jpg,.jpeg,.svg"
-          className="hidden"
-          onChange={(ev) => void onFile(ev)}
-        />
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className="rounded-lg border border-outline-variant/20 px-3 py-1.5 font-body text-sm font-medium text-primary"
-        >
-          Upload billede
-        </button>
-      </div>
-
-      {visuals.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <Upload className="mb-2 h-8 w-8 text-[#9ca3af]" aria-hidden />
-          <p className="font-body text-[13px] text-[#9ca3af]">Ingen visuals uploadet endnu.</p>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/jpg,image/svg+xml,.png,.jpg,.jpeg,.svg"
+        multiple
+        className="hidden"
+        onChange={onFile}
+      />
+      {uploading ? (
+        <div className="flex flex-col items-center justify-center py-2" aria-live="polite">
+          <Loader2 className="h-8 w-8 animate-spin text-[#1a3167]" aria-hidden />
+          <p className="mt-3 text-[14px] font-medium text-[#1a3167]">Uploader...</p>
         </div>
       ) : (
-        <div
-          className="grid gap-3"
-          style={{ gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))" }}
-        >
-          {visuals.map((v) => (
-            <div
-              key={v.id}
-              className="group relative overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white"
-            >
-              <button
-                type="button"
-                className="relative block w-full border-0 bg-[#f8f9fa] p-0 text-left"
-                onClick={() => setLightbox(v)}
-              >
-                <div className="relative flex h-[160px] items-center justify-center p-2">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={v.url}
-                    alt=""
-                    className="max-h-full max-w-full object-contain"
-                  />
-                </div>
-              </button>
-              <div className="truncate px-2.5 pt-2 text-[12px] font-medium text-[#0f1923]">{v.name}</div>
-              <div className="px-2.5 pb-2 text-[11px] text-[#9ca3af]">{formatDanishDate(v.createdAt)}</div>
-
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center gap-3 bg-[rgba(0,0,0,0.35)] opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
-                <a
-                  href={v.url}
-                  download={v.name}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#0f1923] shadow"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Download className="h-4 w-4" aria-hidden />
-                </a>
-                <button
-                  type="button"
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#dc2626] shadow"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setConfirmDeleteId(v.id);
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" aria-hidden />
-                </button>
-              </div>
-
-              {confirmDeleteId === v.id ? (
-                <div
-                  className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-white/95 p-2"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <p className="text-center text-xs text-[#0f1923]">Slette dette billede?</p>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      className="rounded bg-[#dc2626] px-3 py-1 text-xs font-medium text-white"
-                      onClick={() => void remove(v)}
-                    >
-                      Slet
-                    </button>
-                    <button
-                      type="button"
-                      className="rounded border px-3 py-1 text-xs"
-                      onClick={() => setConfirmDeleteId(null)}
-                    >
-                      Annuller
-                    </button>
-                  </div>
-                </div>
-              ) : null}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {uploading ? (
-        <div
-          className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-[8px] bg-[rgba(240,246,255,0.9)]"
-          aria-live="polite"
-        >
-          <Loader2 className="h-10 w-10 animate-spin text-[#1a3167]" aria-hidden />
-          <p className="mt-3 text-[16px] font-medium text-[#1a3167]">Uploader...</p>
-        </div>
-      ) : dragActive ? (
-        <div
-          className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center rounded-[8px] border-2 border-dashed border-[#1a3167] bg-[rgba(240,246,255,0.9)]"
-          aria-hidden
-        >
-          <UploadCloud className="h-10 w-10 text-[#1a3167]" aria-hidden />
-          <p className="mt-3 text-[16px] font-medium text-[#1a3167]">Slip billedet her</p>
-        </div>
-      ) : null}
-
-      {lightbox ? (
-        <div
-          className="fixed inset-0 z-[200] flex items-center justify-center bg-[rgba(0,0,0,0.85)] p-4"
-          role="presentation"
-          onClick={() => setLightbox(null)}
-        >
+        <>
+          <UploadCloud className="mx-auto h-8 w-8 text-[#9ca3af]" strokeWidth={1.5} aria-hidden />
+          <p className="mt-2 text-[14px] text-[#6b7280]">Træk billeder hertil for at uploade</p>
+          <p className="mt-1 text-[12px] text-[#9ca3af]">eller</p>
           <button
             type="button"
-            className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border-0 bg-white/10 text-white hover:bg-white/20"
-            onClick={(e) => {
-              e.stopPropagation();
-              setLightbox(null);
-            }}
-            aria-label="Luk"
+            onClick={() => fileInputRef.current?.click()}
+            className="mt-2 rounded-[5px] border border-solid border-[#e8e8e8] bg-white px-4 py-1.5 text-[12px] text-[#0f1923]"
           >
-            <X className="h-6 w-6" />
+            Vælg filer
           </button>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={lightbox.url}
-            alt=""
-            className="max-h-[85vh] max-w-[90vw] object-contain"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
+        </>
+      )}
+    </div>
+  );
+
+  const emptyState =
+    visuals.length === 0 ? (
+      <div className="flex flex-col items-center justify-center py-10 text-center">
+        <UploadCloud className="h-10 w-10 text-[#9ca3af]" strokeWidth={1.5} aria-hidden />
+        <p className="mt-3 text-[14px] text-[#6b7280]">Ingen visuals endnu</p>
+        <p className="mt-1 text-[13px] text-[#9ca3af]">
+          Træk billeder hertil eller klik &apos;Vælg filer&apos;
+        </p>
+      </div>
+    ) : null;
+
+  return (
+    <div className="relative min-h-[120px]">
+      {uploadZone}
+
+      {emptyState}
+
+      {sortedVisuals.length > 0 ? (
+        <DragDropContext onDragEnd={(r) => void onDragEnd(r)}>
+          <Droppable droppableId={droppableId}>
+            {(provided) => (
+              <div ref={provided.innerRef} {...provided.droppableProps} className="pb-2">
+                {sortedVisuals.map((v, index) => (
+                  <Draggable key={v.id} draggableId={v.id} index={index}>
+                    {(dragProvided, snapshot) => (
+                      <div
+                        ref={dragProvided.innerRef}
+                        {...dragProvided.draggableProps}
+                        className={`group relative mx-auto mb-12 max-w-[800px] ${
+                          snapshot.isDragging ? "opacity-70" : ""
+                        }`}
+                        style={{
+                          ...dragProvided.draggableProps.style,
+                          ...(snapshot.isDragging
+                            ? {
+                                boxShadow: "0 4px 14px rgba(0,0,0,0.12)",
+                              }
+                            : {}),
+                        }}
+                      >
+                        <div
+                          className={`flex justify-center transition-opacity duration-150 ${
+                            snapshot.isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                          }`}
+                        >
+                          <button
+                            type="button"
+                            aria-label="Træk for at omarrangere"
+                            {...dragProvided.dragHandleProps}
+                            className="flex cursor-grab items-center justify-center rounded border-0 bg-transparent p-0 pb-1 active:cursor-grabbing"
+                          >
+                            <GripVertical className="h-[18px] w-[18px] text-[#d1d5db]" aria-hidden />
+                          </button>
+                        </div>
+
+                        <div
+                          className={`overflow-hidden rounded-[8px] bg-white shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition-transform ${
+                            snapshot.isDragging ? "scale-[1.01]" : ""
+                          }`}
+                        >
+                          <button
+                            type="button"
+                            className="block w-full border-0 bg-white p-0 text-left"
+                            onClick={() => setLightbox(v)}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={v.url}
+                              alt=""
+                              className="h-auto w-full object-contain"
+                            />
+                          </button>
+                        </div>
+
+                        <p className="mt-3 text-center text-[14px] font-medium text-[#0f1923]">{v.name}</p>
+                        <p className="mt-0.5 text-center text-[12px] text-[#9ca3af]">
+                          {formatDanishDate(v.createdAt)}
+                        </p>
+
+                        <div
+                          className={`mt-2 flex justify-center transition-opacity duration-150 ${
+                            confirmDeleteId === v.id
+                              ? "opacity-100"
+                              : "opacity-0 group-hover:opacity-100"
+                          }`}
+                        >
+                          {confirmDeleteId === v.id ? (
+                            <button
+                              type="button"
+                              className="border-0 bg-transparent p-0 text-[14px] font-medium text-[#dc2626] underline-offset-2 hover:underline"
+                              onClick={() => void remove(v)}
+                            >
+                              Slet?
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              aria-label="Slet billede"
+                              className="rounded border-0 bg-transparent p-0 text-[#d1d5db] transition-colors hover:text-[#dc2626]"
+                              onClick={() => setConfirmDeleteId(v.id)}
+                            >
+                              <Trash2 className="h-[14px] w-[14px]" strokeWidth={2} aria-hidden />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
       ) : null}
+
+      <AnimatePresence>
+        {lightbox ? (
+          <motion.div
+            key={lightbox.id}
+            role="presentation"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[rgba(0,0,0,0.9)] p-4"
+            onClick={() => setLightbox(null)}
+          >
+            <button
+              type="button"
+              className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full border-0 bg-transparent text-white transition-colors hover:bg-[rgba(255,255,255,0.15)]"
+              onClick={(e) => {
+                e.stopPropagation();
+                setLightbox(null);
+              }}
+              aria-label="Luk"
+            >
+              <X className="h-5 w-5" strokeWidth={2} />
+            </button>
+            <div
+              className="flex max-h-[90vh] max-w-[90vw] flex-col items-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={lightbox.url}
+                alt=""
+                className="max-h-[90vh] max-w-[90vw] object-contain"
+              />
+              <p className="mt-3 max-w-[90vw] text-center text-[14px] text-white/80">{lightbox.name}</p>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </div>
   );
 }

@@ -300,6 +300,7 @@ model Visual {
   projectId    String
   uploadedById String
   createdAt    DateTime @default(now())
+  sortOrder    Int      @default(0) @map("order")
 
   project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   uploadedBy User    @relation(fields: [uploadedById], references: [id], onDelete: Cascade)

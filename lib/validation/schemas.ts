@@ -193,6 +193,9 @@ export const reorderTodoItemsSchema = z
     { message: "Angiv enten opgave eller møde." },
   );
 
+/** Full ordered list of visual ids for a project (must match all visuals in that project). */
+export const reorderVisualsSchema = z.array(cuidLikeSchema);
+
 export const updateMeetingFieldSchema = z.object({
   meetingId: cuidLikeSchema,
   field: z.enum(["title", "date", "startTime", "endTime"]),

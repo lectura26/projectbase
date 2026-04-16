@@ -28,6 +28,7 @@ import {
   createTaskNoteSchema,
   createTodoItemSchema,
   reorderTodoItemsSchema,
+  reorderVisualsSchema,
   updateTodoItemSchema,
   cuidLikeSchema,
   setTaskStatusSchema,
@@ -860,6 +861,12 @@ export async function uploadVisual(formData: FormData) {
   const fileTypeToStore = contentType;
 
   const row = await prisma.$transaction(async (tx) => {
+    const maxOrder = await tx.visual.aggregate({
+      where: { projectId },
+      _max: { sortOrder: true },
+    });
+    const nextOrder = (maxOrder._max.sortOrder ?? -1) + 1;
+
     const created = await tx.visual.create({
       data: {
         projectId,
@@ -868,6 +875,7 @@ export async function uploadVisual(formData: FormData) {
         url: PRIVATE_FILE_PLACEHOLDER,
         storagePath,
         uploadedById: user.id,
+        sortOrder: nextOrder,
       },
     });
     return tx.visual.update({
@@ -887,8 +895,47 @@ export async function uploadVisual(formData: FormData) {
     url: row.url,
     storagePath: row.storagePath,
     createdAt: row.createdAt.toISOString(),
+    sortOrder: row.sortOrder,
     uploadedBy: row.uploadedBy,
   };
+}
+
+export async function reorderVisuals(visualIds: string[]) {
+  const user = await getSessionUser();
+  if (!user) throw new Error("Ikke logget ind.");
+
+  const ids = parseOrThrow(reorderVisualsSchema, visualIds);
+  if (ids.length === 0) return;
+
+  const first = await prisma.visual.findFirst({
+    where: { id: ids[0], project: projectAccessWhere(user.id) },
+    select: { projectId: true },
+  });
+  if (!first) throw new Error("Visual ikke fundet.");
+
+  const projectId = first.projectId;
+
+  const allInProject = await prisma.visual.findMany({
+    where: { projectId },
+    select: { id: true },
+  });
+  const projectIdSet = new Set(allInProject.map((v) => v.id));
+  if (ids.length !== projectIdSet.size) throw new Error("Ugyldig anmodning.");
+  if (new Set(ids).size !== ids.length) throw new Error("Ugyldig anmodning.");
+  for (const id of ids) {
+    if (!projectIdSet.has(id)) throw new Error("Ugyldig anmodning.");
+  }
+
+  await prisma.$transaction(
+    ids.map((id, index) =>
+      prisma.visual.update({
+        where: { id },
+        data: { sortOrder: index },
+      }),
+    ),
+  );
+
+  revalidatePath(`/projekter/${projectId}`);
 }
 
 export async function deleteVisual(visualId: string) {

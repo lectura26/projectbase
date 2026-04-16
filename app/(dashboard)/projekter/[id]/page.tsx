@@ -86,7 +86,7 @@ export default async function ProjectDetailPage({ params }: Props) {
         },
       },
       visuals: {
-        orderBy: { createdAt: "desc" },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
         include: {
           uploadedBy: {
             select: { id: true, name: true, email: true, image: true },
@@ -250,6 +250,7 @@ export default async function ProjectDetailPage({ params }: Props) {
       url: v.url,
       storagePath: v.storagePath,
       createdAt: v.createdAt.toISOString(),
+      sortOrder: v.sortOrder,
       uploadedBy: v.uploadedBy,
     })),
     calendarEvents: row.calendarEvents.map(mapCal),

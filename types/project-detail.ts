@@ -44,6 +44,8 @@ export type VisualDTO = {
   url: string;
   storagePath: string;
   createdAt: string;
+  /** Gallery order (maps to DB column `order`). */
+  sortOrder: number;
   uploadedBy: UserMini;
 };
 
