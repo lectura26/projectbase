@@ -1263,13 +1263,7 @@ function FilerTab({
       onRefresh();
     } catch (err) {
       console.error("[upload file]", err);
-      if (err instanceof Error && err.message === "STORAGE") {
-        toast.error("Upload fejlede. Prøv igen.");
-      } else if (err instanceof Error) {
-        toast.error(err.message);
-      } else {
-        toast.error("Upload fejlede");
-      }
+      toast.error(err instanceof Error ? err.message : "Upload fejlede");
     }
   };
 
@@ -1325,13 +1319,7 @@ function FilerTab({
           successCount++;
         } catch (err) {
           console.error("[upload file drop]", err);
-          if (err instanceof Error && err.message === "STORAGE") {
-            toast.error("Upload fejlede. Prøv igen.");
-          } else if (err instanceof Error) {
-            toast.error(err.message);
-          } else {
-            toast.error("Upload fejlede");
-          }
+          toast.error(err instanceof Error ? err.message : "Upload fejlede");
         }
       }
       if (successCount > 0) {

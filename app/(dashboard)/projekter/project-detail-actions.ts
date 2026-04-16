@@ -15,7 +15,7 @@ import {
   sanitizeOriginalFilename,
   validateUploadFile,
 } from "@/lib/storage/file-validation";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { ensureProjectFilesBucket, getSupabaseAdmin } from "@/lib/supabase/admin";
 import { SUPABASE_STORAGE_BUCKET } from "@/lib/supabase/storage-bucket";
 import { projectAccessWhere } from "@/lib/projekter/project-access";
 import { removeStorageObject } from "@/lib/supabase/storage-remove";
@@ -629,7 +629,8 @@ export async function uploadProjectFile(formData: FormData) {
 
   const storagePath = `${projectId}/${randomUUID()}.${checked.ext}`;
 
-  const admin = createSupabaseAdminClient();
+  await ensureProjectFilesBucket();
+  const admin = getSupabaseAdmin();
   const buffer = Buffer.from(await file.arrayBuffer());
   const contentType =
     file.type && (ALLOWED_TYPES as readonly string[]).includes(file.type)
@@ -642,8 +643,8 @@ export async function uploadProjectFile(formData: FormData) {
   });
 
   if (error) {
-    console.error("[uploadProjectFile]", error.message);
-    throw new Error("STORAGE");
+    console.error("Storage upload error:", error);
+    throw new Error(error.message || "Fil-upload til Storage fejlede.");
   }
 
   const fileTypeToStore =

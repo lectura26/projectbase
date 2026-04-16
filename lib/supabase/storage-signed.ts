@@ -1,38 +1,28 @@
-import { createClient } from "@supabase/supabase-js";
-import { createClient as createServerClient } from "@/lib/supabase/server";
 import { SUPABASE_STORAGE_BUCKET } from "@/lib/supabase/storage-bucket";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 /**
- * Create a time-limited signed URL for a storage object.
- * Uses SUPABASE_SERVICE_ROLE_KEY when set (recommended for private buckets);
- * otherwise falls back to the caller's server session (anon JWT).
+ * Time-limited signed URL for a storage object. Always uses the service role client.
  */
 export async function createSignedStorageUrl(
   storagePath: string,
   expiresInSeconds: number,
 ): Promise<{ signedUrl: string } | { error: string }> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (serviceKey) {
-    const admin = createClient(url, serviceKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
+  try {
+    const admin = getSupabaseAdmin();
     const { data, error } = await admin.storage
       .from(SUPABASE_STORAGE_BUCKET)
       .createSignedUrl(storagePath, expiresInSeconds);
     if (error || !data?.signedUrl) {
-      return { error: "Kunne ikke oprette download-link." };
+      console.error("Storage signed URL error:", error);
+      return {
+        error: error?.message ?? "Kunne ikke oprette download-link.",
+      };
     }
     return { signedUrl: data.signedUrl };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("Storage signed URL error:", e);
+    return { error: msg };
   }
-
-  const supabase = await createServerClient();
-  const { data, error } = await supabase.storage
-    .from(SUPABASE_STORAGE_BUCKET)
-    .createSignedUrl(storagePath, expiresInSeconds);
-  if (error || !data?.signedUrl) {
-    return { error: "Kunne ikke oprette download-link." };
-  }
-  return { signedUrl: data.signedUrl };
 }

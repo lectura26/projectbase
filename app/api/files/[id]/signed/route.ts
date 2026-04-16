@@ -63,7 +63,8 @@ export async function GET(
 
     const signed = await createSignedStorageUrl(file.storagePath, SIGNED_URL_TTL_SEC);
     if ("error" in signed) {
-      return jsonError(500, "Could not prepare download");
+      console.error("GET /api/files/[id]/signed createSignedStorageUrl:", signed.error);
+      return jsonError(500, signed.error);
     }
 
     return NextResponse.redirect(signed.signedUrl);
