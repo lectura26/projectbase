@@ -204,12 +204,14 @@ export function VisualsTab({ initial, onRefresh }: Props) {
       onDragOver={onContainerDragOver}
       onDropCapture={onContainerFileDropCapture}
     >
+      {/* Outside DragDropContext; avoid `hidden` (display:none) — it breaks input.click() in some browsers. */}
       <input
         ref={fileInputRef}
         type="file"
-        accept=".png,.jpg,.jpeg,.svg"
+        accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/jpg,image/svg+xml"
         multiple
-        className="hidden"
+        className="sr-only"
+        tabIndex={-1}
         onChange={onFileInputChange}
       />
 
@@ -217,7 +219,10 @@ export function VisualsTab({ initial, onRefresh }: Props) {
         <button
           type="button"
           disabled={uploading}
-          onClick={openFilePicker}
+          onClick={(e) => {
+            e.stopPropagation();
+            openFilePicker();
+          }}
           className="inline-flex items-center gap-1.5 rounded-[5px] border border-solid border-[#e8e8e8] bg-white px-[14px] py-1.5 text-[12px] font-medium text-[#0f1923] disabled:opacity-60"
         >
           <Upload className="h-[14px] w-[14px] shrink-0" aria-hidden />
