@@ -7,7 +7,7 @@ import {
   type DropResult,
 } from "@hello-pangea/dnd";
 import { AnimatePresence, motion } from "framer-motion";
-import { GripVertical, Loader2, Trash2, UploadCloud, X } from "lucide-react";
+import { GripVertical, Loader2, Trash2, Upload, UploadCloud, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -34,7 +34,6 @@ function reorder<T>(list: T[], startIndex: number, endIndex: number): T[] {
 export function VisualsTab({ initial, onRefresh }: Props) {
   const [visuals, setVisuals] = useState<VisualDTO[]>(initial.visuals);
   const [uploading, setUploading] = useState(false);
-  const [uploadZoneActive, setUploadZoneActive] = useState(false);
   const [lightbox, setLightbox] = useState<VisualDTO | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -63,95 +62,85 @@ export function VisualsTab({ initial, onRefresh }: Props) {
     }
   }, [lightbox]);
 
-  const runUploadOne = useCallback(
-    async (
-      file: File,
-      options?: { silentToast?: boolean; skipParentRefresh?: boolean },
-    ) => {
-      const checked = validateVisualUpload({
-        size: file.size,
-        name: file.name,
-        type: file.type,
-      });
-      if (!checked.ok) {
-        toast.error(checked.reason);
-        return;
-      }
-      const fd = new FormData();
-      fd.append("projectId", initial.id);
-      fd.append("file", file);
-      const created = await uploadVisual(fd);
-      setVisuals((prev) =>
-        [...prev, created].sort((a, b) =>
-          a.sortOrder !== b.sortOrder
-            ? a.sortOrder - b.sortOrder
-            : a.createdAt.localeCompare(b.createdAt),
-        ),
-      );
-      if (!options?.silentToast) {
-        toast.success("Billede uploadet");
-      }
-      if (!options?.skipParentRefresh) {
-        onRefresh();
-      }
-    },
-    [initial.id, onRefresh],
-  );
-
-  const runUpload = useCallback(
-    async (file: File) => {
-      setUploading(true);
-      try {
-        await runUploadOne(file);
-      } catch (e) {
-        toast.error(e instanceof Error ? e.message : "Upload fejlede");
-      } finally {
-        setUploading(false);
-      }
-    },
-    [runUploadOne],
-  );
-
-  const runUploadMany = useCallback(
-    async (files: FileList | File[]) => {
-      const list = Array.from(files);
+  /** Shared upload path: FormData → uploadVisual → state + refresh. */
+  const uploadFiles = useCallback(
+    async (files: FileList | File[] | null | undefined) => {
+      const list = files ? Array.from(files) : [];
       if (list.length === 0) return;
+
       setUploading(true);
+      let successCount = 0;
       try {
-        let ok = 0;
         for (const file of list) {
+          const checked = validateVisualUpload({
+            size: file.size,
+            name: file.name,
+            type: file.type,
+          });
+          if (!checked.ok) {
+            console.error("[VisualsTab] upload validation failed:", checked.reason, file.name);
+            toast.error(checked.reason);
+            continue;
+          }
+
           try {
-            await runUploadOne(file, { silentToast: true, skipParentRefresh: true });
-            ok += 1;
-          } catch (e) {
-            toast.error(e instanceof Error ? e.message : "Upload fejlede");
+            const fd = new FormData();
+            fd.append("projectId", initial.id);
+            fd.append("file", file);
+            const created = await uploadVisual(fd);
+            successCount += 1;
+            setVisuals((prev) =>
+              [...prev, created].sort((a, b) =>
+                a.sortOrder !== b.sortOrder
+                  ? a.sortOrder - b.sortOrder
+                  : a.createdAt.localeCompare(b.createdAt),
+              ),
+            );
+          } catch (err) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error("[VisualsTab] uploadVisual failed:", err);
+            toast.error(message);
           }
         }
-        if (ok > 0) {
-          toast.success(ok === 1 ? "Billede uploadet" : `${ok} billeder uploadet`);
+
+        if (successCount > 0) {
+          toast.success(
+            successCount === 1 ? "Billede uploadet" : `${successCount} billeder uploadet`,
+          );
           onRefresh();
         }
       } finally {
         setUploading(false);
       }
     },
-    [runUploadOne, onRefresh],
+    [initial.id, onRefresh],
   );
 
-  const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     e.target.value = "";
-    if (!files?.length) return;
-    void runUploadMany(files);
+    void uploadFiles(files);
   };
 
-  const handleUploadZoneDrop = async (e: React.DragEvent) => {
+  const openFilePicker = () => {
+    fileInputRef.current?.click();
+  };
+
+  /** Capture phase so OS file drops are handled before @hello-pangea/dnd. */
+  const onContainerFileDropCapture = (e: React.DragEvent) => {
+    const dt = e.dataTransfer;
+    if (!dt?.files?.length) return;
     e.preventDefault();
     e.stopPropagation();
-    setUploadZoneActive(false);
-    const files = e.dataTransfer.files;
-    if (!files?.length) return;
-    await runUploadMany(files);
+    void uploadFiles(dt.files);
+  };
+
+  const onContainerDragOver = (e: React.DragEvent) => {
+    if (e.dataTransfer.types?.includes("Files")) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.dataTransfer.dropEffect = "copy";
+    }
   };
 
   const onDragEnd = async (result: DropResult) => {
@@ -178,81 +167,58 @@ export function VisualsTab({ initial, onRefresh }: Props) {
       toast.success("Slettet");
       onRefresh();
     } catch (err) {
+      console.error("[VisualsTab] deleteVisual failed:", err);
       toast.error(err instanceof Error ? err.message : "Kunne ikke slette");
     }
   };
 
   const droppableId = `visuals-${initial.id}`;
 
-  const uploadZone = (
-    <div
-      className={`relative mb-12 w-full rounded-[8px] border-2 border-dashed p-8 text-center transition-colors ${
-        uploadZoneActive
-          ? "border-[#1a3167] bg-[#f0f6ff]"
-          : "border-[#e8e8e8] bg-[#f8f9fa]"
-      }`}
-      onDragEnter={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setUploadZoneActive(true);
-      }}
-      onDragOver={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        e.dataTransfer.dropEffect = "copy";
-      }}
-      onDragLeave={(e) => {
-        e.preventDefault();
-        const next = e.relatedTarget as Node | null;
-        if (next && e.currentTarget.contains(next)) return;
-        setUploadZoneActive(false);
-      }}
-      onDrop={(e) => void handleUploadZoneDrop(e)}
-    >
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/png,image/jpeg,image/jpg,image/svg+xml,.png,.jpg,.jpeg,.svg"
-        multiple
-        className="hidden"
-        onChange={onFile}
-      />
-      {uploading ? (
-        <div className="flex flex-col items-center justify-center py-2" aria-live="polite">
-          <Loader2 className="h-8 w-8 animate-spin text-[#1a3167]" aria-hidden />
-          <p className="mt-3 text-[14px] font-medium text-[#1a3167]">Uploader...</p>
-        </div>
-      ) : (
-        <>
-          <UploadCloud className="mx-auto h-8 w-8 text-[#9ca3af]" strokeWidth={1.5} aria-hidden />
-          <p className="mt-2 text-[14px] text-[#6b7280]">Træk billeder hertil for at uploade</p>
-          <p className="mt-1 text-[12px] text-[#9ca3af]">eller</p>
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="mt-2 rounded-[5px] border border-solid border-[#e8e8e8] bg-white px-4 py-1.5 text-[12px] text-[#0f1923]"
-          >
-            Vælg filer
-          </button>
-        </>
-      )}
-    </div>
-  );
-
   const emptyState =
     visuals.length === 0 ? (
       <div className="flex flex-col items-center justify-center py-10 text-center">
         <UploadCloud className="h-10 w-10 text-[#9ca3af]" strokeWidth={1.5} aria-hidden />
         <p className="mt-3 text-[14px] text-[#6b7280]">Ingen visuals endnu</p>
-        <p className="mt-1 text-[13px] text-[#9ca3af]">
-          Træk billeder hertil eller klik &apos;Vælg filer&apos;
-        </p>
+        <p className="mt-1 text-[13px] text-[#9ca3af]">Klik &apos;Vælg filer&apos; for at uploade</p>
       </div>
     ) : null;
 
   return (
-    <div className="relative min-h-[120px]">
-      {uploadZone}
+    <div
+      className="relative min-h-[120px]"
+      onDragOver={onContainerDragOver}
+      onDropCapture={onContainerFileDropCapture}
+    >
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".png,.jpg,.jpeg,.svg"
+        multiple
+        className="hidden"
+        onChange={onFileInputChange}
+      />
+
+      <div className="mb-6 flex justify-end">
+        <button
+          type="button"
+          disabled={uploading}
+          onClick={openFilePicker}
+          className="inline-flex items-center gap-1.5 rounded-[5px] border border-solid border-[#e8e8e8] bg-white px-[14px] py-1.5 text-[12px] font-medium text-[#0f1923] disabled:opacity-60"
+        >
+          <Upload className="h-[14px] w-[14px] shrink-0" aria-hidden />
+          Vælg filer
+        </button>
+      </div>
+
+      {uploading ? (
+        <div
+          className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center rounded-[8px] bg-white/70"
+          aria-live="polite"
+        >
+          <Loader2 className="h-8 w-8 animate-spin text-[#1a3167]" aria-hidden />
+          <p className="mt-3 text-[14px] font-medium text-[#1a3167]">Uploader...</p>
+        </div>
+      ) : null}
 
       {emptyState}
 

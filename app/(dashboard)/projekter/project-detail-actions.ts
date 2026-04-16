@@ -813,91 +813,103 @@ export async function getSignedVisualUrl(storagePath: string): Promise<string> {
 }
 
 export async function uploadVisual(formData: FormData) {
-  const user = await getSessionUser();
-  if (!user?.email) throw new Error("Ikke logget ind.");
+  try {
+    const user = await getSessionUser();
+    if (!user?.email) throw new Error("Ikke logget ind.");
 
-  const projectIdRaw = formData.get("projectId");
-  const file = formData.get("file");
-  if (typeof projectIdRaw !== "string" || !(file instanceof File)) {
-    throw new Error("Ugyldig anmodning.");
-  }
+    const projectIdRaw = formData.get("projectId");
+    const fileRaw = formData.get("file");
+    if (typeof projectIdRaw !== "string") {
+      console.error("[uploadVisual] missing or invalid projectId");
+      throw new Error("Ugyldig anmodning.");
+    }
+    if (!(fileRaw instanceof File)) {
+      console.error("[uploadVisual] file field is not a File:", typeof fileRaw, fileRaw);
+      throw new Error("Ugyldig anmodning.");
+    }
+    const file = fileRaw;
 
-  const projectId = parseOrThrow(cuidLikeSchema, projectIdRaw);
+    const projectId = parseOrThrow(cuidLikeSchema, projectIdRaw);
 
-  const checked = validateVisualUpload({
-    size: file.size,
-    name: file.name,
-    type: file.type,
-  });
-  if (!checked.ok) {
-    throw new Error(checked.reason);
-  }
-
-  await assertProjectMember(projectId, user.id);
-  await ensureAppUser(user);
-
-  const storagePath = `visuals/${projectId}/${randomUUID()}.${checked.ext}`;
-
-  await ensureProjectFilesBucket();
-  const admin = getSupabaseAdmin();
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const contentType =
-    checked.ext === "svg"
-      ? "image/svg+xml"
-      : checked.ext === "png"
-        ? "image/png"
-        : "image/jpeg";
-
-  const { error } = await admin.storage.from(SUPABASE_STORAGE_BUCKET).upload(storagePath, buffer, {
-    contentType,
-    upsert: false,
-  });
-
-  if (error) {
-    console.error("Storage upload error (visual):", error);
-    throw new Error(error.message || "Upload af visual fejlede.");
-  }
-
-  const fileTypeToStore = contentType;
-
-  const row = await prisma.$transaction(async (tx) => {
-    const maxOrder = await tx.visual.aggregate({
-      where: { projectId },
-      _max: { sortOrder: true },
+    const checked = validateVisualUpload({
+      size: file.size,
+      name: file.name,
+      type: file.type,
     });
-    const nextOrder = (maxOrder._max.sortOrder ?? -1) + 1;
+    if (!checked.ok) {
+      throw new Error(checked.reason);
+    }
 
-    const created = await tx.visual.create({
-      data: {
-        projectId,
-        name: sanitizeOriginalFilename(file.name),
-        fileType: fileTypeToStore,
-        url: PRIVATE_FILE_PLACEHOLDER,
-        storagePath,
-        uploadedById: user.id,
-        sortOrder: nextOrder,
-      },
-    });
-    return tx.visual.update({
-      where: { id: created.id },
-      data: { url: `/api/visuals/${created.id}/signed` },
-      include: {
-        uploadedBy: { select: { id: true, name: true, email: true, image: true } },
-      },
-    });
-  });
+    await assertProjectMember(projectId, user.id);
+    await ensureAppUser(user);
 
-  revalidatePath(`/projekter/${projectId}`);
-  return {
-    id: row.id,
-    name: row.name,
-    fileType: row.fileType,
-    url: row.url,
-    storagePath: row.storagePath,
-    createdAt: row.createdAt.toISOString(),
-    sortOrder: row.sortOrder,
-    uploadedBy: row.uploadedBy,
-  };
+    const storagePath = `visuals/${projectId}/${randomUUID()}.${checked.ext}`;
+
+    await ensureProjectFilesBucket();
+    /** Storage uploads must use the service-role admin client, never the anon key. */
+    const admin = getSupabaseAdmin();
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const contentType =
+      checked.ext === "svg"
+        ? "image/svg+xml"
+        : checked.ext === "png"
+          ? "image/png"
+          : "image/jpeg";
+
+    const { error } = await admin.storage.from(SUPABASE_STORAGE_BUCKET).upload(storagePath, buffer, {
+      contentType,
+      upsert: false,
+    });
+
+    if (error) {
+      console.error("[uploadVisual] Storage upload error:", error);
+      throw new Error(error.message || "Upload af visual fejlede.");
+    }
+
+    const fileTypeToStore = contentType;
+
+    const row = await prisma.$transaction(async (tx) => {
+      const maxOrder = await tx.visual.aggregate({
+        where: { projectId },
+        _max: { sortOrder: true },
+      });
+      const nextOrder = (maxOrder._max.sortOrder ?? -1) + 1;
+
+      const created = await tx.visual.create({
+        data: {
+          projectId,
+          name: sanitizeOriginalFilename(file.name),
+          fileType: fileTypeToStore,
+          url: PRIVATE_FILE_PLACEHOLDER,
+          storagePath,
+          uploadedById: user.id,
+          sortOrder: nextOrder,
+        },
+      });
+      return tx.visual.update({
+        where: { id: created.id },
+        data: { url: `/api/visuals/${created.id}/signed` },
+        include: {
+          uploadedBy: { select: { id: true, name: true, email: true, image: true } },
+        },
+      });
+    });
+
+    revalidatePath(`/projekter/${projectId}`);
+    return {
+      id: row.id,
+      name: row.name,
+      fileType: row.fileType,
+      url: row.url,
+      storagePath: row.storagePath,
+      createdAt: row.createdAt.toISOString(),
+      sortOrder: row.sortOrder,
+      uploadedBy: row.uploadedBy,
+    };
+  } catch (err) {
+    console.error("[uploadVisual]", err);
+    throw err instanceof Error ? err : new Error(String(err));
+  }
 }
 
 export async function reorderVisuals(visualIds: string[]) {
