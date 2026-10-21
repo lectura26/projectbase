@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KORUP samlevejledning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+  /* Scene first: white bars frame a full-bleed 3D room; navy marks actions, the current step and the part callouts. */
+  :root {
+    --paper: #ffffff; --ink: #1a2233; --ink-2: #4a5466; --navy: #1b3d84; --navy-2: #142f68;
+    --mist: #f1f3f7; --line: #dde2ea; --ok: #1d6b45; --bad: #b3261e; --amber: #8a520f; --amber-bg: #fbf3e6;
+    --font: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --shadow: 0 2px 12px rgba(26, 34, 51, .14);
+    --gut: max(16px, env(safe-area-inset-left, 0px));
+    --gut-r: max(16px, env(safe-area-inset-right, 0px));
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--mist); color: var(--ink); font: 400 15px/1.45 var(--font); -webkit-tap-highlight-color: transparent; }
+  ::selection { background: var(--navy); color: #fff; }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+  svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+  #view { position: fixed; inset: 0; }
+
+  /* top bar */
+  #bar { position: fixed; inset: 0 0 auto; z-index: 3; background: var(--paper); box-shadow: var(--shadow);
+    padding: calc(env(safe-area-inset-top, 0px) + 10px) var(--gut-r) 10px var(--gut); }
+  #rail { display: flex; gap: 3px; margin: 0 0 10px; }
+  #rail button { flex: 1; height: 14px; padding: 5px 0; border: 0; background: none; cursor: pointer; }
+  #rail button::before { content: ""; display: block; height: 4px; border-radius: 2px; background: var(--line); transition: background .2s; }
+  #rail button.done::before { background: #9fb0d3; }
+  #rail button.on::before { background: var(--navy); }
+  .head { display: flex; align-items: flex-start; gap: 12px; }
+  .head > div { flex: 1; min-width: 0; }
+  #title { margin: 0; font-size: 19px; line-height: 1.25; font-weight: 700; text-wrap: balance; }
+  #num { color: var(--navy); margin-right: .35em; font-variant-numeric: tabular-nums; }
+  #text { margin: 3px 0 0; color: var(--ink-2); max-width: 70ch; }
+  #note { margin: 6px 0 0; padding: 5px 10px; border-radius: 8px; background: var(--amber-bg); color: var(--amber); font-size: 13px; max-width: 70ch; }
+  #note[hidden] { display: none; }
+  #uses { display: flex; gap: 6px; margin: 8px 0 0; overflow-x: auto; scrollbar-width: none; }
+  #uses::-webkit-scrollbar { display: none; }
+  #uses[hidden] { display: none; }
+  .chip { flex: none; display: flex; align-items: center; gap: 6px; height: 36px; padding: 2px 10px 2px 3px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); font-size: 13px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .chip img { width: 30px; height: 30px; border-radius: 6px; background: var(--mist); }
+  .chip.tl { padding-right: 8px; font-weight: 500; color: var(--ink-2); }
+  .chip b { color: var(--navy); }
+  #close { flex: none; width: 44px; height: 44px; margin: -6px -8px 0 0; display: grid; place-items: center; border: 0; border-radius: 50%; background: none; cursor: pointer; color: var(--ink); }
+  #close:hover { background: var(--mist); }
+
+  /* edge navigation */
+  .edge { position: fixed; top: 55%; z-index: 2; width: 48px; height: 48px; margin-top: -24px; display: grid; place-items: center; border: 0; border-radius: 50%;
+    background: var(--paper); color: var(--navy); box-shadow: var(--shadow); cursor: pointer; transition: transform .15s ease-out, opacity .2s; }
+  .edge:hover { transform: scale(1.06); }
+  .edge:active { transform: scale(.96); }
+  .edge:disabled { opacity: 0; pointer-events: none; }
+  #prev { left: var(--gut); } #next { right: var(--gut-r); }
+  #next.pulse { background: var(--navy); color: #fff; }
+
+  /* bottom dock */
+  #dock { position: fixed; z-index: 3; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+    width: min(620px, calc(100% - 32px)); display: flex; align-items: center; gap: 8px; padding: 8px 10px 8px 8px; border-radius: 999px; background: var(--paper); box-shadow: var(--shadow); }
+  #play { width: 44px; height: 44px; flex: none; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--navy); color: #fff; cursor: pointer; }
+  #play:hover { background: var(--navy-2); }
+  #play svg.i { fill: currentColor; stroke: none; }
+  #play svg.i.ln { fill: none; stroke: currentColor; }
+  #scrub { flex: 1; min-width: 50px; height: 32px; margin: 0; background: none; -webkit-appearance: none; appearance: none; cursor: pointer; --p: 0%; }
+  #scrub::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(var(--navy), var(--navy)) 0 / var(--p) 100% no-repeat, var(--line); }
+  #scrub::-moz-range-track { height: 4px; border-radius: 2px; background: linear-gradient(var(--navy), var(--navy)) 0 / var(--p) 100% no-repeat, var(--line); }
+  #scrub::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; margin-top: -7px; border-radius: 50%; background: var(--paper); border: 2px solid var(--navy); }
+  #scrub::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--paper); border: 2px solid var(--navy); }
+  #stepsBtn { flex: none; height: 36px; display: flex; align-items: center; gap: 2px; padding: 0 8px 0 12px; border: 1.5px solid var(--line); border-radius: 999px;
+    background: var(--paper); color: var(--ink); font-weight: 600; font-size: 14px; font-variant-numeric: tabular-nums; cursor: pointer; }
+  #stepsBtn:hover, #stepsBtn[aria-expanded="true"] { border-color: var(--navy); color: var(--navy); }
+  #stepsBtn svg.i { width: 18px; height: 18px; transition: transform .15s; }
+  #stepsBtn[aria-expanded="true"] svg { transform: rotate(180deg); }
+  .tool { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border: 0; border-radius: 50%; background: none; color: var(--ink-2); cursor: pointer; }
+  .tool:hover { background: var(--mist); color: var(--ink); }
+  .tool[aria-pressed="true"], .tool[aria-expanded="true"] { background: var(--mist); color: var(--navy); }
+
+  /* pop-overs */
+  .pop { position: fixed; z-index: 4; border-radius: 14px; background: var(--paper); box-shadow: 0 8px 30px rgba(26, 34, 51, .22); overflow: auto; overscroll-behavior: contain;
+    scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+  .pop[hidden] { display: none; }
+  .pop::-webkit-scrollbar { width: 6px; } .pop::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+  #steps { right: max(16px, calc(50% - 310px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 80px); width: 290px; max-height: min(60vh, 520px); padding: 4px; }
+  #stepList { list-style: none; margin: 0; padding: 0; }
+  #stepList button { width: 100%; display: flex; align-items: center; gap: 10px; padding: 6px 8px; border: 0; border-radius: 8px; background: none; text-align: left; font-size: 14px; cursor: pointer; }
+  #stepList button:hover { background: var(--mist); }
+  #stepList b { width: 24px; flex: none; color: var(--ink-2); font-weight: 600; font-variant-numeric: tabular-nums; text-align: center; }
+  #stepList span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #stepList [aria-current="step"] { background: var(--mist); color: var(--navy); font-weight: 600; }
+  #stepList [aria-current="step"] b { color: var(--navy); }
+  .side { right: calc(var(--gut-r) + 64px); top: calc(var(--bar-h, 140px) + 12px); width: 380px; max-height: calc(100% - var(--bar-h, 140px) - 112px); padding: 14px 16px; }
+  .side h2 { margin: 0 0 2px; font-size: 16px; font-weight: 700; }
+  .side h3 { margin: 14px 0 6px; font-size: 13px; font-weight: 700; color: var(--ink-2); }
+  .side .sub { margin: 0 0 8px; font-size: 13px; color: var(--ink-2); }
+  .kitgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 6px; }
+  .kit { display: grid; grid-template-rows: auto auto auto; justify-items: center; gap: 1px; padding: 6px 4px; border: 1px solid var(--line); border-radius: 10px; text-align: center; font-size: 12px; }
+  .kit img { width: 64px; height: 64px; }
+  .kit b { font-size: 13px; font-variant-numeric: tabular-nums; }
+  .kit span { color: var(--ink-2); line-height: 1.25; }
+  .kit.warn { border-color: #e6c48f; background: var(--amber-bg); }
+  #checks { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+  #checks li { display: grid; grid-template-columns: 18px 1fr auto; gap: 8px; padding: 6px 0; border-top: 1px solid var(--line); }
+  #checks li span:last-child { font-variant-numeric: tabular-nums; color: var(--ink-2); text-align: right; }
+  #checks svg.i { width: 16px; height: 16px; margin-top: 1px; color: var(--ok); stroke-width: 2.2; }
+  #checks li.fail, #checks li.fail svg.i { color: var(--bad); }
+  #checks li.warn, #checks li.warn svg.i { color: var(--amber); }
+  .warnbox { margin: 10px 0 0; padding: 8px 10px; border-radius: 8px; background: var(--amber-bg); color: var(--amber); font-size: 13px; }
+
+  /* callouts in the scene */
+  #callouts { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+  #callouts svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  #callouts line { stroke: var(--navy); stroke-width: 1.25; }
+  #callouts circle.dot { fill: var(--navy); stroke: #fff; stroke-width: 2; }
+  .tag { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 7px; padding: 4px 11px 4px 4px; border-radius: 999px; background: var(--paper); box-shadow: var(--shadow);
+    font-size: 14px; font-weight: 600; white-space: nowrap; transition: opacity .2s; will-change: transform; }
+  .tag b { min-width: 24px; height: 24px; padding: 0 4px; display: grid; place-items: center; border-radius: 12px; border: 1.5px solid var(--navy); color: var(--navy); font-size: 13px; font-weight: 700; }
+  .tag i { font-style: normal; font-weight: 500; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .tag.small { padding: 3px; background: rgba(255,255,255,.85); box-shadow: none; }
+  .tag.small b { min-width: 22px; height: 22px; font-size: 12px; }
+  .tag.small span, .tag.small i { display: none; }
+  .tag.hw b { background: var(--navy); color: #fff; }
+
+  #err { position: fixed; inset: 0; z-index: 9; display: none; place-items: center; padding: 24px; text-align: center; background: var(--paper); }
+  #bar.loading #ttl { color: var(--ink-2); font-weight: 500; }
+  @media (max-width: 600px) {
+    #title { font-size: 17px; }
+    #text { font-size: 14px; }
+    .edge { width: 44px; height: 44px; margin-top: -22px; }
+    #dock { gap: 2px; padding-right: 6px; }
+    .tool { width: 36px; height: 36px; }
+    #steps { right: 16px; }
+    .side { left: 16px; right: 16px; top: auto; width: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 84px); max-height: 46vh; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+<script type="importmap">
+{ "imports": { "three": "../lib/three.module.min.js", "three/addons/": "../lib/" } }
+</script>
+</head>
+<body>
+<div id="view"></div>
+<div id="callouts" aria-hidden="true"><svg></svg></div>
+
+<header id="bar" class="loading">
+  <nav id="rail" aria-label="Trin"></nav>
+  <div class="head">
+    <div aria-live="polite">
+      <h1 id="title"><span id="num"></span><span id="ttl">Indlæser samlevejledningen …</span></h1>
+      <p id="text"></p>
+      <p id="note" hidden></p>
+      <div id="uses" aria-label="Du skal bruge"></div>
+    </div>
+    <button id="close" aria-label="Luk vejledningen"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+</header>
+
+<button id="prev" class="edge" aria-label="Forrige trin"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+<button id="next" class="edge" aria-label="Næste trin"><svg class="i" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+
+<div id="dock">
+  <button id="play" aria-label="Afspil trinnet"></button>
+  <input id="scrub" type="range" min="0" max="1" step="0.001" value="0" aria-label="Spol i trinnet">
+  <button id="stepsBtn" aria-expanded="false" aria-controls="steps" aria-label="Vælg trin"><span id="stepsNow"></span><svg class="i" viewBox="0 0 24 24"><path d="M7 14l5-5 5 5"/></svg></button>
+  <button id="followBtn" class="tool" aria-pressed="true" aria-label="Kameraet følger med" title="Kameraet følger med"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="7.5"/></svg></button>
+  <button id="kitBtn" class="tool" aria-expanded="false" aria-controls="kit" aria-label="Dele og beslag" title="Dele og beslag"><svg class="i" viewBox="0 0 24 24"><path d="M3 8l9-4 9 4-9 4z"/><path d="M3 8v8l9 4 9-4V8M12 12v8"/></svg></button>
+  <button id="checkBtn" class="tool" aria-expanded="false" aria-controls="sheet" aria-label="Kontrol af modellen" title="Kontrol af modellen"><svg class="i" viewBox="0 0 24 24"><path d="M4 7l2 2 3-3M4 15l2 2 3-3M13 8h7M13 16h7"/></svg></button>
+</div>
+
+<section id="steps" class="pop" hidden aria-label="Alle trin"><ol id="stepList"></ol></section>
+<section id="kit" class="pop side" hidden aria-labelledby="kitTitle">
+  <h2 id="kitTitle">Dele og beslag</h2>
+  <p class="sub">Tjek at alt er der, før du går i gang.</p>
+  <h3>Værktøj</h3><div class="kitgrid" id="kitTools"></div>
+  <h3>Beslag</h3><div class="kitgrid" id="kitHw"></div>
+  <h3>Plader</h3><div class="kitgrid" id="kitPanels"></div>
+  <p class="warnbox">Skrue og rawplug til væggen medfølger ikke. Vælg dem efter din væg.</p>
+</section>
+<section id="sheet" class="pop side" hidden aria-labelledby="sheetTitle">
+  <h2 id="sheetTitle">Kontrol af modellen</h2>
+  <p class="sub">Regler tjekket i 3D-modellen, i mm.</p>
+  <ul id="checks"></ul>
+</section>
+<div id="err"></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/OrbitControls.js';
+import { buildRoom } from '../room.js';
+import { makeHardware, makeTool } from '../engine/hardware.js';
+import { createPlayer } from '../engine/player.js';
+import { buildKorup } from './model.js';
+
+const $ = id => document.getElementById(id);
+let manual;
+try { manual = await (await fetch('data/manual.json')).json(); }
+catch (e) { $('err').style.display = 'grid'; $('err').innerHTML = 'Kunne ikke læse data/manual.json.<br>Start en lille server, fx <code>python3 -m http.server 8000</code>.'; throw e; }
+const model = buildKorup(manual);
+
+// ---------- scene ----------
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+$('view').appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#e9e4da');
+const camera = new THREE.PerspectiveCamera(38, 1, 5, 30000);
+camera.position.set(1600, 2300, 3400);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 200, 200); controls.maxPolarAngle = Math.PI / 2 - 0.02; controls.minDistance = 150; controls.maxDistance = 9000;
+const room = buildRoom(THREE, scene, renderer, { rug: { w: 3600, d: 2700, x: 0, z: 300 }, plantAt: [-2350, 0, -1650] });
+const player = createPlayer({ scene, camera, controls, model, manual });
+const steps = player.steps;
+
+// ---------- thumbnails (rendered once from the same 3D models) ----------
+const thumbR = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+thumbR.setSize(128, 128); thumbR.outputColorSpace = THREE.SRGBColorSpace;
+const tScene = new THREE.Scene();
+tScene.add(new THREE.HemisphereLight('#ffffff', '#bbbbbb', 2.2));
+const tl = new THREE.DirectionalLight('#ffffff', 2); tl.position.set(1, 2, 3); tScene.add(tl);
+const tCam = new THREE.PerspectiveCamera(30, 1, 0.1, 10000);
+function thumb(obj, dir = new THREE.Vector3(1, 0.8, 1.3)) {
+  tScene.add(obj);
+  const b = new THREE.Box3().setFromObject(obj), c = b.getCenter(new THREE.Vector3()), r = b.getSize(new THREE.Vector3()).length() / 2;
+  tCam.position.copy(c).addScaledVector(dir.clone().normalize(), r / Math.sin(15 * Math.PI / 180) * 1.05);
+  tCam.near = r / 20; tCam.far = r * 20; tCam.updateProjectionMatrix(); tCam.lookAt(c);
+  thumbR.render(tScene, tCam); tScene.remove(obj);
+  return thumbR.domElement.toDataURL();
+}
+const THUMB = {};
+const hwTypes = manual.hardware.map(h => h.id);
+for (const t of hwTypes) {
+  const o = makeHardware(t);
+  if (['A', 'F', 'G', 'J', 'L', 'M', 'D', 'C'].includes(t)) o.rotation.z = Math.PI / 2.6;   // lay screws on their side
+  THUMB[t] = thumb(o, ['CL', 'CR', 'DL', 'DR'].includes(t) ? new THREE.Vector3(1.6, 0.9, 0.5) : undefined);
+}
+for (const t of ['phillips', 'flat', 'hammer', 'tape', 'pencil', 'drill']) {
+  const o = makeTool(t); if (t === 'phillips' || t === 'flat' || t === 'pencil') o.rotation.z = Math.PI / 2.4;
+  if (t === 'tape') o.userData.setLength(40);
+  THUMB[t] = thumb(o);
+}
+const panelMat = new THREE.MeshStandardMaterial({ color: '#f3f3f0', roughness: 0.55 });
+for (const p of manual.panels) {
+  const [a, b, c] = p.size, g = new THREE.Group();
+  const m = new THREE.Mesh(new THREE.BoxGeometry(a, c, b), panelMat); g.add(m);
+  g.add(new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry), new THREE.LineBasicMaterial({ color: '#7c838d' })));
+  THUMB['p' + p.id] = thumb(g, new THREE.Vector3(0.6, 1.6, 1));
+}
+thumbR.dispose();
+
+// ---------- kit sheet ----------
+const toolName = Object.fromEntries(manual.tools.map(t => [t.id, t.name]));
+$('kitTools').innerHTML = manual.tools.map(t => `<div class="kit"><img alt="" src="${THUMB[t.id]}"><span>${t.name}</span></div>`).join('');
+$('kitHw').innerHTML = manual.hardware.map(h => `<div class="kit${h.conflict ? ' warn' : ''}" title="${h.conflict || ''}"><img alt="" src="${THUMB[h.id]}"><b>${h.id} × ${h.used}</b><span>${h.name}<br>${h.dims}</span></div>`).join('');
+$('kitPanels').innerHTML = manual.panels.map(p => `<div class="kit"><img alt="" src="${THUMB['p' + p.id]}"><b>${p.id}${p.qty > 1 ? ' × ' + p.qty : ''}</b><span>${p.name}<br>${p.size.join(' × ')}</span></div>`).join('');
+
+// ---------- callouts ----------
+const svgNS = 'http://www.w3.org/2000/svg', calloutSvg = document.querySelector('#callouts svg');
+const tagPool = [];
+function tagEl(i) {
+  if (!tagPool[i]) {
+    const el = document.createElement('div'); el.className = 'tag'; el.innerHTML = '<b></b><span></span><i></i>';
+    const line = document.createElementNS(svgNS, 'line'), dot = document.createElementNS(svgNS, 'circle');
+    dot.setAttribute('class', 'dot'); dot.setAttribute('r', 4); calloutSvg.append(line, dot); $('callouts').appendChild(el);
+    tagPool[i] = { el, line, dot };
+  }
+  return tagPool[i];
+}
+const hwName = Object.fromEntries(manual.hardware.map(h => [h.id, h.name]));
+const _v = new THREE.Vector3(), _b = new THREE.Box3();
+function updateCallouts() {
+  const st = steps[step], list = [];
+  // panels involved in the step: numbers on the panels; the moving/hosting ones as a full tag
+  const seen = new Set();
+  for (const id of st.noPartTags ? [] : st.focus) {
+    const p = player.P[id]; if (!p) continue;
+    const key = p.num; if (step !== 0 && seen.has(key)) continue; seen.add(key);
+    _b.setFromObject(p.obj.children[0]); const c = _b.getCenter(new THREE.Vector3()); c.y = _b.max.y;
+    const qty = st.overview ? 1 : st.focus.filter(f => player.P[f]?.num === p.num).length;
+    list.push({ at: c, num: p.num, name: p.name.replace(/ (venstre|højre)$/, ''), qty, small: step === 0 || st.focus.length > 6 });
+  }
+  // hardware types used in the step: one tag on the first visible item
+  for (const [type, qty] of Object.entries(st.uses)) {
+    const h = model.hardware.find(x => x.type === type && player.H[x.id].obj.visible && stepHas(st, x.id));
+    if (!h) continue;
+    player.H[h.id].obj.getWorldPosition(_v);
+    list.push({ at: _v.clone(), num: type, name: hwName[type] || type, qty, hw: true });
+  }
+  const top = $('bar').getBoundingClientRect().bottom + 6, bottom = $('dock').getBoundingClientRect().top - 6, placed = [];
+  list.slice(0, 14).forEach((L, i) => {
+    const t = tagEl(i); t.el.style.display = '';
+    const p = L.at.clone().project(camera), vis = p.z < 1 && Math.abs(p.x) < 1.05 && Math.abs(p.y) < 1.05;
+    const ax = (p.x + 1) / 2 * innerWidth, ay = (1 - p.y) / 2 * innerHeight;
+    t.el.className = 'tag' + (L.small ? ' small' : '') + (L.hw ? ' hw' : '');
+    t.el.querySelector('b').textContent = L.num; t.el.querySelector('span').textContent = L.name; t.el.querySelector('i').textContent = L.qty > 1 ? `× ${L.qty}` : '';
+    const w = t.el.offsetWidth, h = t.el.offsetHeight, side = L.hw ? 1 : -1, reach = L.small ? 0 : 56;
+    let lx = L.small ? ax - w / 2 : ax + side * reach - (side < 0 ? w : 0), ly = L.small ? ay - h / 2 : ay - reach * 0.8 - h / 2;
+    lx = Math.min(Math.max(lx, 64), innerWidth - w - 64); ly = Math.min(Math.max(ly, top), bottom - h);
+    // keep tags from covering each other: push down (then up) until free
+    for (let tries = 0; tries < 8 && placed.some(r => lx < r.x + r.w + 4 && lx + w + 4 > r.x && ly < r.y + r.h + 4 && ly + h + 4 > r.y); tries++)
+      ly = tries < 4 ? ly + h + 6 : ly - (h + 6) * (tries - 2);
+    ly = Math.min(Math.max(ly, top), bottom - h);
+    if (vis) placed.push({ x: lx, y: ly, w, h });
+    t.el.style.transform = `translate(${lx}px, ${ly}px)`; t.el.style.opacity = vis ? 1 : 0;
+    const ex = side < 0 ? lx + w - 6 : lx + 6, ey = ly + h / 2;
+    for (const [k, v] of [['x1', ex], ['y1', ey], ['x2', ax], ['y2', ay]]) t.line.setAttribute(k, v);
+    t.dot.setAttribute('cx', ax); t.dot.setAttribute('cy', ay);
+    t.line.style.opacity = t.dot.style.opacity = vis && !L.small ? 1 : 0;
+  });
+  for (let i = list.length; i < tagPool.length; i++) { const t = tagPool[i]; t.el.style.display = 'none'; t.line.style.opacity = t.dot.style.opacity = 0; }
+}
+const stepItems = steps.map(st => new Set(st.actions.flatMap(a => a.items || (a.lanes ? a.lanes.flat() : []))));
+const stepHas = (st, id) => stepItems[steps.indexOf(st)].has(id);
+
+// ---------- checks (static rules + live floor check) ----------
+const ICON = {
+  play: '<svg class="i" viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg>',
+  pause: '<svg class="i" viewBox="0 0 24 24"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>',
+  replay: '<svg class="i ln" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/></svg>',
+  ok: '<svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></svg>',
+  bad: '<svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+};
+function liveChecks() {
+  let low = Infinity, lowId = '';
+  for (const p of model.parts) { _b.setFromObject(p.obj.children[0]); if (_b.min.y < low) { low = _b.min.y; lowId = p.id; } }
+  const res = [{ name: 'Ingen plade under gulvet', pass: low > -0.5, val: `${low.toFixed(1)} (${lowId})` }];
+  if (step === steps.length - 1 && prog >= 1) {
+    // drawers inside the carcass: no panel of a drawer may overlap a carcass panel
+    let worst = 0, pair = '';
+    const boxes = model.parts.map(p => [p, new THREE.Box3().setFromObject(p.obj.children[0])]);
+    for (const [a, A] of boxes) if (a.group !== 'carcass') for (const [b, B] of boxes) if (b.group === 'carcass') {
+      const I = A.clone().intersect(B); if (I.isEmpty()) continue; const s = I.getSize(new THREE.Vector3()), pen = Math.min(s.x, s.y, s.z);
+      if (pen > worst) { worst = pen; pair = `${a.id}/${b.id}`; }
+    }
+    res.push({ name: 'Skufferne rammer ikke korpus', pass: worst < 0.6, val: worst < 0.6 ? 'ok' : `${worst.toFixed(1)} mm ${pair}` });
+  }
+  return res;
+}
+function renderChecks() {
+  const all = [...liveChecks(), ...model.checks];
+  $('checks').innerHTML = all.map(c => `<li class="${c.pass ? '' : c.note ? 'warn' : 'fail'}" title="${c.note || ''}">${c.pass ? ICON.ok : ICON.bad}<span>${c.name}</span><span>${c.val}</span></li>`).join('');
+}
+
+// ---------- UI ----------
+let step = 0, prog = 0, playing = false, last = performance.now();
+steps.forEach((s, i) => {
+  const b = document.createElement('button'); b.setAttribute('aria-label', `Trin ${i}: ${s.title}`); b.onclick = () => go(i); $('rail').appendChild(b);
+  const li = document.createElement('li'), lb = document.createElement('button');
+  lb.innerHTML = `<b>${i}</b><span></span>`; lb.lastChild.textContent = s.title;
+  lb.onclick = () => { toggle($('stepsBtn'), $('steps'), false); go(i); };
+  li.appendChild(lb); $('stepList').appendChild(li);
+});
+function renderUI() {
+  const s = steps[step], n = steps.length - 1;
+  $('bar').classList.remove('loading');
+  $('num').textContent = step === 0 ? '' : `${step} af ${n}`;
+  $('ttl').textContent = s.title;
+  $('text').textContent = s.short;
+  $('note').hidden = !s.note; $('note').textContent = s.note || '';
+  const chips = Object.entries(s.uses).map(([t, q]) => `<span class="chip" title="${hwName[t]}"><img alt="" src="${THUMB[t]}"><b>${t}</b>× ${q}</span>`)
+    .concat(s.tools.map(t => `<span class="chip tl" title="${toolName[t]}"><img alt="" src="${THUMB[t]}">${toolName[t].split(' (')[0]}</span>`));
+  $('uses').innerHTML = chips.join(''); $('uses').hidden = !chips.length;
+  [...$('rail').children].forEach((d, i) => { d.classList.toggle('on', i === step); d.classList.toggle('done', i < step); });
+  [...$('stepList').children].forEach((li, i) => li.firstChild.setAttribute('aria-current', i === step ? 'step' : 'false'));
+  $('stepsNow').textContent = `${step}/${n}`;
+  $('prev').disabled = step === 0; $('next').disabled = step === n;
+  $('next').classList.toggle('pulse', prog >= 1 && !playing && step < n);
+  $('play').innerHTML = playing ? ICON.pause : prog >= 1 ? ICON.replay : ICON.play;
+  $('play').setAttribute('aria-label', playing ? 'Pause' : prog >= 1 ? 'Afspil trinnet igen' : 'Afspil trinnet');
+  setScrub(); fitView();
+}
+function setScrub() { $('scrub').value = prog; $('scrub').style.setProperty('--p', `${prog * 100}%`); }
+function go(i, autoplay = true) {
+  step = Math.max(0, Math.min(steps.length - 1, i)); prog = 0; playing = autoplay && step > 0; setAuto(true);
+  if (step === 0 && innerWidth > 600) toggle($('kitBtn'), $('kit'), true); else if (!$('kit').hidden) toggle($('kitBtn'), $('kit'), false);
+  renderUI(); renderChecks();
+}
+function toggle(btn, panel, force) {
+  const open = force ?? panel.hidden;
+  for (const [b, p] of [[$('stepsBtn'), $('steps')], [$('kitBtn'), $('kit')], [$('checkBtn'), $('sheet')]]) { p.hidden = true; b.setAttribute('aria-expanded', 'false'); }
+  panel.hidden = !open; btn.setAttribute('aria-expanded', String(open)); fitView();
+  if (panel.id === 'sheet' && open) renderChecks();
+}
+$('prev').onclick = () => go(step - 1);
+$('next').onclick = () => go(step + 1);
+$('play').onclick = () => { if (prog >= 1) prog = 0; playing = !playing; renderUI(); };
+$('scrub').oninput = e => { prog = +e.target.value; playing = false; renderUI(); };
+$('stepsBtn').onclick = () => toggle($('stepsBtn'), $('steps'));
+$('kitBtn').onclick = () => toggle($('kitBtn'), $('kit'));
+$('checkBtn').onclick = () => toggle($('checkBtn'), $('sheet'));
+$('followBtn').onclick = () => setAuto(!auto);
+$('close').onclick = () => { if (window.parent !== window) window.parent.postMessage({ type: 'samleguide:close' }, '*'); else if (history.length > 1) history.back(); };
+addEventListener('keydown', e => {
+  if (e.target.closest('input')) return;
+  if (e.key === 'ArrowRight') go(step + 1);
+  if (e.key === 'ArrowLeft') go(step - 1);
+  if (e.key === ' ' && !e.target.closest('button')) { e.preventDefault(); $('play').click(); }
+  if (e.key === 'Escape') toggle($('stepsBtn'), $('steps'), false);
+});
+
+// ---------- camera: follows the work unless the user takes over ----------
+let auto = true, driving = false;
+function setAuto(on) { auto = on; $('followBtn').setAttribute('aria-pressed', String(on)); }
+controls.addEventListener('start', () => { if (!driving) setAuto(false); });
+const camDir = new THREE.Vector3().subVectors(camera.position, controls.target).normalize();
+let camDist = camera.position.distanceTo(controls.target);
+function driveCamera(dt) {
+  if (!auto) return;
+  const goal = player.cameraGoal(step);
+  const fov = camera.fov * Math.PI / 180, aspect = Math.min(1, camera.aspect);
+  const dist = goal.radius / Math.sin(fov / 2) / Math.max(0.55, aspect) * 1.05;
+  const k = 1 - Math.exp(-dt * 2.6);
+  controls.target.lerp(goal.target, k);
+  camDir.lerp(goal.dir, k).normalize();
+  camDist += (dist - camDist) * k;
+  // never go below the floor or through the walls of the room
+  const pos = controls.target.clone().addScaledVector(camDir, camDist);
+  pos.y = Math.max(pos.y, 60); pos.x = Math.min(2850, Math.max(-2900, pos.x)); pos.z = Math.min(2900, Math.max(-2150, pos.z));
+  camera.position.copy(pos);
+  driving = true; controls.update(); driving = false;
+}
+
+function fitView() {
+  const w = innerWidth, h = innerHeight, barB = $('bar').getBoundingClientRect().bottom;
+  document.documentElement.style.setProperty('--bar-h', `${Math.round(barB)}px`);
+  const pop = [$('kit'), $('sheet')].find(p => !p.hidden && w <= 600);
+  const low = pop ? pop.getBoundingClientRect().top : $('dock').getBoundingClientRect().top;
+  camera.setViewOffset(w, h, 0, -((barB + low) / 2 - h / 2), w, h);
+}
+function resize() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); fitView(); }
+addEventListener('resize', resize); resize();
+
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (playing) {
+    prog = Math.min(1, prog + dt / steps[step].dur); setScrub();
+    if (prog >= 1) { playing = false; renderUI(); renderChecks(); }
+  }
+  player.evaluate(step, prog);
+  player.setXray('carcass', steps[step].xray && ['item', 'point'].includes(player.focusKind()) ? 0.28 : 1);
+  driveCamera(dt);
+  room.update(camera);
+  renderer.render(scene, camera);
+  updateCallouts();
+  requestAnimationFrame(frame);
+}
+go(0, false);
+// first frame: place the camera on the goal immediately
+player.evaluate(0, 0); { const g = player.cameraGoal(0); controls.target.copy(g.target); camDir.copy(g.dir); camDist = g.radius / Math.sin(19 * Math.PI / 180) * 1.2; }
+requestAnimationFrame(frame);
+
+// test hook
+window.guide = {
+  steps: steps.length,
+  set(i, p, settle = true) {
+    go(i, false); prog = p; playing = false; renderUI();
+    player.evaluate(step, prog);
+    player.setXray('carcass', steps[step].xray && ['item', 'point'].includes(player.focusKind()) ? 0.28 : 1);
+    if (settle) { for (let k = 0; k < 120; k++) driveCamera(0.05); }
+    room.update(camera); renderer.render(scene, camera); updateCallouts(); renderChecks();
+    return [...liveChecks(), ...model.checks].filter(c => !c.pass).map(c => `${c.name}: ${c.val}`);
+  },
+  checks: () => [...liveChecks(), ...model.checks],
+  durations: () => steps.map(s => +s.dur.toFixed(1)),
+};
+</script>
+</body>
+</html>

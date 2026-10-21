@@ -120,8 +120,9 @@ export function buildRoom(THREE, scene, renderer, opts = {}) {
   floor.receiveShadow = true; floor.name = 'floor'; root.add(floor);
 
   // rug under the work area (manual: assemble on a soft surface); 1 mm so parts still stand at y = 0
-  const rug = new THREE.Mesh(new THREE.PlaneGeometry(2200, 1550).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ map: rugTexture(THREE), roughness: 1 }));
-  rug.position.set(-250, 1, 150); rug.receiveShadow = true; root.add(rug);
+  const rg = { w: 2200, d: 1550, x: -250, z: 150, ...(opts.rug || {}) };
+  const rug = new THREE.Mesh(new THREE.PlaneGeometry(rg.w, rg.d).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ map: rugTexture(THREE), roughness: 1 }));
+  rug.position.set(rg.x, 1, rg.z); rug.receiveShadow = true; root.add(rug);
 
   // ---- walls: each in local coords, x along the wall, y up, +z into the room ----
   const walls = [];
@@ -199,7 +200,7 @@ export function buildRoom(THREE, scene, renderer, opts = {}) {
   ros.position.set(0, H, 400); root.add(ros);
 
   // ---- plant: tall fiddle-leaf fig (Ficus lyrata) in a glazed pot ----
-  const plant = buildPlant(THREE); plant.position.set(-1850, 0, -1450); root.add(plant);
+  const plant = buildPlant(THREE); plant.position.set(...(opts.plantAt || [-1850, 0, -1450])); root.add(plant);
 
   // ---- light: daylight only enters through the window ----
   const hemi = new THREE.HemisphereLight('#fbf8f2', '#d9c6a8', 1.25); root.add(hemi);

@@ -1,0 +1,101 @@
+{
+  "product": {
+    "name": "KORUP",
+    "type": "Kommode med 3 skuffer",
+    "brand": "JYSK",
+    "articleNumber": "3670645",
+    "manualRevision": "03.03.2026 - Rev.1",
+    "manualPages": 23,
+    "overallDimensions": {
+      "width": { "value": 600, "status": "fra manual", "source": "s. 1 og 2" },
+      "depth": { "value": 300, "status": "fra manual", "source": "s. 1 og 2 (287 korpus + 12 skuffefront + 1)" },
+      "height": { "value": 700, "status": "fra manual", "source": "s. 1 (700 med glidere); s. 2 viser 695 uden glidere" }
+    },
+    "maxLoad": { "top": 10, "drawer": 5, "unit": "kg", "source": "s. 23" },
+    "persons": { "value": 2, "source": "s. 10 (piktogram med to personer)" }
+  },
+
+  "colors": {
+    "panel": { "hex": "#f3f3f0", "status": "aflæst af produktbillede", "note": "Hvid melamin på alle plader. Kanter en anelse grålige." },
+    "handle": { "hex": "#f4f4f2", "status": "aflæst af produktbillede", "note": "Hvide metalgreb." },
+    "foot": { "hex": "#202226", "status": "aflæst af produktbillede", "note": "Sort klods synlig under bundlisten midt for (billede 1). Tolket som klods N." }
+  },
+
+  "tools": [
+    { "id": "tape", "name": "Målebånd", "source": "s. 9" },
+    { "id": "pencil", "name": "Blyant", "source": "s. 9" },
+    { "id": "hammer", "name": "Hammer", "source": "s. 9" },
+    { "id": "flat", "name": "Ligekærvet skruetrækker (−)", "source": "s. 9" },
+    { "id": "phillips", "name": "Stjerneskruetrækker (+)", "source": "s. 9" },
+    { "id": "drill", "name": "Boremaskine (kun til vægbeslaget)", "source": "s. 9 og 18. Manualen viser at boremaskine ikke må bruges til at skrue møblet sammen." }
+  ],
+
+  "panels": [
+    { "id": "1", "name": "Top", "qty": 1, "size": [600, 288, 12], "source": "s. 11" },
+    { "id": "2", "name": "Venstre side", "qty": 1, "size": [683, 287, 12], "source": "s. 11", "note": "Får skinnerne CL." },
+    { "id": "3", "name": "Højre side", "qty": 1, "size": [683, 287, 12], "source": "s. 11", "note": "Får skinnerne CR." },
+    { "id": "4", "name": "Midterliste", "qty": 1, "size": [575, 64, 12], "source": "s. 11", "placement": { "status": "estimeret", "reason": "Trin 8 og 10 viser den liggende fortil mellem øverste og midterste skuffe. Højden er sat til midt i mellemrummet mellem skuffekasserne (462–474 mm)." } },
+    { "id": "5", "name": "Bundliste for", "qty": 1, "size": [575, 64, 12], "source": "s. 11", "placement": { "status": "estimeret", "reason": "Liggende i bunden fortil. Underkant 15 mm over gulvet, så klods N (15 mm) står på gulvet midt for, som billede 1 viser." } },
+    { "id": "6", "name": "Bagplade", "qty": 1, "size": [583, 670, 3], "source": "s. 11", "note": "Har et hak i toppen til vægbeslaget og en linje på midten (tolket som foldning)." },
+    { "id": "7", "name": "Skuffefront", "qty": 3, "size": [599, 226, 12], "source": "s. 11" },
+    { "id": "8", "name": "Skuffeside venstre", "qty": 3, "size": [260, 148, 12], "source": "s. 11" },
+    { "id": "9", "name": "Skuffeside højre", "qty": 3, "size": [260, 148, 12], "source": "s. 11" },
+    { "id": "10", "name": "Skuffebagstykke", "qty": 3, "size": [527, 148, 12], "source": "s. 11" },
+    { "id": "11", "name": "Skuffebund", "qty": 3, "size": [535, 256, 3], "source": "s. 11" },
+    { "id": "12", "name": "Bundliste bag", "qty": 1, "size": [575, 64, 12], "source": "s. 11", "placement": { "status": "estimeret", "reason": "Liggende i bunden bagtil foran bagpladen, med klods N under midten." } }
+  ],
+
+  "hardware": [
+    { "id": "A", "name": "Excenterbolt", "qty": 22, "dims": "Ø6×35 mm", "used": 22 },
+    { "id": "B", "name": "Excenterlås", "qty": 22, "dims": "Ø15×10 mm", "used": 22 },
+    { "id": "C", "name": "Træpløk", "qty": 16, "dims": "Ø6×30 mm", "used": 16 },
+    { "id": "D", "name": "Glider (søm)", "qty": 4, "dims": "Ø10×3 mm", "used": 4 },
+    { "id": "E", "name": "Vægbeslag", "qty": 1, "dims": "75×25×15 mm", "used": 1 },
+    { "id": "F", "name": "Skrue", "qty": 2, "dims": "Ø4×10 mm", "used": 2 },
+    { "id": "CL", "name": "Skinne korpus venstre", "qty": 3, "dims": "250 mm", "used": 3 },
+    { "id": "CR", "name": "Skinne korpus højre", "qty": 3, "dims": "250 mm", "used": 3 },
+    { "id": "DL", "name": "Skinne skuffe venstre", "qty": 3, "dims": "250 mm", "used": 3 },
+    { "id": "DR", "name": "Skinne skuffe højre", "qty": 3, "dims": "250 mm", "used": 3 },
+    { "id": "G", "name": "Euroskrue", "qty": 8, "dims": "Ø5×10 mm", "used": 12, "conflict": "Delelisten s. 9 siger G×8, men trin 2 (s. 12) bruger G×12 (2 pr. skinne × 6 skinner). Guiden følger trin 2." },
+    { "id": "H", "name": "Bagpladeholder", "qty": 8, "dims": "15×15 mm", "used": 8 },
+    { "id": "J", "name": "Skrue", "qty": 12, "dims": "Ø4×35 mm", "used": 12 },
+    { "id": "K", "name": "Greb", "qty": 3, "dims": "103×26×11 mm", "used": 3 },
+    { "id": "L", "name": "Grebsskrue", "qty": 6, "dims": "Ø4×15 mm", "used": 6 },
+    { "id": "M", "name": "Skrue", "qty": 24, "dims": "Ø3×14 mm", "used": 24 },
+    { "id": "N", "name": "Klods", "qty": 2, "dims": "48×12×15 mm", "used": 2 }
+  ],
+
+  "safetyNotes": [
+    { "page": 3, "text": "Læs hele manualen før samling, og gem den." },
+    { "page": 4, "text": "Saml møblet på et blødt underlag, fx et tæppe, så det ikke får ridser." },
+    { "page": 5, "text": "Kommoden skal fastgøres til væggen med det medfølgende vægbeslag. Skruer og rawplugs til væggen medfølger ikke – de afhænger af væggen." },
+    { "page": 7, "text": "Efterspænd alle skruer 2 uger efter samling og derefter hver 3. måned." },
+    { "page": 9, "text": "Brug ikke boremaskine/skruemaskine til at skrue møblet sammen." },
+    { "page": 10, "text": "Saml helst to personer." }
+  ],
+
+  "steps": [
+    { "index": 0, "manual": "Før du starter", "title": "Dele og værktøj", "short": "Tjek at alle dele og beslag er der. Saml på et blødt underlag, gerne to personer.", "pages": [3, 4, 5, 7, 9, 10, 11] },
+    { "index": 1, "manual": "1", "title": "Excenterbolte i siderne", "short": "Skru 3 bolte A i hver side med stjerneskruetrækker. Drej med uret, til kraven rører pladen.", "pages": [12] },
+    { "index": 2, "manual": "2", "title": "Skinner på siderne", "short": "Skru skinne CL på venstre side 2 og CR på højre side 3 med 2 skruer G pr. skinne.", "pages": [12] },
+    { "index": 3, "manual": "3", "title": "Glidere i bunden", "short": "Mål 20 mm ind fra for- og bagkant, og bank en glider D i hver side.", "pages": [13] },
+    { "index": 4, "manual": "4", "title": "Pløkke i toppen af siderne", "short": "Bank 2 træpløkke C i toppen af hver side.", "pages": [13] },
+    { "index": 5, "manual": "5", "title": "Pløkke og klodser på listerne", "short": "Bank pløkke C i enderne af listerne 4, 5 og 12. Skru klods N under 5 og 12 med 2 skruer M.", "pages": [14] },
+    { "index": 6, "manual": "6", "title": "Lister på højre side", "short": "Sæt 5, 12 og 4 ned på højre side 3. Sæt excenterlås B i, og drej med uret med ligekærvet skruetrækker.", "pages": [14] },
+    { "index": 7, "manual": "7", "title": "Venstre side på", "short": "Læg venstre side 2 ned på listerne, og lås med 3 excenterlåse B.", "pages": [15] },
+    { "index": 8, "manual": "8", "title": "Bagpladen i", "short": "Rejs korpus op, og skub bagpladen 6 ned i rillerne.", "pages": [15], "note": "At rejse korpus op er ikke tegnet i manualen, men er nødvendigt mellem trin 7 og 8." },
+    { "index": 9, "manual": "9", "title": "Bolte og vægbeslag i toppen", "short": "Skru 4 bolte A i toppen 1. Skru vægbeslag E på med 2 skruer F, men kun 80 %.", "pages": [16] },
+    { "index": 10, "manual": "10", "title": "Toppen på", "short": "Læg toppen på korpus, og lås med 4 excenterlåse B.", "pages": [16] },
+    { "index": 11, "manual": "11", "title": "Ret op og fastgør bagpladen", "short": "Mål diagonalerne – de skal være lige lange. Skru 8 holdere H på med skruer M.", "pages": [17] },
+    { "index": 12, "manual": "12", "title": "Fastgør til væggen", "short": "Stil kommoden mod væggen. Afmærk, bor, sæt rawplug i, og skru beslaget fast. Spænd skruerne F 100 %.", "pages": [18, 5], "note": "Skrue og rawplug til væggen medfølger ikke. Vælg dem efter din væg." },
+    { "index": 13, "manual": "13", "title": "Bolte i skuffefronterne", "short": "Skru 4 bolte A i hver skuffefront 7.", "pages": [19] },
+    { "index": 14, "manual": "14", "title": "Pløkke i skuffesiderne", "short": "Bank en træpløk C i forenden af hver skuffeside 8 og 9.", "pages": [19] },
+    { "index": 15, "manual": "15", "title": "Skuffesider på fronten", "short": "Sæt siderne 8 og 9 på fronten, og lås med 4 excenterlåse B pr. skuffe.", "pages": [20] },
+    { "index": 16, "manual": "16", "title": "Skuffebunden i", "short": "Skub bunden 11 ned i rillerne.", "pages": [20] },
+    { "index": 17, "manual": "17", "title": "Bagstykket på", "short": "Sæt bagstykket 10 i, og skru det fast med 4 skruer J pr. skuffe.", "pages": [21] },
+    { "index": 18, "manual": "18", "title": "Skinner på skufferne", "short": "Vend skuffen, og skru DL og DR på med 2 skruer M pr. skinne.", "pages": [21], "note": "At vende skuffen er en tolkning af tegningen, hvor skruerne skrues ind oppefra." },
+    { "index": 19, "manual": "19", "title": "Greb på", "short": "Skru grebet K fast indefra med 2 skruer L.", "pages": [22] },
+    { "index": 20, "manual": "20", "title": "Skufferne i", "short": "Sæt hjulene på skuffens skinner ind bag hjulene i korpus, og skub skuffen helt ind.", "pages": [22] },
+    { "index": 21, "manual": "21", "title": "Færdig", "short": "Højst 10 kg på toppen og 5 kg i hver skuffe. Efterspænd skruerne efter 2 uger.", "pages": [23, 7] }
+  ]
+}
