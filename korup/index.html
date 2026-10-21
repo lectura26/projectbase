@@ -46,6 +46,9 @@
   #uses[hidden] { display: none; }
   .chip { flex: none; display: flex; align-items: center; gap: 6px; height: 36px; padding: 2px 10px 2px 3px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); font-size: 13px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
   .chip img { width: 30px; height: 30px; border-radius: 6px; background: var(--mist); }
+  #uses::before { content: "Du skal bruge"; flex: none; align-self: center; font-size: 12px; font-weight: 600; color: var(--ink-2); margin-right: 2px; }
+  #uses.find::before { content: "Find frem"; color: var(--navy); }
+  #uses.find .chip { border-color: var(--navy); box-shadow: 0 0 0 2px rgba(27, 61, 132, .15); }
   .chip.tl { padding-right: 8px; font-weight: 500; color: var(--ink-2); }
   .chip b { color: var(--navy); }
   #close { flex: none; width: 44px; height: 44px; margin: -6px -8px 0 0; display: grid; place-items: center; border: 0; border-radius: 50%; background: none; cursor: pointer; color: var(--ink); }
@@ -214,7 +217,7 @@ const camera = new THREE.PerspectiveCamera(38, 1, 5, 30000);
 camera.position.set(1600, 2300, 3400);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 200, 200); controls.maxPolarAngle = Math.PI / 2 - 0.02; controls.minDistance = 150; controls.maxDistance = 9000;
-const room = buildRoom(THREE, scene, renderer, { rug: { w: 3600, d: 2700, x: 0, z: 300 }, plantAt: [-2350, 0, -1650] });
+const room = buildRoom(THREE, scene, renderer, { rug: false, floorLight: 54, floorSat: 26, plantAt: [-2350, 0, -1650] });
 const player = createPlayer({ scene, camera, controls, model, manual });
 const steps = player.steps;
 
@@ -278,15 +281,16 @@ function updateCallouts() {
   const st = steps[step], list = [];
   // panels involved in the step: numbers on the panels; the moving/hosting ones as a full tag
   const seen = new Set();
-  for (const id of st.noPartTags ? [] : st.focus) {
+  const intro = player.inIntro(step, prog);
+  for (const id of st.noPartTags ? [] : intro ? st.find : st.focus) {
     const p = player.P[id]; if (!p) continue;
     const key = p.num; if (step !== 0 && seen.has(key)) continue; seen.add(key);
     _b.setFromObject(p.obj.children[0]); const c = _b.getCenter(new THREE.Vector3()); c.y = _b.max.y;
-    const qty = st.overview ? 1 : st.focus.filter(f => player.P[f]?.num === p.num).length;
-    list.push({ at: c, num: p.num, name: p.name.replace(/ (venstre|højre)$/, ''), qty, small: step === 0 || st.focus.length > 6 });
+    const qty = st.overview ? 1 : (intro ? st.find : st.focus).filter(f => player.P[f]?.num === p.num).length;
+    list.push({ at: c, num: p.num, name: p.name.replace(/ (venstre|højre)$/, ''), qty, small: !intro && (step === 0 || st.focus.length > 6) });
   }
   // hardware types used in the step: one tag on the first visible item
-  for (const [type, qty] of Object.entries(st.uses)) {
+  for (const [type, qty] of intro ? [] : Object.entries(st.uses)) {
     const h = model.hardware.find(x => x.type === type && player.H[x.id].obj.visible && stepHas(st, x.id));
     if (!h) continue;
     player.H[h.id].obj.getWorldPosition(_v);
@@ -443,7 +447,8 @@ function frame(now) {
     if (prog >= 1) { playing = false; renderUI(); renderChecks(); }
   }
   player.evaluate(step, prog);
-  player.setXray('carcass', steps[step].xray && ['item', 'point'].includes(player.focusKind()) ? 0.28 : 1);
+  player.applyLooks(step, prog, now / 1000);
+  $('uses').classList.toggle('find', !!player.inIntro(step, prog));
   driveCamera(dt);
   room.update(camera);
   renderer.render(scene, camera);
@@ -461,7 +466,7 @@ window.guide = {
   set(i, p, settle = true) {
     go(i, false); prog = p; playing = false; renderUI();
     player.evaluate(step, prog);
-    player.setXray('carcass', steps[step].xray && ['item', 'point'].includes(player.focusKind()) ? 0.28 : 1);
+    player.applyLooks(step, prog, 0);
     if (settle) { for (let k = 0; k < 120; k++) driveCamera(0.05); }
     room.update(camera); renderer.render(scene, camera); updateCallouts(); renderChecks();
     return [...liveChecks(), ...model.checks].filter(c => !c.pass).map(c => `${c.name}: ${c.val}`);

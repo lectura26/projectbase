@@ -31,10 +31,10 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
 
   // ---------- materials ----------
   const melamine = new THREE.MeshStandardMaterial({ color: '#f3f3f0', roughness: 0.55 });
-  const edge = new THREE.MeshStandardMaterial({ color: '#e2e2dd', roughness: 0.7 });
+  const edge = new THREE.MeshStandardMaterial({ color: '#cfd0ca', roughness: 0.7 });
   const hardboard = new THREE.MeshStandardMaterial({ color: '#b08a60', roughness: 0.9 });
   const holeMat = new THREE.MeshBasicMaterial({ color: '#5d626b', polygonOffset: true, polygonOffsetFactor: -2 });
-  const lineMat = new THREE.LineBasicMaterial({ color: '#8d939c', transparent: true, opacity: 0.55 });
+  const lineMat = new THREE.LineBasicMaterial({ color: '#4f5661', transparent: true, opacity: 0.85 });
   const cast = o => { o.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } }); return o; };
 
   // ---------- groups (only hold group-hosted hardware) ----------
@@ -82,7 +82,7 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
     // host-local position: for panels subtract the panel centre (panel axes = group axes)
     h.p = host ? h.gp.clone().sub(host.center) : h.gp.clone();
     h.d = h.gd.clone();
-    const holder = new THREE.Group();
+    const holder = new THREE.Group(); holder.userData.hw = true;
     const m = proto(h.type).clone(); holder.add(m);
     if (h.type === 'C') m.position.y = (h.depth ?? 15) - 15;      // dowel: depth into host, rest sticks out
     (host ? host.obj : hostGroup ? hostGroup.obj : scene).add(holder);
@@ -130,20 +130,32 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
   }
 
   // ---------- timeline ----------
-  const TIMES = { insertTool: 1.15, insertHand: 0.55, hammer: 1.0, cam: 0.9, place: 0.9, move: 2.6, group: 2.4, measure: 2.2, mark: 1.6, drill: 2.4, tighten: 0.9 };
+  // slow enough to follow: every motion ×1.6, a short pause between actions, and an intro that shows what to find
+  const SLOW = 1.6, GAP = 0.45, INTRO = 3.8;
+  const TIMES = Object.fromEntries(Object.entries({ insertTool: 1.15, insertHand: 0.55, hammer: 1.0, cam: 0.9, place: 0.9, move: 2.6, group: 2.4, measure: 2.2, mark: 1.6, drill: 2.4, tighten: 0.9 }).map(([k, v]) => [k, v * SLOW]));
   for (const st of steps) {
-    let t = 0;
+    let t = st.actions.length ? INTRO : 0;
+    st.intro = t;
     for (const a of st.actions) {
       const n = a.items ? a.items.length : a.lanes ? Math.max(...a.lanes.map(l => l.length)) : 1;
       let per = a.per;
       if (!per) per = a.type === 'insert' ? (a.tool === 'hammer' ? TIMES.hammer : a.tool ? TIMES.insertTool : TIMES.insertHand)
         : a.type === 'cam' ? TIMES.cam : a.type === 'place' ? TIMES.place : a.type === 'tighten' ? TIMES.tighten : 0;
+      else per *= SLOW;
       a.per = per; a.n = n;
-      a.dur = a.dur || (per ? (a.tool || a.type === 'cam' || a.type === 'tighten' ? per * n : per + 0.18 * (n - 1)) : TIMES[a.type] || 2);
-      a.stagger = a.tool || a.type === 'cam' || a.type === 'tighten' ? per : 0.18;
-      a.t0 = t; t += a.dur; a.t1 = t;
+      const seqItems = a.tool || a.type === 'cam' || a.type === 'tighten';
+      a.dur = a.dur ? a.dur * SLOW : (per ? (seqItems ? per * n : per + 0.3 * (n - 1)) : TIMES[a.type] || 2 * SLOW);
+      a.stagger = seqItems ? per : 0.3;
+      a.t0 = t; t += a.dur; a.t1 = t; t += GAP;
     }
     st.dur = Math.max(1.5, t);
+    // what to fetch: panels that move in this step and the panels that receive hardware
+    const find = new Set();
+    for (const a of st.actions) {
+      if (a.type === 'move') (a.lanes ? a.lanes.flat() : a.parts).forEach(id => find.add(id));
+      if (a.type !== 'move') for (const id of a.items || (a.lanes ? a.lanes.flat() : [])) { const h = H[id]; if (h && P[h.host]) find.add(h.host); }
+    }
+    st.find = find.size ? [...find] : st.focus.slice();
   }
 
   // ---------- state evaluation ----------
@@ -284,6 +296,50 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
     a._mark.visible = true;
   }
 
+  // ---------- intro: enlarged samples of the hardware and tools to find ----------
+  const samples = {};
+  function sample(kind, type) {
+    const key = kind + type;
+    if (samples[key]) return samples[key];
+    const g = new THREE.Group(), m = kind === 'hw' ? makeHardware(type) : makeTool(type);
+    if (kind === 'tool' && type === 'tape') m.userData.setLength(30);
+    const inner = new THREE.Group(); inner.add(m);
+    if (kind === 'hw' && HW[type]) inner.rotation.x = Math.PI;            // screws stand head up
+    if (kind === 'tool') inner.rotation.z = Math.PI / 2;                   // tools lie across
+    const b = new THREE.Box3().setFromObject(inner), size = b.getSize(new THREE.Vector3()).length();
+    const target = kind === 'tool' ? 210 : 140;
+    inner.scale.setScalar(Math.min(4, Math.max(0.35, target / size)));
+    const c = new THREE.Box3().setFromObject(inner).getCenter(new THREE.Vector3()); inner.position.sub(c);
+    g.add(inner);
+    const label = makeLabel(''); label.scale.set(230, 50, 1); g.add(label); g.userData.label = label;
+    g.visible = false; scene.add(g);
+    return (samples[key] = g);
+  }
+  let introState = null;
+  function poseIntro(si, t) {
+    Object.values(samples).forEach(o => o.visible = false);
+    introState = null;
+    const st = steps[si];
+    if (!st.intro || t >= st.intro) return;
+    const list = Object.entries(st.uses).map(([type, n]) => ({ kind: 'hw', type, text: `${type} × ${n}` }))
+      .concat(st.tools.map(type => ({ kind: 'tool', type, text: TOOL_NAMES[type] })));
+    const b = partsBox(st.find), c = b.getCenter(new THREE.Vector3()), size = b.getSize(new THREE.Vector3());
+    const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0); right.y = 0; right.normalize();
+    const grow = Math.min(1, t / 0.6) * Math.min(1, (st.intro - t) / 0.5);
+    const gap = 250, y0 = b.max.y + 400;
+    list.forEach((L, i) => {
+      const o = sample(L.kind, L.type);
+      o.visible = grow > 0.02;
+      o.position.copy(c).addScaledVector(right, (i - (list.length - 1) / 2) * gap); o.position.y = y0;
+      o.children[0].rotation.y = t * 0.9;
+      o.scale.setScalar(Math.max(0.01, ease(grow)));
+      o.userData.label.userData.set(L.text); o.userData.label.position.set(0, -115, 0);
+    });
+    introState = { box: b.clone().expandByPoint(c.clone().setY(y0 + 80)).expandByPoint(c.clone().addScaledVector(right, (list.length / 2) * gap).setY(y0)).expandByPoint(c.clone().addScaledVector(right, -(list.length / 2) * gap).setY(y0)), find: st.find };
+    focus = { kind: 'intro' };
+  }
+  const TOOL_NAMES = { phillips: 'Stjerneskruetrækker', flat: 'Ligekærvet', hammer: 'Hammer', tape: 'Målebånd', pencil: 'Blyant', drill: 'Boremaskine' };
+
   function evaluate(si, p) {
     reset(); toolUse = null; focus = null;
     for (let s = 0; s <= si; s++) {
@@ -296,6 +352,7 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
     }
     commit();
     poseTools();
+    poseIntro(si, p * steps[si].dur);
     stepLabels.forEach(l => l.visible = false);
     (steps[si].labels || []).forEach((L, i) => {
       if (!stepLabels[i]) { stepLabels[i] = makeLabel(L.text); stepLabels[i].scale.set(240, 52, 1); scene.add(stepLabels[i]); }
@@ -412,6 +469,7 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
       return { target: c.addScaledVector(d, -70), radius: r, dir };
     }
     let b;
+    if (focus?.kind === 'intro' && introState) { const ib = introState.box, c = ib.getCenter(new THREE.Vector3()); return { target: c, radius: Math.max(260, ib.getSize(new THREE.Vector3()).length() / 2 * 1.05), dir: defDir }; }
     if (focus?.kind === 'items') { b = new THREE.Box3(); for (const id of focus.ids) b.expandByObject(H[id].obj); b.expandByScalar(60); }
     else if (focus?.kind === 'parts') b = partsBox(focus.extra || focus.ids);
     else if (focus?.kind === 'groups') b = partsBox(parts.filter(p => focus.ids.includes(p.group)).map(p => p.id));
@@ -421,17 +479,45 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
     return { target: c, radius: Math.max(140, r * (focus ? 1 : 1.25)), dir: defDir };
   }
 
-  // see-through panels, so work hidden behind a panel (e.g. the wall bracket) stays visible
-  const xrayMats = new Map();
-  function setXray(gid, alpha) {
-    for (const p of parts) if (p.group === gid) p.obj.traverse(o => {
-      if (!o.isMesh) return;
-      if (!o.userData.base) o.userData.base = o.material;
-      if (alpha >= 1) { o.material = o.userData.base; return; }
-      const base = o.userData.base, list = Array.isArray(base) ? base : [base];
-      const xs = list.map(m => { if (!xrayMats.has(m)) { const c = m.clone(); c.transparent = true; c.depthWrite = false; xrayMats.set(m, c); } const c = xrayMats.get(m); c.opacity = alpha; return c; });
-      o.material = Array.isArray(base) ? xs : xs[0];
-    });
+  // looks: inactive panels are ghosted, panels to find glow during the intro, and the carcass can turn see-through
+  const looks = { ghost: new Map(), hi: new Map() };
+  const hiColor = new THREE.Color('#1b3d84');
+  function lookOf(base, mode) {
+    if (mode === 'hi' && !base.isMeshStandardMaterial) return base;
+    const cache = looks[mode];
+    if (!cache.has(base)) {
+      const c = base.clone();
+      if (mode === 'ghost') { c.transparent = true; c.opacity = 0.28; c.depthWrite = false; }
+      else { c.emissive = hiColor.clone(); c.emissiveIntensity = 0.3; }
+      cache.set(base, c);
+    }
+    return cache.get(base);
   }
-  return { evaluate, cameraGoal, steps, P, H, G, partsBox, tools, setXray, focusKind: () => focus?.kind };
+  function setLook(p, mode) {
+    if (p._look === mode) return; p._look = mode;
+    // only the panel itself (hardware fastened to it keeps its own look)
+    for (const o of p.obj.children) {
+      if (o.userData.hw || (!o.isMesh && !o.isLineSegments)) continue;
+      if (!o.userData.base) o.userData.base = o.material;
+      const base = o.userData.base;
+      if (o.isLineSegments) { o.visible = mode !== 'ghost'; continue; }
+      o.material = mode === 'normal' ? base : Array.isArray(base) ? base.map(m => lookOf(m, mode)) : lookOf(base, mode);
+    }
+  }
+  function applyLooks(si, p, time) {
+    const st = steps[si], t = p * st.dur;
+    const active = new Set([...st.focus, ...st.find]);
+    const groupsActive = new Set([...active].map(id => P[id]?.group));
+    const xray = st.xray && (focus?.kind === 'item' || focus?.kind === 'point');
+    const intro = st.intro && t < st.intro;
+    for (const p of parts) {
+      let mode = 'normal';
+      if (si > 0 && !active.has(p.id) && !(p.state.mode === 'group' && groupsActive.has(p.group))) mode = 'ghost';
+      if (xray && p.group === 'carcass') mode = 'ghost';
+      if (intro && st.find.includes(p.id)) mode = 'hi';
+      setLook(p, mode);
+    }
+    looks.hi.forEach(m => m.emissiveIntensity = 0.18 + 0.14 * Math.sin(time * 5));
+  }
+  return { evaluate, cameraGoal, steps, P, H, G, partsBox, tools, applyLooks, focusKind: () => focus?.kind, inIntro: (si, p) => steps[si].intro && p * steps[si].dur < steps[si].intro };
 }

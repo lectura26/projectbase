@@ -13,14 +13,14 @@ export const ROOM = {
 function rng(seed) { return () => ((seed = (seed * 16807) % 2147483647) / 2147483647); }
 
 // ---------- textures ----------
-function herringboneTexture(THREE, renderer) {
+function herringboneTexture(THREE, renderer, light = 70, satBase = 42) {
   const W = 70, L = 420, TILE = 12 * W;           // 70 × 420 mm planks; pattern repeats every 840 mm
   const px = 2048, s = px / TILE;
   const c = document.createElement('canvas'); c.width = c.height = px;
   const g = c.getContext('2d');
   const shades = Array.from({ length: 24 }, (_, i) => {
     const r = rng(i * 97 + 13); r();
-    const l = 70 + r() * 9, h = 34 + r() * 6, sat = 42 + r() * 12;
+    const l = light + r() * 9, h = 34 + r() * 6, sat = satBase + r() * 12;
     return { base: `hsl(${h} ${sat}% ${l}%)`, seed: i * 31 + 7 };
   });
   function plank(x, y, w, h, id) {
@@ -111,7 +111,7 @@ export function buildRoom(THREE, scene, renderer, opts = {}) {
   const box = (w, h, d, m, x, y, z) => { const o = shadowed(new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m)); o.position.set(x, y, z); return o; };
 
   // floor: herringbone, laid at 45° to the walls
-  const hb = herringboneTexture(THREE, renderer);
+  const hb = herringboneTexture(THREE, renderer, opts.floorLight ?? 70, opts.floorSat ?? 42);
   const floorGeo = new THREE.PlaneGeometry(W, D); floorGeo.rotateX(-Math.PI / 2);
   floorGeo.translate((R.x0 + R.x1) / 2, 0, (R.z0 + R.z1) / 2);
   const p = floorGeo.attributes.position, uv = floorGeo.attributes.uv, c45 = Math.SQRT1_2;
@@ -122,7 +122,7 @@ export function buildRoom(THREE, scene, renderer, opts = {}) {
   // rug under the work area (manual: assemble on a soft surface); 1 mm so parts still stand at y = 0
   const rg = { w: 2200, d: 1550, x: -250, z: 150, ...(opts.rug || {}) };
   const rug = new THREE.Mesh(new THREE.PlaneGeometry(rg.w, rg.d).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ map: rugTexture(THREE), roughness: 1 }));
-  rug.position.set(rg.x, 1, rg.z); rug.receiveShadow = true; root.add(rug);
+  rug.position.set(rg.x, 1, rg.z); rug.receiveShadow = true; if (opts.rug !== false) root.add(rug);
 
   // ---- walls: each in local coords, x along the wall, y up, +z into the room ----
   const walls = [];
