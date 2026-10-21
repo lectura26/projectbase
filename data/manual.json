@@ -1,0 +1,494 @@
+{
+  "product": {
+    "name": "SERUP",
+    "type": "Bakkebord / foldbart sidebord",
+    "brand": "JYSK",
+    "articleNumbers": [
+      "3630146",
+      "93246001"
+    ],
+    "manualRevision": "21.07.2025 - Rev.1",
+    "manualPages": 11,
+    "overallDimensions": {
+      "width": {
+        "value": 520,
+        "unit": "mm",
+        "status": "fra manual",
+        "source": "s. 1 og 2 (bakkens lange side)"
+      },
+      "depth": {
+        "value": 400,
+        "unit": "mm",
+        "status": "fra manual",
+        "source": "s. 1 og 2 (bakkens korte side)"
+      },
+      "height": {
+        "value": 580,
+        "unit": "mm",
+        "status": "fra manual",
+        "source": "s. 1 og 2 (gulv til bakkens overkant)"
+      }
+    },
+    "maxLoadKg": {
+      "value": 10,
+      "status": "fra manual",
+      "source": "s. 11 (piktogram på bakkens flade)"
+    }
+  },
+  "colors": {
+    "wood": {
+      "hex": "#dcc6a2",
+      "status": "aflæst af produktbillede",
+      "note": "Lyst, mat træ med svag åretegning (ask/bøg-lignende) på både bakke og stel."
+    },
+    "trayFloor": {
+      "hex": "#5f5153",
+      "status": "aflæst af produktbillede",
+      "note": "Mørk grålig mauve/brun bund i bakken. Ser grå-lilla ud på billede 1 og næsten sortbrun på billede 2; der er valgt en mellemtone."
+    },
+    "strap": {
+      "hex": "#c8ab86",
+      "status": "aflæst af produktbillede",
+      "note": "Lys beige stof-/læderstrop på den øverste tværstang (billede 1)."
+    },
+    "metal": {
+      "hex": "#b8b8b8",
+      "status": "aflæst af produktbillede",
+      "note": "Små runde metalhoveder på drejebolte (billede 1 og 2)."
+    }
+  },
+  "parts": [
+    {
+      "id": "1",
+      "name": "Bakke",
+      "quantity": 1,
+      "boxDimensions": {
+        "value": "520 × 400 × 60",
+        "unit": "mm",
+        "status": "fra manual",
+        "source": "s. 9 (Box 1/1)"
+      },
+      "material": "Træ (lys finish) med mørk mauve/brun bundplade",
+      "subGeometry": {
+        "wallThickness": {
+          "value": 12,
+          "unit": "mm",
+          "status": "estimeret",
+          "reason": "Aflæst af topvisningen s. 2: kantlinjen er ca. 6 px bred ved 1,96 mm/px (300 dpi-gengivelse). Usikkerhed ca. ±4 mm."
+        },
+        "floorThickness": {
+          "value": 9,
+          "unit": "mm",
+          "status": "estimeret",
+          "reason": "Ikke vist i manualen. Valgt som typisk pladetykkelse."
+        },
+        "floorPosition": {
+          "value": "flugter med bakkens underkant",
+          "status": "estimeret",
+          "reason": "Manualen viser ikke bakkens underside. Bunden er lagt i bunden, så bakken kan hvile på benenes toppe."
+        }
+      },
+      "manualPages": [
+        1,
+        2,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "id": "2",
+      "name": "Foldbart stel (leveres samlet)",
+      "quantity": 1,
+      "boxDimensions": {
+        "value": "639 × 486 × 55",
+        "unit": "mm",
+        "status": "fra manual",
+        "source": "s. 9 (Box 1/1, sammenfoldet)"
+      },
+      "material": "Massivt træ (lys finish), metalbolte, stofstrop",
+      "assembledDimensions": {
+        "outerWidth": {
+          "value": 486,
+          "unit": "mm",
+          "status": "fra manual",
+          "source": "s. 2 frontvisning, yderkant til yderkant af benene"
+        },
+        "innerWidth": {
+          "value": 404,
+          "unit": "mm",
+          "status": "fra manual",
+          "source": "s. 2 frontvisning, mellem de inderste ben"
+        },
+        "height": {
+          "value": 520,
+          "unit": "mm",
+          "status": "fra manual",
+          "source": "s. 2 sidevisning, gulv til bakkens underside (580 − 60 = 520 passer)"
+        },
+        "footprintDepth": {
+          "value": 375,
+          "unit": "mm",
+          "status": "fra manual",
+          "source": "s. 2 sidevisning, yderste punkter ved gulvet"
+        }
+      },
+      "subParts": [
+        {
+          "id": "2a",
+          "name": "Ydre ben",
+          "quantity": 2,
+          "dimensions": {
+            "thickness": {
+              "value": 20,
+              "unit": "mm",
+              "status": "beregnet",
+              "reason": "(486 − 404) / 2 = 41 mm til to ben side om side + ca. 1 mm luft. Bekræftet ved opmåling af frontvisningen s. 2 (25 px ≈ 19,5 mm)."
+            },
+            "width": {
+              "value": 30,
+              "unit": "mm",
+              "status": "estimeret",
+              "reason": "Sidevisningen s. 2 viser benets bredde skråt; aflæst til ca. 28–36 mm. 30 mm valgt."
+            },
+            "length": {
+              "value": 623,
+              "unit": "mm",
+              "status": "beregnet/estimeret",
+              "reason": "Beregnet ud fra hulafstand (581 mm) + afrundede ender. Pakkemålet 639 mm tyder på, at de rigtige ben er ca. 10–15 mm længere; forskellen er ikke modelleret."
+            }
+          }
+        },
+        {
+          "id": "2b",
+          "name": "Indre ben",
+          "quantity": 2,
+          "dimensions": {
+            "thickness": {
+              "value": 20,
+              "unit": "mm",
+              "status": "beregnet",
+              "reason": "Som ydre ben."
+            },
+            "width": {
+              "value": 30,
+              "unit": "mm",
+              "status": "estimeret",
+              "reason": "Som ydre ben."
+            },
+            "length": {
+              "value": 623,
+              "unit": "mm",
+              "status": "beregnet/estimeret",
+              "reason": "Som ydre ben."
+            }
+          }
+        },
+        {
+          "id": "2c",
+          "name": "Tværstang (rund)",
+          "quantity": 4,
+          "dimensions": {
+            "diameter": {
+              "value": 20,
+              "unit": "mm",
+              "status": "estimeret",
+              "reason": "Frontvisning s. 2: stængerne er 22–25 px høje ved 0,78 mm/px ≈ 17–20 mm. Sidevisningens stiplede huller har samme størrelse."
+            },
+            "lengthOuterFrame": {
+              "value": 486,
+              "unit": "mm",
+              "status": "beregnet",
+              "reason": "Går gennem de ydre ben og flugter med yderkanten (billede 1 viser stangenderne i benets side)."
+            },
+            "lengthInnerFrame": {
+              "value": 444,
+              "unit": "mm",
+              "status": "beregnet",
+              "reason": "404 + 2 × 20 mm."
+            }
+          },
+          "placement": "Én stang i toppen og én i bunden af hver ramme, centreret i hullerne i benene."
+        },
+        {
+          "id": "2d",
+          "name": "Drejebolt",
+          "quantity": 2,
+          "dimensions": {
+            "diameter": {
+              "value": 8,
+              "unit": "mm",
+              "status": "estimeret",
+              "reason": "Kun vist som lille cirkel i manualen."
+            }
+          },
+          "placement": "Gennem ydre og indre ben i krydset. Højde ca. 265 mm (aflæst af sidevisning s. 2 og beregnet som skæringspunkt mellem benene)."
+        },
+        {
+          "id": "2e",
+          "name": "Stofstrop (åbningsbegrænser)",
+          "quantity": 1,
+          "dimensions": {
+            "length": {
+              "value": 327,
+              "unit": "mm",
+              "status": "beregnet",
+              "reason": "Lig med afstanden mellem de to øverste tværstænger i udfoldet stand (stroppen er stram, når stellet er helt åbent)."
+            },
+            "width": {
+              "value": 30,
+              "unit": "mm",
+              "status": "estimeret",
+              "reason": "Aflæst af produktbillede 1."
+            }
+          },
+          "placement": "Mellem de to øverste tværstænger, midt på. Vises som løkke i sammenfoldet stand (s. 9 og 10)."
+        }
+      ],
+      "manualPages": [
+        1,
+        2,
+        9,
+        10,
+        11
+      ]
+    }
+  ],
+  "geometry": {
+    "comment": "Alle tal i mm. Koordinater: X = bredde (520-retningen), Y = op, Z = dybde (400-retningen). Stellet bygges ud fra disse regler i index.html.",
+    "trayTopHeight": {
+      "value": 580,
+      "status": "fra manual"
+    },
+    "trayHeight": {
+      "value": 60,
+      "status": "fra manual"
+    },
+    "trayUndersideHeight": {
+      "value": 520,
+      "status": "fra manual"
+    },
+    "legThickness": {
+      "value": 20,
+      "status": "beregnet"
+    },
+    "legWidth": {
+      "value": 30,
+      "status": "estimeret"
+    },
+    "legGapX": {
+      "value": 1,
+      "status": "estimeret",
+      "reason": "Frontvisningen viser en tynd streg mellem ydre og indre ben."
+    },
+    "railDiameter": {
+      "value": 20,
+      "status": "estimeret"
+    },
+    "holeSpreadZ": {
+      "value": 327,
+      "status": "aflæst",
+      "reason": "Sidevisning s. 2: afstand mellem hulcentre top (326 mm) og bund (328 mm), gennemsnit."
+    },
+    "bottomHoleHeight": {
+      "value": 25,
+      "status": "aflæst",
+      "reason": "Sidevisning s. 2: ca. 26,6 mm; afrundet til 25 for at foden kan nå gulvet med 30 mm benbredde."
+    },
+    "topHoleRule": {
+      "value": "benets top (afrundet ende om hullet) = bakkens underside = 520",
+      "status": "regel",
+      "reason": "Giver tophul i 505 mm; sidevisningen viser ca. 504 mm."
+    },
+    "footRule": {
+      "value": "benets laveste punkt = gulv (0 mm)",
+      "status": "regel"
+    },
+    "pivotRule": {
+      "value": "drejebolt i skæringspunktet mellem ydre og indre ben (midt mellem hullerne)",
+      "status": "regel",
+      "reason": "Giver 265 mm; sidevisningen viser ca. 266 mm."
+    },
+    "foldedLegAngleDeg": {
+      "value": 3,
+      "status": "estimeret",
+      "reason": "Mindste vinkel hvor de øverste tværstænger ikke rammer det modsatte ben. Giver ca. 62 mm tykkelse sammenfoldet; pakkemålet er 55 mm."
+    }
+  },
+  "safetyNotes": [
+    {
+      "page": 3,
+      "title": "Vigtig information",
+      "text": "Læs hele manualen grundigt igennem før samling og/eller brug af dette produkt. Følg manualen nøje, og opbevar den til senere brug."
+    },
+    {
+      "page": 4,
+      "title": "Advarsel for at forhindre ridser",
+      "text": "For at forhindre ridser skal dette møbel samles på et blødt underlag, f.eks. et tæppe."
+    },
+    {
+      "page": 5,
+      "title": "Advarsel vedr. dekorative borde",
+      "text": "Sid eller stå ikke på dette produkt. Anbring ikke tunge genstande på dette produkt. Den maksimale belastning på vandrette overflader er angivet i denne instruktion."
+    },
+    {
+      "page": 6,
+      "title": "Vigtigt",
+      "text": "Det er vigtigt, at alle produkter, der samles med alle former for skruer, efterspændes to uger efter samling samt hver tredje måned for at sikre, at produktet er stabilt i hele dets levetid."
+    },
+    {
+      "page": 7,
+      "title": "Generel vejledning til møbler",
+      "text": "Rengøres med en fugtig klud. Anvend kun vand eller et mildt vaskemiddel. Tørres af med en ren klud."
+    },
+    {
+      "page": 8,
+      "title": "Risiko for at klemme fingrene",
+      "text": "Vær opmærksom på potentiel risiko for at få fingrene i klemme ved samling, justering eller adskillelse af varen på grund af bevægelige dele. Produktet må kun bruges af børn under opsyn af voksne."
+    }
+  ],
+  "steps": [
+    {
+      "index": 0,
+      "manualStep": "0",
+      "label": "Før du starter",
+      "title": "Pakkens indhold",
+      "text": "Kassen indeholder to dele: bakken (1) og det foldbare stel (2), som leveres samlet. Der er ingen løse skruer eller beslag. Læg et blødt underlag, f.eks. et tæppe, så delene ikke får ridser.",
+      "parts": [
+        {
+          "id": "1",
+          "quantity": 1
+        },
+        {
+          "id": "2",
+          "quantity": 1
+        }
+      ],
+      "animation": {
+        "type": "layout",
+        "description": "Bakken ligger fladt til venstre, stellet ligger sammenfoldet til højre. Begge hviler på gulvet."
+      },
+      "manualPages": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "certainty": "sikker",
+      "short": "Bakken (1) og det foldbare stel (2). Ingen skruer. Saml på et blødt underlag."
+    },
+    {
+      "index": 1,
+      "manualStep": "1",
+      "label": "Trin 1",
+      "title": "Fold stellet ud",
+      "text": "Rejs stellet (2) op, så det står på de fire fødder. Træk de to rammer fra hinanden, så benene danner et X, indtil stroppen mellem de øverste tværstænger er stram. Pas på fingrene i krydset.",
+      "parts": [
+        {
+          "id": "2",
+          "quantity": 1
+        }
+      ],
+      "animation": {
+        "type": "unfold",
+        "phases": [
+          {
+            "from": 0.0,
+            "to": 0.35,
+            "action": "rejs stellet fra liggende til stående (sammenfoldet)",
+            "rule": "laveste punkt holdes på gulvet"
+          },
+          {
+            "from": 0.35,
+            "to": 1.0,
+            "action": "drej ydre og indre ramme om drejebolten fra 3° til 34,3° fra lodret",
+            "rule": "fødderne bliver på gulvet; slut når hulafstanden i toppen = stroppens længde (327 mm)"
+          }
+        ]
+      },
+      "manualPages": [
+        10
+      ],
+      "certainty": "sikker (bevægelsen er tydelig i manualen; selve rejsningen fra liggende er tilføjet for at vise overgangen)",
+      "short": "Rejs stellet, og træk rammerne fra hinanden, til benene danner et X."
+    },
+    {
+      "index": 2,
+      "manualStep": "2-I",
+      "label": "Trin 2 (I)",
+      "title": "Løft bakken over stellet",
+      "text": "Løft bakken (1) med bunden nedad og hold den vandret over stellet, med den lange side (520 mm) parallelt med tværstængerne.",
+      "parts": [
+        {
+          "id": "1",
+          "quantity": 1
+        }
+      ],
+      "animation": {
+        "type": "trayHover",
+        "description": "Bakken løftes fra gulvet og flyttes hen over stellets midte, 150 mm over slutpositionen."
+      },
+      "manualPages": [
+        10
+      ],
+      "certainty": "usikker fortolkning: delbillede I og II på s. 10 ser ens ud. Her er I tolket som 'placér over' og II som 'sænk ned'.",
+      "short": "Løft bakken, og hold den vandret over stellet."
+    },
+    {
+      "index": 3,
+      "manualStep": "2-II",
+      "label": "Trin 2 (II)",
+      "title": "Sænk bakken ned på stellet",
+      "text": "Sænk bakken lodret ned, så den hviler på toppen af stellet. Tryk let ned i begge sider (pilene i manualen), så den sidder fast og plant.",
+      "parts": [
+        {
+          "id": "1",
+          "quantity": 1
+        },
+        {
+          "id": "2",
+          "quantity": 1
+        }
+      ],
+      "animation": {
+        "type": "trayLower",
+        "rule": "bakkens underside = stellets højeste punkt (520 mm); bakken centreres over drejeboltene"
+      },
+      "manualPages": [
+        10
+      ],
+      "certainty": "usikker: manualen viser ikke, hvordan bakken låses til stellet (fx noter eller beslag i undersiden). Modellen lader bakken hvile på benenes toppe.",
+      "short": "Sænk bakken ned på stellet, og tryk let i begge sider."
+    },
+    {
+      "index": 4,
+      "manualStep": "3",
+      "label": "Trin 3",
+      "title": "Færdig – maks. 10 kg",
+      "text": "Bordet er færdigt: 520 × 400 mm, 580 mm højt. Bakken må belastes med højst 10 kg. Sid eller stå ikke på bordet. Efterspænd boltene efter 2 uger og derefter hver 3. måned.",
+      "parts": [
+        {
+          "id": "1",
+          "quantity": 1
+        },
+        {
+          "id": "2",
+          "quantity": 1
+        }
+      ],
+      "animation": {
+        "type": "final",
+        "description": "Mål vises, og belastningsmærket '10 kg' vises over bakken."
+      },
+      "manualPages": [
+        11,
+        6
+      ],
+      "certainty": "sikker",
+      "short": "Bordet er klar. Højst 10 kg på bakken."
+    }
+  ]
+}

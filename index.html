@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SERUP samlevejledning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+  /* Scene first: white bars frame a full-bleed 3D room; navy marks actions, the current step and the part callouts. */
+  :root {
+    --paper: #ffffff; --ink: #1a2233; --ink-2: #4a5466; --navy: #1b3d84; --navy-2: #142f68;
+    --mist: #f1f3f7; --line: #dde2ea; --amber: #8a520f; --amber-bg: #fbf3e6; --ok: #1d6b45; --bad: #b3261e;
+    --font: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --shadow: 0 2px 12px rgba(26, 34, 51, .14);
+    --gut: max(16px, env(safe-area-inset-left, 0px));
+    --gut-r: max(16px, env(safe-area-inset-right, 0px));
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--mist); color: var(--ink); font: 400 15px/1.45 var(--font); -webkit-tap-highlight-color: transparent; }
+  ::selection { background: var(--navy); color: #fff; }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+  svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+  #view { position: fixed; inset: 0; }
+
+  /* top bar */
+  #bar { position: fixed; inset: 0 0 auto; z-index: 3; background: var(--paper); box-shadow: var(--shadow);
+    padding: calc(env(safe-area-inset-top, 0px) + 10px) var(--gut-r) 12px var(--gut); }
+  #rail { display: flex; gap: 4px; margin: 0 0 10px; }
+  #rail button { flex: 1; height: 14px; padding: 5px 0; border: 0; background: none; cursor: pointer; }
+  #rail button::before { content: ""; display: block; height: 4px; border-radius: 2px; background: var(--line); transition: background .2s; }
+  #rail button.done::before { background: #9fb0d3; }
+  #rail button.on::before { background: var(--navy); }
+  .head { display: flex; align-items: flex-start; gap: 12px; }
+  .head > div { flex: 1; min-width: 0; }
+  #title { margin: 0; font-size: 19px; line-height: 1.25; font-weight: 700; text-wrap: balance; }
+  #num:empty { display: none; }
+  #num { color: var(--navy); margin-right: .35em; font-variant-numeric: tabular-nums; }
+  #text { margin: 4px 0 0; color: var(--ink-2); max-width: 65ch; }
+  #meta { margin: 4px 0 0; font-size: 13px; color: var(--ink-2); }
+  #note { display: flex; gap: 6px; align-items: flex-start; margin: 8px 0 0; padding: 6px 10px; border-radius: 8px; background: var(--amber-bg); color: var(--amber); font-size: 13px; max-width: 65ch; }
+  #note[hidden] { display: none; }
+  #note svg.i { width: 16px; height: 16px; margin-top: 2px; }
+  #close { flex: none; width: 44px; height: 44px; margin: -6px -8px 0 0; display: grid; place-items: center; border: 0; border-radius: 50%; background: none; cursor: pointer; color: var(--ink); }
+  #close:hover { background: var(--mist); }
+
+  /* edge navigation */
+  .edge { position: fixed; top: 50%; z-index: 2; width: 48px; height: 48px; margin-top: -24px; display: grid; place-items: center; border: 0; border-radius: 50%;
+    background: var(--paper); color: var(--navy); box-shadow: var(--shadow); cursor: pointer; transition: transform .15s ease-out, opacity .2s; }
+  .edge:hover { transform: scale(1.06); }
+  .edge:active { transform: scale(.96); }
+  .edge:disabled { opacity: 0; pointer-events: none; }
+  #prev { left: var(--gut); } #next { right: var(--gut-r); }
+  #next.pulse { background: var(--navy); color: #fff; }
+
+  /* bottom dock */
+  #dock { position: fixed; z-index: 3; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+    width: min(560px, calc(100% - 32px)); display: flex; align-items: center; gap: 10px; padding: 8px 10px 8px 8px; border-radius: 999px; background: var(--paper); box-shadow: var(--shadow); }
+  #play { width: 44px; height: 44px; flex: none; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--navy); color: #fff; cursor: pointer; }
+  #play:hover { background: var(--navy-2); }
+  #play svg.i { fill: currentColor; stroke: none; }
+  #play svg.i.ln { fill: none; stroke: currentColor; }
+  #scrub { flex: 1; min-width: 60px; height: 32px; margin: 0; background: none; -webkit-appearance: none; appearance: none; cursor: pointer; --p: 0%; }
+  #scrub::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(var(--navy), var(--navy)) 0 / var(--p) 100% no-repeat, var(--line); }
+  #scrub::-moz-range-track { height: 4px; border-radius: 2px; background: linear-gradient(var(--navy), var(--navy)) 0 / var(--p) 100% no-repeat, var(--line); }
+  #scrub::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; margin-top: -7px; border-radius: 50%; background: var(--paper); border: 2px solid var(--navy); }
+  #scrub::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--paper); border: 2px solid var(--navy); }
+  #stepsBtn { flex: none; height: 36px; display: flex; align-items: center; gap: 2px; padding: 0 8px 0 12px; border: 1.5px solid var(--line); border-radius: 999px;
+    background: var(--paper); color: var(--ink); font-weight: 600; font-size: 14px; font-variant-numeric: tabular-nums; cursor: pointer; }
+  #stepsBtn:hover, #stepsBtn[aria-expanded="true"] { border-color: var(--navy); color: var(--navy); }
+  #stepsBtn svg.i { width: 18px; height: 18px; transition: transform .15s; }
+  #stepsBtn[aria-expanded="true"] svg { transform: rotate(180deg); }
+  /* compact step picker, anchored above the dock's right side */
+  #steps { position: fixed; z-index: 4; right: max(16px, calc(50% - 280px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 80px); width: 250px;
+    padding: 4px; border-radius: 12px; background: var(--paper); box-shadow: 0 6px 24px rgba(26, 34, 51, .2); }
+  #stepList { list-style: none; margin: 0; padding: 0; }
+  #stepList button { width: 100%; display: flex; align-items: center; gap: 10px; padding: 6px 8px; border: 0; border-radius: 8px; background: none; text-align: left; font-size: 14px; cursor: pointer; }
+  #stepList button:hover { background: var(--mist); }
+  #stepList b { width: 22px; flex: none; color: var(--ink-2); font-weight: 600; font-variant-numeric: tabular-nums; text-align: center; }
+  #stepList span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #stepList [aria-current="step"] { background: var(--mist); color: var(--navy); font-weight: 600; }
+  #stepList [aria-current="step"] b { color: var(--navy); }
+  .tool { width: 44px; height: 44px; flex: none; display: grid; place-items: center; border: 0; border-radius: 50%; background: none; color: var(--ink-2); cursor: pointer; }
+  .tool:hover { background: var(--mist); color: var(--ink); }
+  .tool[aria-pressed="true"], .tool[aria-expanded="true"] { background: var(--mist); color: var(--navy); }
+  .tool[hidden] { display: none; }
+  .tool:disabled { opacity: .35; cursor: default; background: none; }
+
+  /* check sheet */
+  /* desktop: side panel clear of the table and the next button; phone: bottom sheet above the dock (camera re-centres in the space left) */
+  #sheet { position: fixed; z-index: 4; right: calc(var(--gut-r) + 64px); top: calc(var(--bar-h, 140px) + 16px); width: 340px;
+    max-height: calc(100% - var(--bar-h, 140px) - 120px); overflow: auto; overscroll-behavior: contain; padding: 14px 16px; border-radius: 14px; background: var(--paper); box-shadow: 0 8px 30px rgba(26, 34, 51, .22);
+    scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+  #sheet::-webkit-scrollbar { width: 6px; } #sheet::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+  #facts { margin: 0 0 12px; display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 14px; }
+  #facts dt { color: var(--ink-2); } #facts dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+  #sheet details { border-top: 1px solid var(--line); padding-top: 8px; }
+  #sheet summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--navy); padding: 4px 0; }
+  #sheet h2 { margin: 0 0 2px; font-size: 15px; font-weight: 700; }
+  #sheet .sub { margin: 0 0 10px; font-size: 13px; color: var(--ink-2); }
+  #checks { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+  #checks li { display: grid; grid-template-columns: 18px 1fr auto; gap: 8px; padding: 6px 0; border-top: 1px solid var(--line); }
+  #checks li span:last-child { font-variant-numeric: tabular-nums; color: var(--ink-2); text-align: right; }
+  #checks svg.i { width: 16px; height: 16px; margin-top: 1px; color: var(--ok); stroke-width: 2.2; }
+  #checks li.fail, #checks li.fail svg.i { color: var(--bad); }
+
+  /* part callouts in the scene */
+  #callouts { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+  #callouts svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  #callouts line { stroke: var(--navy); stroke-width: 1.25; }
+  #callouts circle.dot { fill: var(--navy); stroke: #fff; stroke-width: 2; }
+  .tag { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 7px; padding: 4px 11px 4px 4px; border-radius: 999px; background: var(--paper); box-shadow: var(--shadow);
+    font-size: 14px; font-weight: 600; white-space: nowrap; transition: opacity .2s; will-change: transform; }
+  .tag b { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; border: 1.5px solid var(--navy); color: var(--navy); font-size: 13px; font-weight: 700; }
+  .tag i { font-style: normal; font-weight: 500; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .tag.off { padding: 3px; background: rgba(255,255,255,.75); box-shadow: none; }
+  .tag.off b { width: 20px; height: 20px; border-color: #8a93a3; color: #5d6575; font-size: 11px; }
+  .tag.off span, .tag.off i { display: none; }
+
+  #bar.loading #rail button::before { background: var(--mist); }
+  #bar.loading #ttl { color: var(--ink-2); font-weight: 500; }
+  #err { position: fixed; inset: 0; z-index: 9; display: none; place-items: center; padding: 24px; text-align: center; background: var(--paper); }
+  @media (max-width: 600px) {
+    #title { font-size: 17px; }
+    #text { font-size: 14px; }
+    .edge { width: 44px; height: 44px; margin-top: -22px; }
+    #dock { gap: 4px; }
+    #steps { right: 16px; }
+    #sheet { left: 16px; right: 16px; top: auto; width: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 88px); max-height: 42vh; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+<script type="importmap">
+{ "imports": { "three": "./lib/three.module.min.js", "three/addons/": "./lib/" } }
+</script>
+</head>
+<body>
+<div id="view"></div>
+<div id="callouts" aria-hidden="true"><svg></svg></div>
+
+<header id="bar" class="loading">
+  <nav id="rail" aria-label="Trin"></nav>
+  <div class="head">
+    <div aria-live="polite">
+      <h1 id="title"><span id="num"></span><span id="ttl">Indlæser samlevejledningen …</span></h1>
+      <p id="text"></p>
+    </div>
+    <button id="close" aria-label="Luk vejledningen"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+</header>
+
+<button id="prev" class="edge" aria-label="Forrige trin"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+<button id="next" class="edge" aria-label="Næste trin"><svg class="i" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+
+<div id="dock">
+  <button id="play" aria-label="Afspil trinnet"></button>
+  <input id="scrub" type="range" min="0" max="1" step="0.001" value="0" aria-label="Spol i trinnet">
+  <button id="stepsBtn" aria-expanded="false" aria-controls="steps" aria-label="Vælg trin"><span id="stepsNow"></span><svg class="i" viewBox="0 0 24 24"><path d="M7 14l5-5 5 5"/></svg></button>
+  <button id="dimsBtn" class="tool" hidden aria-pressed="false" aria-label="Vis mål på bordet" title="Vis mål på bordet"><svg class="i" viewBox="0 0 24 24"><path d="M3 16l13-13 5 5L8 21z"/><path d="M7 12l2 2M10 9l2 2M13 6l2 2"/></svg></button>
+  <button id="checkBtn" class="tool" aria-expanded="false" aria-controls="sheet" aria-label="Tjek dit bord" title="Tjek dit bord"><svg class="i" viewBox="0 0 24 24"><path d="M4 7l2 2 3-3M4 15l2 2 3-3M13 8h7M13 16h7"/></svg></button>
+</div>
+
+<section id="steps" class="pop" hidden aria-label="Alle trin">
+  <ol id="stepList"></ol>
+</section>
+
+<section id="sheet" hidden aria-labelledby="sheetTitle">
+  <h2 id="sheetTitle">Tjek dit bord</h2>
+  <p class="sub">Sådan skal det se ud, når det er samlet.</p>
+  <dl id="facts">
+    <dt>Højde</dt><dd>580 mm</dd>
+    <dt>Bakke</dt><dd>520 × 400 mm</dd>
+    <dt>Stellets bredde</dt><dd>486 mm</dd>
+    <dt>Stellet</dt><dd>står plant på alle fire fødder</dd>
+    <dt>Maks. belastning</dt><dd>10 kg på bakken</dd>
+  </dl>
+  <details>
+    <summary>Teknisk kontrol af 3D-modellen</summary>
+    <p class="sub">Målt live i modellen, i mm.</p>
+    <ul id="checks"></ul>
+  </details>
+</section>
+<div id="err"></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/OrbitControls.js';
+import { buildRoom } from './room.js';
+
+let M;
+try {
+  M = await (await fetch('data/manual.json')).json();
+} catch (e) {
+  const err = document.getElementById('err');
+  err.style.display = 'grid';
+  err.innerHTML = 'Kunne ikke læse data/manual.json.<br>Start en lille server i mappen, fx <code>python3 -m http.server 8000</code>, og åbn <code>http://localhost:8000</code>.';
+  throw e;
+}
+
+// ---------- Geometry parameters (mm), all derived from manual.json ----------
+const G = M.geometry;
+const TRAY = { w: 520, d: 400, h: G.trayHeight.value,
+  wall: M.parts[0].subGeometry.wallThickness.value, floor: M.parts[0].subGeometry.floorThickness.value };
+const TOP_Y = G.trayUndersideHeight.value;                 // 520
+const LEG_T = G.legThickness.value;                        // 20 (along X)
+const LEG_W = G.legWidth.value;                            // 30 (in side plane)
+const R_END = LEG_W / 2;
+const RAIL_R = G.railDiameter.value / 2;
+const OUTER_W = M.parts[1].assembledDimensions.outerWidth.value;   // 486
+const INNER_W = M.parts[1].assembledDimensions.innerWidth.value;   // 404
+const GAP = G.legGapX.value;
+const SPREAD = G.holeSpreadZ.value;                        // 327
+const H_BOT = G.bottomHoleHeight.value;                    // 25
+const H_TOP = TOP_Y - R_END;                               // rule: rounded leg top touches tray underside
+const PHI_OPEN = Math.atan2(SPREAD, H_TOP - H_BOT);        // leg angle from vertical when open
+const A = Math.hypot(SPREAD / 2, (H_TOP - H_BOT) / 2);     // pivot -> hole distance (pivot at midpoint, rule)
+const E_FOOT = (H_BOT - R_END) / Math.cos(PHI_OPEN);       // extra leg length below bottom hole so foot reaches floor
+const PHI_FOLD = THREE.MathUtils.degToRad(G.foldedLegAngleDeg.value);
+const STRAP_LEN = 2 * A * Math.sin(PHI_OPEN);              // = SPREAD
+// X positions of leg centres
+const X_OUT = OUTER_W / 2 - LEG_T / 2;                     // 233
+const X_IN  = INNER_W / 2 + LEG_T / 2;                     // 212
+const RAIL_OUT_LEN = OUTER_W, RAIL_IN_LEN = INNER_W + 2 * LEG_T;
+
+// ---------- Scene ----------
+const view = document.getElementById('view');
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+view.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#e9e4da');
+const camera = new THREE.PerspectiveCamera(38, 1, 5, 20000);
+camera.position.set(1500, 1150, 2050);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(-250, 380, -150);
+controls.enableDamping = true;
+controls.maxPolarAngle = Math.PI / 2 - 0.02;
+controls.minDistance = 300; controls.maxDistance = 5000;
+const room = buildRoom(THREE, scene, renderer);
+function draw() { room.update(camera); renderer.render(scene, camera); }
+
+
+// ---------- Materials ----------
+function woodTexture(base) {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 512;
+  const g = c.getContext('2d'); g.fillStyle = base; g.fillRect(0, 0, 256, 512);
+  for (let i = 0; i < 70; i++) {
+    const x = Math.random() * 256, w = 0.5 + Math.random() * 2.5;
+    g.strokeStyle = `rgba(120,85,45,${0.04 + Math.random() * 0.07})`; g.lineWidth = w;
+    g.beginPath(); g.moveTo(x, 0);
+    for (let y = 0; y <= 512; y += 32) g.lineTo(x + Math.sin(y / 70 + i) * 4, y);
+    g.stroke();
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(0.004, 0.002);
+  return t;
+}
+const mat = {
+  wood: new THREE.MeshStandardMaterial({ color: '#ffffff', map: woodTexture(M.colors.wood.hex), roughness: 0.75 }),
+  floor: new THREE.MeshStandardMaterial({ color: M.colors.trayFloor.hex, roughness: 0.6 }),
+  strap: new THREE.MeshStandardMaterial({ color: M.colors.strap.hex, roughness: 0.9 }),
+  metal: new THREE.MeshStandardMaterial({ color: M.colors.metal.hex, metalness: 0.8, roughness: 0.3 }),
+};
+// box UVs are in 0..1 per face; use world-size UVs for the grain
+function worldUV(geo) {
+  geo.computeBoundingBox();
+  const p = geo.attributes.position, n = geo.attributes.normal, uv = new Float32Array(p.count * 2);
+  for (let i = 0; i < p.count; i++) {
+    const ax = Math.abs(n.getX(i)), ay = Math.abs(n.getY(i));
+    const [u, v] = ax > 0.5 ? [p.getZ(i), p.getY(i)] : ay > 0.5 ? [p.getX(i), p.getZ(i)] : [p.getX(i), p.getY(i)];
+    uv[2 * i] = v * 1; uv[2 * i + 1] = u * 1;
+  }
+  geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+  return geo;
+}
+function mesh(geo, m) { const o = new THREE.Mesh(geo, m); o.castShadow = o.receiveShadow = true; return o; }
+
+// ---------- Part 1: tray (origin = underside centre) ----------
+function buildTray() {
+  const g = new THREE.Group(); g.name = 'part1';
+  const { w, d, h, wall, floor: ft } = TRAY;
+  const long = worldUV(new THREE.BoxGeometry(w, h, wall));
+  for (const s of [-1, 1]) { const m = mesh(long, mat.wood); m.position.set(0, h / 2, s * (d / 2 - wall / 2)); g.add(m); }
+  const short = worldUV(new THREE.BoxGeometry(wall, h, d - 2 * wall));
+  for (const s of [-1, 1]) { const m = mesh(short, mat.wood); m.position.set(s * (w / 2 - wall / 2), h / 2, 0); g.add(m); }
+  const fl = mesh(new THREE.BoxGeometry(w - 2 * wall, ft, d - 2 * wall), mat.floor); fl.position.y = ft / 2; g.add(fl);
+  return g;
+}
+
+// ---------- Part 2: folding stand (origin = pivot) ----------
+function legGeometry() {
+  // stadium shape in (x = across leg, y = along leg), pivot at y = 0
+  const yb = -(A + E_FOOT), yt = A, r = R_END;
+  const s = new THREE.Shape();
+  s.moveTo(-r, yb); s.lineTo(-r, yt);
+  s.absarc(0, yt, r, Math.PI, 0, true);
+  s.lineTo(r, yb);
+  s.absarc(0, yb, r, 0, Math.PI, true);
+  const geo = new THREE.ExtrudeGeometry(s, { depth: LEG_T, bevelEnabled: false, curveSegments: 24 });
+  geo.translate(0, 0, -LEG_T / 2);
+  geo.rotateY(-Math.PI / 2);          // shape x -> world z, extrusion -> world x
+  return worldUV(geo);
+}
+function railGeometry(len) { const g = new THREE.CylinderGeometry(RAIL_R, RAIL_R, len, 24); g.rotateZ(Math.PI / 2); return worldUV(g); }
+
+function buildFrame(xLeg, railLen, name) {
+  const f = new THREE.Group(); f.name = name;
+  const lg = legGeometry();
+  for (const s of [-1, 1]) { const l = mesh(lg, mat.wood); l.position.x = s * xLeg; l.name = 'leg'; f.add(l); }
+  for (const y of [A, -A]) { const r = mesh(railGeometry(railLen), mat.wood); r.position.y = y; r.name = y > 0 ? 'railTop' : 'railBottom'; f.add(r); }
+  return f;
+}
+
+const stand = new THREE.Group(); stand.name = 'part2';
+const standBody = new THREE.Group(); stand.add(standBody);  // body rotated when lying
+const frameOut = buildFrame(X_OUT, RAIL_OUT_LEN, 'outer');   // bottom towards +Z (front)
+const frameIn = buildFrame(X_IN, RAIL_IN_LEN, 'inner');      // bottom towards -Z
+standBody.add(frameOut, frameIn);
+// pivot bolts through outer + inner leg on each side
+for (const s of [-1, 1]) {
+  const shaft = mesh(new THREE.CylinderGeometry(4, 4, OUTER_W / 2 - INNER_W / 2 + 4, 16).rotateZ(Math.PI / 2), mat.metal);
+  shaft.position.x = s * (INNER_W / 2 + (OUTER_W - INNER_W) / 4); standBody.add(shaft);
+  const head = mesh(new THREE.SphereGeometry(7, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2).rotateZ(-s * Math.PI / 2), mat.metal);
+  head.position.x = s * OUTER_W / 2; standBody.add(head);
+  const nut = head.clone(); nut.rotation.z = Math.PI; nut.position.x = s * INNER_W / 2; standBody.add(nut);
+}
+const strap = mesh(new THREE.BufferGeometry(), mat.strap); strap.name = 'strap'; standBody.add(strap);
+
+function setFold(phi) {
+  frameOut.rotation.x = -phi;   // top hole -> -Z
+  frameIn.rotation.x = phi;     // top hole -> +Z
+  // strap between the two top rails (centre X = 0); sags as a parabola when slack
+  const zt = A * Math.sin(phi), yt = A * Math.cos(phi) - RAIL_R + 2;
+  const chord = 2 * zt, sag = chord < STRAP_LEN ? Math.sqrt(Math.max(0, 3 * chord * (STRAP_LEN - chord) / 8)) : 0;
+  const curve = new THREE.QuadraticBezierCurve3(new THREE.Vector3(0, yt, -zt), new THREE.Vector3(0, yt - 2 * sag, 0), new THREE.Vector3(0, yt, zt));
+  strap.geometry.dispose();
+  strap.geometry = new THREE.TubeGeometry(curve, 24, 3, 6, false);
+  strap.scale.set(5, 1, 1);   // flatten tube into a ~30 mm wide band
+}
+
+const tray = buildTray();
+scene.add(stand, tray);
+
+// motion arrows, drawn like the manual's: navy, unlit, pointing the way the part moves
+const arrowMat = new THREE.MeshBasicMaterial({ color: '#1b3d84' });
+function makeArrow(len = 120) {
+  const g = new THREE.Group();
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(9, 9, len - 50, 16), arrowMat); shaft.position.y = (len - 50) / 2;
+  const head = new THREE.Mesh(new THREE.ConeGeometry(24, 50, 24), arrowMat); head.position.y = len - 25;
+  g.add(shaft, head); g.visible = false; scene.add(g);
+  return g;
+}
+const arrows = [makeArrow(), makeArrow()];
+const _up = new THREE.Vector3(0, 1, 0);
+function pointArrow(a, at, dir) { a.position.copy(at); a.quaternion.setFromUnitVectors(_up, dir.clone().normalize()); a.visible = true; }
+
+// ---------- Rules: place parts by contact, not by fixed coordinates ----------
+const _b = new THREE.Box3();
+function standBox() { stand.updateMatrixWorld(true); return _b.setFromObject(standBody, true).clone(); }
+// stand: tilt (0 = upright, 1 = lying flat), fold angle; then dropped so its lowest point is on the floor
+function poseStand(tilt, phi, xOffset = 0) {
+  setFold(phi);
+  standBody.rotation.x = tilt * Math.PI / 2;
+  stand.position.set(xOffset, 0, 0);
+  const b = standBox();
+  stand.position.y = -b.min.y;
+  stand.position.z = -(b.min.z + b.max.z) / 2;
+}
+const STAND_X_PACK = 380;                           // stand in the "unpacked" layout (to the right)
+const TRAY_X_PACK = -(TRAY.w / 2) - 160;            // tray beside it, gap ≥ 100 mm checked below
+function trayRestY() { const b = standBox(); return b.max.y; }   // tray underside = highest point of stand
+
+const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const seg = (p, a, b) => ease(THREE.MathUtils.clamp((p - a) / (b - a), 0, 1));
+
+// state for (step, progress p in 0..1)
+function applyState(step, p) {
+  const type = M.steps[step].animation.type;
+  label10.visible = false; dimGroup.visible = dimsBox.checked && step === 4;
+  arrows.forEach(a => a.visible = false);
+  if (type === 'layout') {
+    poseStand(1, PHI_FOLD, STAND_X_PACK);
+    tray.position.set(TRAY_X_PACK, 0, 0);
+  } else if (type === 'unfold') {
+    const tilt = 1 - seg(p, 0, 0.35), phi = THREE.MathUtils.lerp(PHI_FOLD, PHI_OPEN, seg(p, 0.35, 1));
+    poseStand(tilt, phi, THREE.MathUtils.lerp(STAND_X_PACK, 0, seg(p, 0, 0.35)));
+    tray.position.set(TRAY_X_PACK - 300, 0, 0);
+    if (p >= 0.35) {   // manual step 1: pull the two frames apart at the top
+      const b = standBox(), y = b.max.y - 30;
+      pointArrow(arrows[0], new THREE.Vector3(0, y, b.min.z - 30), new THREE.Vector3(0, 0, -1));
+      pointArrow(arrows[1], new THREE.Vector3(0, y, b.max.z + 30), new THREE.Vector3(0, 0, 1));
+    }
+  } else {
+    poseStand(0, PHI_OPEN, 0);
+    const rest = trayRestY(), hover = rest + 150;
+    const parked = new THREE.Vector3(TRAY_X_PACK - 300, 0, 0);
+    if (type === 'trayHover') {
+      const up = seg(p, 0, 0.45), over = seg(p, 0.45, 1);
+      tray.position.set(THREE.MathUtils.lerp(parked.x, 0, over), THREE.MathUtils.lerp(0, hover, up), 0);
+    } else if (type === 'trayLower') {
+      tray.position.set(0, THREE.MathUtils.lerp(hover, rest, seg(p, 0, 0.85)), 0);
+      if (p < 0.95) {   // manual step 2: press down at two opposite corners
+        const top = tray.position.y + TRAY.h + 180;
+        pointArrow(arrows[0], new THREE.Vector3(-150, top, 90), new THREE.Vector3(0, -1, 0));
+        pointArrow(arrows[1], new THREE.Vector3(150, top, -90), new THREE.Vector3(0, -1, 0));
+      }
+    } else {
+      tray.position.set(0, rest, 0);
+      label10.visible = true; label10.material.opacity = seg(p, 0, 0.5);
+    }
+  }
+}
+
+// ---------- Labels and dimension lines ----------
+function textSprite(txt, { size = 40, color = '#26221e', bg = null, w = 512, h = 128 } = {}) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d');
+  if (bg) { g.fillStyle = bg; g.beginPath(); g.roundRect(4, 4, w - 8, h - 8, 28); g.fill(); }
+  g.fillStyle = color; g.font = `600 ${h * 0.45}px system-ui, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText(txt, w / 2, h / 2);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthTest: false }));
+  s.scale.set(size * w / h, size, 1); s.renderOrder = 10;
+  return s;
+}
+const label10 = textSprite('Maks. 10 kg', { size: 60, color: '#fff', bg: '#1b3d84' });
+label10.position.set(0, TOP_Y + TRAY.h + 140, 0); scene.add(label10);
+
+const dimGroup = new THREE.Group(); scene.add(dimGroup);
+function dimLine(a, b, txt, off) {
+  const mtl = new THREE.LineBasicMaterial({ color: '#1b3d84', depthTest: false });
+  const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints([a, b]), mtl); l.renderOrder = 9; dimGroup.add(l);
+  const s = textSprite(txt, { size: 34, bg: '#ffffffdd' }); s.position.copy(a).add(b).multiplyScalar(0.5).add(off); dimGroup.add(s);
+}
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+dimLine(V(-300, 0, 220), V(-300, TOP_Y + TRAY.h, 220), '580 mm', V(-90, 0, 0));
+dimLine(V(-260, TOP_Y + TRAY.h + 40, 220), V(260, TOP_Y + TRAY.h + 40, 220), '520 mm', V(0, 30, 0));
+dimLine(V(300, TOP_Y + TRAY.h + 40, -200), V(300, TOP_Y + TRAY.h + 40, 200), '400 mm', V(90, 30, 0));
+dimLine(V(-243, 5, 260), V(243, 5, 260), '486 mm', V(0, 40, 40));
+dimLine(V(290, 5, -187.5), V(290, 5, 187.5), '375 mm', V(90, 30, 0));
+
+// ---------- Highlight ----------
+const highlight = new Set();
+function setHighlight(ids) {
+  highlight.clear(); ids.forEach(id => highlight.add(id));
+}
+const hiMats = new Map();
+function hiMaterial(m) { if (!hiMats.has(m)) { const c = m.clone(); c.emissive = new THREE.Color('#ff8a2a'); hiMats.set(m, c); } return hiMats.get(m); }
+function updateHighlight(time) {
+  const k = 0.10 + 0.06 * Math.sin(time * 4);
+  hiMats.forEach(m => m.emissiveIntensity = k);
+  for (const [root, id] of [[tray, '1'], [stand, '2']]) {
+    root.traverse(o => { if (o.isMesh) { o.userData.base ??= o.material; o.material = highlight.has(id) ? hiMaterial(o.userData.base) : o.userData.base; } });
+  }
+}
+
+// ---------- Checks (all in mm) ----------
+function pointSegDist2D(p, a, b) {
+  const ab = b.clone().sub(a), t = THREE.MathUtils.clamp(p.clone().sub(a).dot(ab) / ab.lengthSq(), 0, 1);
+  return p.distanceTo(a.clone().addScaledVector(ab, t));
+}
+function legSegYZ(frame) {   // centre line (end-circle centres) of a leg in stand-body coords, as 2D (z, y)
+  const q = frame.rotation.x, d = new THREE.Vector2(Math.sin(q), Math.cos(q));  // direction of +y local in (z,y)
+  return [d.clone().multiplyScalar(-(A + E_FOOT)), d.clone().multiplyScalar(A)];
+}
+function railYZ(frame, y) { const q = frame.rotation.x; return new THREE.Vector2(y * Math.sin(q), y * Math.cos(q)); }
+function runChecks(step, p = 1) {
+  const res = [], ok = (name, pass, val) => res.push({ name, pass, val });
+  stand.updateMatrixWorld(true); tray.updateMatrixWorld(true);
+  const sb = standBox(), tb = _b.setFromObject(tray, true).clone();
+  ok('Stel hviler på gulvet (laveste punkt)', Math.abs(sb.min.y) < 0.5, sb.min.y.toFixed(1));
+  ok('Bakke svæver ikke under gulv', tb.min.y > -0.5, tb.min.y.toFixed(1));
+  // clearance between each rail and the legs of the *other* frame (same X range) in side plane
+  let minClr = Infinity;
+  for (const [fr, other] of [[frameOut, frameIn], [frameIn, frameOut]]) {
+    const [a, b] = legSegYZ(other);
+    for (const y of [A, -A]) minClr = Math.min(minClr, pointSegDist2D(railYZ(fr, y), a, b) - R_END - RAIL_R);
+  }
+  ok('Tværstænger rammer ikke modsat ramme', minClr > -0.01, minClr.toFixed(1));
+  ok('Luft mellem ydre og indre ben (X)', (X_OUT - LEG_T / 2) - (X_IN + LEG_T / 2) >= 0, ((X_OUT - LEG_T / 2) - (X_IN + LEG_T / 2)).toFixed(1));
+  const gapTray = tb.min.x > sb.max.x || tb.max.x < sb.min.x ? Math.max(tb.min.x - sb.max.x, sb.min.x - tb.max.x) : null;
+  if (step >= 3 && p >= 1) {
+    ok('Bakkens underside = stellets top (520)', Math.abs(tb.min.y - sb.max.y) < 0.5 && Math.abs(sb.max.y - TOP_Y) < 0.5, `${tb.min.y.toFixed(1)} / ${sb.max.y.toFixed(1)}`);
+    ok('Total højde 580', Math.abs(tb.max.y - 580) < 0.5, tb.max.y.toFixed(1));
+    ok('Bakke 520 × 400', Math.abs(tb.max.x - tb.min.x - 520) < 0.5 && Math.abs(tb.max.z - tb.min.z - 400) < 0.5, `${(tb.max.x - tb.min.x).toFixed(1)} × ${(tb.max.z - tb.min.z).toFixed(1)}`);
+    ok('Bakke centreret over stel', Math.abs((tb.min.x + tb.max.x) / 2 - (sb.min.x + sb.max.x) / 2) < 0.5 && Math.abs((tb.min.z + tb.max.z) / 2 - (sb.min.z + sb.max.z) / 2) < 0.5, '');
+  } else if (gapTray !== null) ok('Bakke og stel overlapper ikke', gapTray > 0, gapTray.toFixed(1));
+  if (step >= 2) {
+    const wb = new THREE.Box3(); standBody.traverse(o => { if (o.name === 'leg' || o.name.startsWith('rail')) wb.expandByObject(o, true); });
+    ok('Stelbredde 486 (træ, uden boltehoveder)', Math.abs(wb.max.x - wb.min.x - 486) < 0.5, (wb.max.x - wb.min.x).toFixed(1));
+    ok('Fodspor 375 (manual)', Math.abs(sb.max.z - sb.min.z - 375) < 8, (sb.max.z - sb.min.z).toFixed(1) + ' (tol. 8)');
+    ok('Drejebolt-højde ≈ 266 (aflæst)', Math.abs(stand.position.y - 266) < 5, stand.position.y.toFixed(1));
+  }
+  if (step === 0) ok('Sammenfoldet tykkelse (pakke: 55)', true, (sb.max.y - sb.min.y).toFixed(1) + ' – estimeret, se rapport');
+  return res;
+}
+
+// ---------- UI ----------
+const $ = id => document.getElementById(id);
+const ICON = {
+  play: '<svg class="i" viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg>',
+  pause: '<svg class="i" viewBox="0 0 24 24"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>',
+  replay: '<svg class="i ln" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/></svg>',
+  ok: '<svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></svg>',
+  bad: '<svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+};
+const dimsBox = { checked: false };
+let step = 0, prog = 0, playing = false, last = performance.now();
+const DUR = 4.0;
+M.steps.forEach((s, i) => {
+  const b = document.createElement('button');
+  b.setAttribute('aria-label', `Trin ${i + 1} af ${M.steps.length}: ${s.title}`);
+  b.onclick = () => go(i);
+  $('rail').appendChild(b);
+});
+function partName(id) { return M.parts.find(p => p.id === id)?.name.replace(/\s*\(.*\)$/, '') ?? id; }
+
+// callouts: manual-style circled numbers that follow each part in the scene
+const PART_OBJ = { '1': tray, '2': stand };
+const svgNS = 'http://www.w3.org/2000/svg', calloutSvg = document.querySelector('#callouts svg');
+const tags = {};
+for (const p of M.parts) {
+  const el = document.createElement('div'); el.className = 'tag';
+  el.innerHTML = `<b>${p.id}</b><span>${partName(p.id)}</span><i></i>`;
+  const line = document.createElementNS(svgNS, 'line'), dot = document.createElementNS(svgNS, 'circle');
+  dot.setAttribute('class', 'dot'); dot.setAttribute('r', 4);
+  calloutSvg.append(line, dot); $('callouts').appendChild(el);
+  tags[p.id] = { el, line, dot, side: p.id === '1' ? -1 : 1 };
+}
+const _box = new THREE.Box3(), _pt = new THREE.Vector3();
+function updateCallouts() {
+  const s = M.steps[step], inStep = new Map(s.parts.map(p => [p.id, p.quantity]));
+  const top = $('bar').getBoundingClientRect().bottom + 8, bottom = $('dock').getBoundingClientRect().top - 8;
+  for (const [id, t] of Object.entries(tags)) {
+    const obj = PART_OBJ[id]; obj.updateMatrixWorld(true);
+    _box.setFromObject(id === '2' ? standBody : obj);
+    // tray: top centre; stand: front face at 45 % height, so the two never share an anchor
+    if (id === '1') _pt.set((_box.min.x + _box.max.x) / 2, _box.max.y, (_box.min.z + _box.max.z) / 2);
+    else _pt.set((_box.min.x + _box.max.x) / 2, _box.min.y + 0.45 * (_box.max.y - _box.min.y), _box.max.z);
+    _pt.project(camera);
+    const vis = _pt.z < 1 && Math.abs(_pt.x) < 1.1 && Math.abs(_pt.y) < 1.1;
+    const ax = (_pt.x + 1) / 2 * innerWidth, ay = (1 - _pt.y) / 2 * innerHeight;
+    const on = inStep.has(id);
+    t.el.classList.toggle('off', !on);
+    t.el.querySelector('i').textContent = on ? `× ${inStep.get(id)}` : '';
+    const w = t.el.offsetWidth, h = t.el.offsetHeight;
+    const reach = on ? 64 : 34;
+    let lx = ax + t.side * reach - (t.side < 0 ? w : 0), ly = ay - reach * 0.8 - h / 2;
+    lx = Math.min(Math.max(lx, 68), innerWidth - w - 68);   // keep clear of the prev/next buttons
+    ly = Math.min(Math.max(ly, top), bottom - h);
+    t.el.style.transform = `translate(${lx}px, ${ly}px)`;
+    t.el.style.opacity = vis ? 1 : 0;
+    const ex = t.side < 0 ? lx + w - 6 : lx + 6, ey = ly + h / 2;
+    for (const [k, v] of [['x1', ex], ['y1', ey], ['x2', ax], ['y2', ay]]) t.line.setAttribute(k, v);
+    t.dot.setAttribute('cx', ax); t.dot.setAttribute('cy', ay);
+    t.line.style.opacity = t.dot.style.opacity = vis && on ? 1 : 0;
+  }
+}
+
+function renderUI() {
+  const s = M.steps[step], n = M.steps.length;
+  $('bar').classList.remove('loading');
+  $('num').textContent = `${step + 1} af ${n}`;
+  $('ttl').textContent = s.title;
+  $('text').textContent = s.short ?? s.text;
+  $('stepsNow').textContent = `${step + 1}/${n}`;
+  [...$('stepList').children].forEach((li, i) => { const b = li.firstChild; b.classList.toggle('done', i < step); b.setAttribute('aria-current', i === step ? 'step' : 'false'); });
+  [...$('rail').children].forEach((d, i) => { d.classList.toggle('on', i === step); d.classList.toggle('done', i < step); d.setAttribute('aria-current', i === step ? 'step' : 'false'); });
+  $('prev').disabled = step === 0; $('next').disabled = step === n - 1;
+  $('next').classList.toggle('pulse', prog >= 1 && !playing && step < n - 1);
+  $('play').innerHTML = playing ? ICON.pause : prog >= 1 ? ICON.replay : ICON.play;
+  $('play').setAttribute('aria-label', playing ? 'Pause' : prog >= 1 ? 'Afspil trinnet igen' : 'Afspil trinnet');
+  setScrub();
+  const final = s.animation.type === 'final';
+  $('dimsBtn').hidden = !final;
+  $('dimsBtn').setAttribute('aria-pressed', String(final && dimsBox.checked));
+  setHighlight(final ? [] : s.parts.map(p => p.id));
+  applyState(step, prog);
+  fitView();
+  $('checks').innerHTML = runChecks(step, prog).map(c => `<li class="${c.pass ? '' : 'fail'}">${c.pass ? ICON.ok : ICON.bad}<span>${c.name}</span><span>${c.val}</span></li>`).join('');
+}
+function setScrub() { $('scrub').value = prog; $('scrub').style.setProperty('--p', `${prog * 100}%`); }
+function go(i, autoplay = true) { step = THREE.MathUtils.clamp(i, 0, M.steps.length - 1); prog = 0; playing = autoplay; renderUI(); }
+$('prev').onclick = () => go(step - 1);
+$('next').onclick = () => go(step + 1);
+$('scrub').oninput = e => { prog = +e.target.value; playing = false; renderUI(); };
+$('play').onclick = () => { if (prog >= 1) prog = 0; playing = !playing; renderUI(); };
+$('dimsBtn').onclick = () => { dimsBox.checked = !dimsBox.checked; renderUI(); };
+// one pop-over at a time: the step list or the table check
+function toggle(btn, panel, force) {
+  const open = force ?? panel.hidden;
+  for (const [b, p] of [[$('stepsBtn'), $('steps')], [$('checkBtn'), $('sheet')]]) { p.hidden = true; b.setAttribute('aria-expanded', 'false'); }
+  panel.hidden = !open; btn.setAttribute('aria-expanded', String(open)); fitView();
+}
+$('checkBtn').onclick = () => toggle($('checkBtn'), $('sheet'));
+$('stepsBtn').onclick = () => toggle($('stepsBtn'), $('steps'));
+M.steps.forEach((st, i) => {
+  const li = document.createElement('li'), b = document.createElement('button');
+  b.innerHTML = `<b>${i + 1}</b><span></span>`; b.lastChild.textContent = st.title;
+  b.onclick = () => { toggle($('stepsBtn'), $('steps'), false); go(i); };
+  li.appendChild(b); $('stepList').appendChild(li);
+});
+$('close').onclick = () => {
+  // the host product page listens for this to close the pop-up
+  if (window.parent !== window) window.parent.postMessage({ type: 'serup-guide:close' }, '*');
+  else if (history.length > 1) history.back();
+};
+addEventListener('keydown', e => {
+  if (e.target.closest('input')) return;
+  if (e.key === 'ArrowRight') go(step + 1);
+  if (e.key === 'ArrowLeft') go(step - 1);
+  if (e.key === ' ' && !e.target.closest('button')) { e.preventDefault(); $('play').click(); }
+  if (e.key === 'Escape') { if (!$('sheet').hidden || !$('steps').hidden) toggle($('stepsBtn'), $('steps'), false); else $('close').click(); }
+});
+
+// keep the model centred in the free band between the top bar and the dock (or an open bottom sheet)
+function fitView() {
+  const w = innerWidth, h = innerHeight, barB = $('bar').getBoundingClientRect().bottom;
+  document.documentElement.style.setProperty('--bar-h', `${Math.round(barB)}px`);
+  const pop = !$('sheet').hidden && w <= 600 ? $('sheet') : null;
+  const low = pop ? pop.getBoundingClientRect().top : $('dock').getBoundingClientRect().top;
+  camera.setViewOffset(w, h, 0, -((barB + low) / 2 - h / 2), w, h);
+}
+function resize() { const w = innerWidth, h = innerHeight; renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); fitView(); }
+addEventListener('resize', resize); resize();
+if (innerWidth < innerHeight) { camera.fov = 58; controls.target.y = 300; camera.updateProjectionMatrix(); }  // portrait: model between the bars
+
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (playing) {
+    prog = Math.min(1, prog + dt / DUR);
+    applyState(step, prog); setScrub();
+    if (prog >= 1) {
+      playing = false;
+      renderUI();
+    }
+  }
+  updateHighlight(now / 1000);
+  controls.update();
+  draw();
+  updateCallouts();
+  requestAnimationFrame(frame);
+}
+go(0, false);
+requestAnimationFrame(frame);
+
+// test hook for automated verification
+window.guide = {
+  steps: M.steps.length,
+  set(i, p) { playing = false; step = i; prog = p; renderUI(); updateHighlight(0); controls.update(); draw(); updateCallouts(); return runChecks(i, p); },
+  view(pos, target) { camera.position.set(...pos); controls.target.set(...target); controls.update(); draw(); updateCallouts(); },
+  dims(on) { dimsBox.checked = on; renderUI(); draw(); },
+  info: { A, PHI_OPEN_deg: THREE.MathUtils.radToDeg(PHI_OPEN), E_FOOT, H_TOP, legLength: 2 * A + E_FOOT + 2 * R_END },
+};
+</script>
+</body>
+</html>
