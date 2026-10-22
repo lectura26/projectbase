@@ -116,7 +116,8 @@ export function buildRoom(THREE, scene, renderer, opts = {}) {
   floorGeo.translate((R.x0 + R.x1) / 2, 0, (R.z0 + R.z1) / 2);
   const p = floorGeo.attributes.position, uv = floorGeo.attributes.uv, c45 = Math.SQRT1_2;
   for (let i = 0; i < p.count; i++) uv.setXY(i, (p.getX(i) * c45 - p.getZ(i) * c45) / hb.tile, (p.getX(i) * c45 + p.getZ(i) * c45) / hb.tile);
-  const floor = new THREE.Mesh(floorGeo, new THREE.MeshStandardMaterial({ map: hb.texture, roughness: 0.5, metalness: 0 }));
+  // the floor always loses the depth test against things lying on it
+  const floor = new THREE.Mesh(floorGeo, new THREE.MeshStandardMaterial({ map: hb.texture, roughness: 0.5, metalness: 0, polygonOffset: true, polygonOffsetFactor: 4, polygonOffsetUnits: 4 }));
   floor.receiveShadow = true; floor.name = 'floor'; root.add(floor);
 
   // rug under the work area (manual: assemble on a soft surface); 1 mm so parts still stand at y = 0

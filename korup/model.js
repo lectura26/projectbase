@@ -165,7 +165,8 @@ export function buildKorup(manual) {
   };
   for (const y of [200, 500]) { clip(V(-INNER, y, -146), V(-1, 0, 0), V(0, 0, 1)); clip(V(INNER, y, -146), V(1, 0, 0), V(0, 0, 1)); }
   for (const x of [-150, 150]) clip(V(x, TOP_Y, -146), V(0, 1, 0), V(0, 0, 1));
-  for (const x of [-100, 100]) clip(V(x, RAIL_LOW_Y + 6, -142), V(0, 0, 1), V(0, 1, 0));
+  // bottom clips: on the back panel just above its lower edge, screw through the panel into rail 12
+  for (const x of [-100, 100]) clip(V(x, RAIL_LOW_Y + 10.5, -142), V(0, 0, 1), V(0, 1, 0));
   // --- trin 12: wall plug + wall screw (not in the box), in world coordinates ---
   const tabFace = new THREE.Vector3(0, TOP_Y - 16, BACK_Z + 4).applyMatrix4(groups.carcass.poses.wall);   // through the hole in E's tab
   const wallPt = tabFace.clone(); wallPt.x = 3000;                                                          // the room's right wall

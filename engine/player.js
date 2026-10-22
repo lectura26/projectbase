@@ -30,7 +30,7 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
   const H = Object.fromEntries(hardware.map(h => [h.id, h]));
 
   // ---------- materials ----------
-  const PO = { polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 };   // faces sit a hair behind their edge lines
+  const PO = { polygonOffset: true, polygonOffsetFactor: 0.5, polygonOffsetUnits: 1 };   // faces sit a hair behind their edge lines
   const melamine = new THREE.MeshStandardMaterial({ color: '#f3f3f0', roughness: 0.55, ...PO });
   const edge = new THREE.MeshStandardMaterial({ color: '#cfd0ca', roughness: 0.7, ...PO });
   const hardboard = new THREE.MeshStandardMaterial({ color: '#b08a60', roughness: 0.9, ...PO });
@@ -319,8 +319,22 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
     const u = seg(t, a.t0, a.t1);
     if (a.type === 'measure' || a.type === 'mark' || a.type === 'drill') {
       if (a.type !== 'measure' && u >= (a.type === 'mark' ? 0.55 : 0.6)) showMark(a);
+      if (a.type === 'measure' && isCurrent && u >= 0.7) showMeasure(a);   // the measured line stays for the rest of the step
       if (isCurrent && t > a.t0 && t < a.t1) { toolUse = { a, s: u }; focus = { kind: 'point', a }; }
     }
+  }
+  function showMeasure(a) {
+    const gw = P[a.host] ? G[P[a.host].group].M : G[a.host].M;
+    const A = a.a.clone().applyMatrix4(gw), B = a.b.clone().applyMatrix4(gw);
+    if (!a._keep) {
+      const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([A, B]), new THREE.LineDashedMaterial({ color: '#1b3d84', dashSize: 14, gapSize: 8, depthTest: false }));
+      line.renderOrder = 25; const lab = makeLabel(a.label); lab.scale.set(150, 33, 1);
+      a._keep = new THREE.Group(); a._keep.add(line, lab); a._keep.userData = { line, lab }; scene.add(a._keep); marks.push(a._keep);
+    }
+    const { line, lab } = a._keep.userData;
+    line.geometry.setFromPoints([A, B]); line.computeLineDistances();
+    lab.position.copy(A).lerp(B, 0.5).add(new THREE.Vector3(0, 30, 0));
+    a._keep.visible = true;
   }
   function showMark(a) {
     if (!a._mark) {
@@ -443,7 +457,7 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
         const v = Math.max(0, (s - 0.22) / 0.78), f = (v * 3) % 1;
         const lift = s < 0.22 ? 0.55 : (f < 0.78 ? 0.55 * Math.sin((f / 0.78) * Math.PI / 2) : 0.55 * (1 - (f - 0.78) / 0.22));
         const pivot = new THREE.Vector3(312, -40, 0);
-        const swing = new THREE.Matrix4().makeTranslation(pivot.x, pivot.y, 0).multiply(new THREE.Matrix4().makeRotationZ(-lift)).multiply(new THREE.Matrix4().makeTranslation(-pivot.x, -pivot.y, 0));
+        const swing = new THREE.Matrix4().makeTranslation(pivot.x, pivot.y, 0).multiply(new THREE.Matrix4().makeRotationZ(lift))   /* + lifts the head away from the work (−d) */.multiply(new THREE.Matrix4().makeTranslation(-pivot.x, -pivot.y, 0));
         M.multiply(swing).multiply(new THREE.Matrix4().makeTranslation(0, -approach * 80, 0));
         tool.matrixAutoUpdate = false; tool.matrix.copy(M); tool.visible = true;
       } else {
@@ -551,13 +565,14 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
   function applyLooks(si, p, time) {
     const st = steps[si], t = p * st.dur;
     const active = new Set([...st.focus, ...st.find]);
-    const groupsActive = new Set([...active].map(id => P[id]?.group));
+    // a panel counts as assembled once at least one other panel is fastened to the same group
+    const attachedCount = {}; for (const q of parts) if (q.state.mode === 'group') attachedCount[q.group] = (attachedCount[q.group] || 0) + 1;
     const xray = st.xray && (focus?.kind === 'item' || focus?.kind === 'point');
     const intro = st.intro && t < st.intro;
     for (const p of parts) {
       let mode = 'normal';
       // only loose panels that are not used in this step are toned down; anything already assembled stays solid
-      if (si > 0 && !active.has(p.id) && p.state.mode !== 'group') mode = 'ghost';
+      if (si > 0 && !active.has(p.id) && !(p.state.mode === 'group' && attachedCount[p.group] > 1)) mode = 'ghost';
       if (xray && p.group === 'carcass') mode = 'ghost';
       if (intro && st.find.includes(p.id)) mode = 'hi';
       setLook(p, mode);

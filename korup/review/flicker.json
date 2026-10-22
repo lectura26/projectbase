@@ -14,430 +14,35 @@
       "p": 0,
       "view": "bagfra",
       "unstablePixels": 0,
+      "sparklePixels": 0,
+      "hotCells": []
+    },
+    {
+      "step": 1,
+      "p": 0.5,
+      "view": "forfra",
+      "unstablePixels": 0,
+      "sparklePixels": 0,
+      "hotCells": []
+    },
+    {
+      "step": 1,
+      "p": 0.5,
+      "view": "bagfra",
+      "unstablePixels": 0,
       "sparklePixels": 1,
       "hotCells": []
     },
     {
       "step": 1,
-      "p": 0.5,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 24,
-      "hotCells": [
-        {
-          "cell": [
-            416,
-            480
-          ],
-          "n": 9
-        },
-        {
-          "cell": [
-            480,
-            544
-          ],
-          "n": 8
-        }
-      ],
-      "image": "korup/review/flicker/s01_50_forfra.png"
-    },
-    {
-      "step": 1,
-      "p": 0.5,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 6,
-      "hotCells": []
-    },
-    {
-      "step": 1,
       "p": 1,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 25,
-      "hotCells": [
-        {
-          "cell": [
-            416,
-            480
-          ],
-          "n": 9
-        },
-        {
-          "cell": [
-            480,
-            544
-          ],
-          "n": 8
-        }
-      ],
-      "image": "korup/review/flicker/s01_100_forfra.png"
-    },
-    {
-      "step": 1,
-      "p": 1,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 6,
-      "hotCells": []
-    },
-    {
-      "step": 2,
-      "p": 0.5,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 25,
-      "hotCells": [
-        {
-          "cell": [
-            416,
-            480
-          ],
-          "n": 9
-        },
-        {
-          "cell": [
-            480,
-            544
-          ],
-          "n": 8
-        }
-      ],
-      "image": "korup/review/flicker/s02_50_forfra.png"
-    },
-    {
-      "step": 2,
-      "p": 0.5,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 6,
-      "hotCells": []
-    },
-    {
-      "step": 2,
-      "p": 1,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 25,
-      "hotCells": [
-        {
-          "cell": [
-            416,
-            480
-          ],
-          "n": 9
-        },
-        {
-          "cell": [
-            480,
-            544
-          ],
-          "n": 8
-        }
-      ],
-      "image": "korup/review/flicker/s02_100_forfra.png"
-    },
-    {
-      "step": 2,
-      "p": 1,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 6,
-      "hotCells": []
-    },
-    {
-      "step": 3,
-      "p": 0.5,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 11,
-      "hotCells": [
-        {
-          "cell": [
-            416,
-            480
-          ],
-          "n": 9
-        }
-      ],
-      "image": "korup/review/flicker/s03_50_forfra.png"
-    },
-    {
-      "step": 3,
-      "p": 0.5,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 6,
-      "hotCells": []
-    },
-    {
-      "step": 3,
-      "p": 1,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 26,
-      "hotCells": [
-        {
-          "cell": [
-            416,
-            480
-          ],
-          "n": 9
-        },
-        {
-          "cell": [
-            480,
-            544
-          ],
-          "n": 8
-        }
-      ],
-      "image": "korup/review/flicker/s03_100_forfra.png"
-    },
-    {
-      "step": 3,
-      "p": 1,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 6,
-      "hotCells": []
-    },
-    {
-      "step": 4,
-      "p": 0.5,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 27,
-      "hotCells": [
-        {
-          "cell": [
-            416,
-            480
-          ],
-          "n": 9
-        },
-        {
-          "cell": [
-            480,
-            544
-          ],
-          "n": 8
-        }
-      ],
-      "image": "korup/review/flicker/s04_50_forfra.png"
-    },
-    {
-      "step": 4,
-      "p": 0.5,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 9,
-      "hotCells": []
-    },
-    {
-      "step": 4,
-      "p": 1,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 26,
-      "hotCells": [
-        {
-          "cell": [
-            416,
-            480
-          ],
-          "n": 9
-        },
-        {
-          "cell": [
-            480,
-            544
-          ],
-          "n": 8
-        }
-      ],
-      "image": "korup/review/flicker/s04_100_forfra.png"
-    },
-    {
-      "step": 4,
-      "p": 1,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 6,
-      "hotCells": []
-    },
-    {
-      "step": 5,
-      "p": 0.5,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 11,
-      "hotCells": []
-    },
-    {
-      "step": 5,
-      "p": 0.5,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 6,
-      "hotCells": []
-    },
-    {
-      "step": 5,
-      "p": 1,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 10,
-      "hotCells": []
-    },
-    {
-      "step": 5,
-      "p": 1,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 8,
-      "hotCells": []
-    },
-    {
-      "step": 6,
-      "p": 0.5,
       "view": "forfra",
       "unstablePixels": 0,
       "sparklePixels": 0,
       "hotCells": []
     },
     {
-      "step": 6,
-      "p": 0.5,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 5,
-      "hotCells": []
-    },
-    {
-      "step": 6,
-      "p": 1,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 8,
-      "hotCells": []
-    },
-    {
-      "step": 6,
-      "p": 1,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 0,
-      "hotCells": []
-    },
-    {
-      "step": 7,
-      "p": 0.5,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 9,
-      "hotCells": []
-    },
-    {
-      "step": 7,
-      "p": 0.5,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 17,
-      "hotCells": [
-        {
-          "cell": [
-            352,
-            256
-          ],
-          "n": 6
-        }
-      ],
-      "image": "korup/review/flicker/s07_50_bagfra.png"
-    },
-    {
-      "step": 7,
-      "p": 1,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 20,
-      "hotCells": []
-    },
-    {
-      "step": 7,
-      "p": 1,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 15,
-      "hotCells": [
-        {
-          "cell": [
-            288,
-            224
-          ],
-          "n": 10
-        }
-      ],
-      "image": "korup/review/flicker/s07_100_bagfra.png"
-    },
-    {
-      "step": 8,
-      "p": 0.5,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 0,
-      "hotCells": []
-    },
-    {
-      "step": 8,
-      "p": 0.5,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 3,
-      "hotCells": []
-    },
-    {
-      "step": 8,
-      "p": 1,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 4,
-      "hotCells": []
-    },
-    {
-      "step": 8,
-      "p": 1,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 3,
-      "hotCells": []
-    },
-    {
-      "step": 9,
-      "p": 0.5,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 7,
-      "hotCells": []
-    },
-    {
-      "step": 9,
-      "p": 0.5,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 4,
-      "hotCells": []
-    },
-    {
-      "step": 9,
-      "p": 1,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 7,
-      "hotCells": []
-    },
-    {
-      "step": 9,
+      "step": 1,
       "p": 1,
       "view": "bagfra",
       "unstablePixels": 0,
@@ -445,35 +50,35 @@
       "hotCells": []
     },
     {
-      "step": 10,
+      "step": 8,
       "p": 0.5,
       "view": "forfra",
       "unstablePixels": 0,
-      "sparklePixels": 11,
+      "sparklePixels": 3,
       "hotCells": []
     },
     {
-      "step": 10,
+      "step": 8,
       "p": 0.5,
       "view": "bagfra",
       "unstablePixels": 0,
-      "sparklePixels": 10,
+      "sparklePixels": 4,
       "hotCells": []
     },
     {
-      "step": 10,
+      "step": 8,
       "p": 1,
       "view": "forfra",
       "unstablePixels": 0,
-      "sparklePixels": 10,
+      "sparklePixels": 6,
       "hotCells": []
     },
     {
-      "step": 10,
+      "step": 8,
       "p": 1,
       "view": "bagfra",
       "unstablePixels": 0,
-      "sparklePixels": 9,
+      "sparklePixels": 1,
       "hotCells": []
     },
     {
@@ -481,107 +86,11 @@
       "p": 0.5,
       "view": "forfra",
       "unstablePixels": 0,
-      "sparklePixels": 8,
+      "sparklePixels": 7,
       "hotCells": []
     },
     {
       "step": 11,
-      "p": 0.5,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 12,
-      "hotCells": []
-    },
-    {
-      "step": 11,
-      "p": 1,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 8,
-      "hotCells": []
-    },
-    {
-      "step": 11,
-      "p": 1,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 13,
-      "hotCells": []
-    },
-    {
-      "step": 12,
-      "p": 0.5,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 0,
-      "hotCells": []
-    },
-    {
-      "step": 12,
-      "p": 0.5,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 0,
-      "hotCells": []
-    },
-    {
-      "step": 12,
-      "p": 1,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 10,
-      "hotCells": []
-    },
-    {
-      "step": 12,
-      "p": 1,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 15,
-      "hotCells": []
-    },
-    {
-      "step": 13,
-      "p": 0.5,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 0,
-      "hotCells": []
-    },
-    {
-      "step": 13,
-      "p": 0.5,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 10,
-      "hotCells": []
-    },
-    {
-      "step": 13,
-      "p": 1,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 0,
-      "hotCells": []
-    },
-    {
-      "step": 13,
-      "p": 1,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 10,
-      "hotCells": []
-    },
-    {
-      "step": 14,
-      "p": 0.5,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 0,
-      "hotCells": []
-    },
-    {
-      "step": 14,
       "p": 0.5,
       "view": "bagfra",
       "unstablePixels": 0,
@@ -589,71 +98,7 @@
       "hotCells": []
     },
     {
-      "step": 14,
-      "p": 1,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 0,
-      "hotCells": []
-    },
-    {
-      "step": 14,
-      "p": 1,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 2,
-      "hotCells": []
-    },
-    {
-      "step": 15,
-      "p": 0.5,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 6,
-      "hotCells": []
-    },
-    {
-      "step": 15,
-      "p": 0.5,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 12,
-      "hotCells": []
-    },
-    {
-      "step": 15,
-      "p": 1,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 6,
-      "hotCells": []
-    },
-    {
-      "step": 15,
-      "p": 1,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 12,
-      "hotCells": []
-    },
-    {
-      "step": 16,
-      "p": 0.5,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 1,
-      "hotCells": []
-    },
-    {
-      "step": 16,
-      "p": 0.5,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 3,
-      "hotCells": []
-    },
-    {
-      "step": 16,
+      "step": 11,
       "p": 1,
       "view": "forfra",
       "unstablePixels": 0,
@@ -661,361 +106,11 @@
       "hotCells": []
     },
     {
-      "step": 16,
-      "p": 1,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 10,
-      "hotCells": []
-    },
-    {
-      "step": 17,
-      "p": 0.5,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 7,
-      "hotCells": []
-    },
-    {
-      "step": 17,
-      "p": 0.5,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 10,
-      "hotCells": []
-    },
-    {
-      "step": 17,
-      "p": 1,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 7,
-      "hotCells": []
-    },
-    {
-      "step": 17,
-      "p": 1,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 9,
-      "hotCells": []
-    },
-    {
-      "step": 18,
-      "p": 0.5,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 6,
-      "hotCells": []
-    },
-    {
-      "step": 18,
-      "p": 0.5,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 4,
-      "hotCells": []
-    },
-    {
-      "step": 18,
-      "p": 1,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 6,
-      "hotCells": []
-    },
-    {
-      "step": 18,
+      "step": 11,
       "p": 1,
       "view": "bagfra",
       "unstablePixels": 0,
       "sparklePixels": 3,
-      "hotCells": []
-    },
-    {
-      "step": 19,
-      "p": 0.5,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 6,
-      "hotCells": []
-    },
-    {
-      "step": 19,
-      "p": 0.5,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 3,
-      "hotCells": []
-    },
-    {
-      "step": 19,
-      "p": 1,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 9,
-      "hotCells": []
-    },
-    {
-      "step": 19,
-      "p": 1,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 3,
-      "hotCells": []
-    },
-    {
-      "step": 20,
-      "p": 0.5,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 3,
-      "hotCells": []
-    },
-    {
-      "step": 20,
-      "p": 0.5,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 6,
-      "hotCells": []
-    },
-    {
-      "step": 20,
-      "p": 1,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 90,
-      "hotCells": [
-        {
-          "cell": [
-            576,
-            256
-          ],
-          "n": 6
-        },
-        {
-          "cell": [
-            576,
-            352
-          ],
-          "n": 6
-        },
-        {
-          "cell": [
-            576,
-            384
-          ],
-          "n": 7
-        },
-        {
-          "cell": [
-            576,
-            416
-          ],
-          "n": 7
-        },
-        {
-          "cell": [
-            576,
-            448
-          ],
-          "n": 6
-        },
-        {
-          "cell": [
-            576,
-            480
-          ],
-          "n": 6
-        },
-        {
-          "cell": [
-            576,
-            512
-          ],
-          "n": 8
-        },
-        {
-          "cell": [
-            576,
-            608
-          ],
-          "n": 6
-        },
-        {
-          "cell": [
-            576,
-            640
-          ],
-          "n": 7
-        }
-      ],
-      "image": "korup/review/flicker/s20_100_forfra.png"
-    },
-    {
-      "step": 20,
-      "p": 1,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 12,
-      "hotCells": []
-    },
-    {
-      "step": 21,
-      "p": 0.5,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 81,
-      "hotCells": [
-        {
-          "cell": [
-            576,
-            256
-          ],
-          "n": 6
-        },
-        {
-          "cell": [
-            576,
-            352
-          ],
-          "n": 6
-        },
-        {
-          "cell": [
-            576,
-            384
-          ],
-          "n": 7
-        },
-        {
-          "cell": [
-            576,
-            416
-          ],
-          "n": 8
-        },
-        {
-          "cell": [
-            576,
-            448
-          ],
-          "n": 6
-        },
-        {
-          "cell": [
-            576,
-            480
-          ],
-          "n": 6
-        },
-        {
-          "cell": [
-            576,
-            512
-          ],
-          "n": 7
-        },
-        {
-          "cell": [
-            576,
-            608
-          ],
-          "n": 6
-        },
-        {
-          "cell": [
-            576,
-            640
-          ],
-          "n": 7
-        }
-      ],
-      "image": "korup/review/flicker/s21_50_forfra.png"
-    },
-    {
-      "step": 21,
-      "p": 0.5,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 87,
-      "hotCells": [
-        {
-          "cell": [
-            544,
-            288
-          ],
-          "n": 13
-        },
-        {
-          "cell": [
-            544,
-            352
-          ],
-          "n": 16
-        },
-        {
-          "cell": [
-            544,
-            416
-          ],
-          "n": 13
-        },
-        {
-          "cell": [
-            544,
-            480
-          ],
-          "n": 14
-        },
-        {
-          "cell": [
-            544,
-            544
-          ],
-          "n": 13
-        },
-        {
-          "cell": [
-            544,
-            608
-          ],
-          "n": 14
-        }
-      ],
-      "image": "korup/review/flicker/s21_50_bagfra.png"
-    },
-    {
-      "step": 21,
-      "p": 1,
-      "view": "forfra",
-      "unstablePixels": 0,
-      "sparklePixels": 56,
-      "hotCells": [
-        {
-          "cell": [
-            512,
-            288
-          ],
-          "n": 23
-        },
-        {
-          "cell": [
-            512,
-            320
-          ],
-          "n": 6
-        }
-      ],
-      "image": "korup/review/flicker/s21_100_forfra.png"
-    },
-    {
-      "step": 21,
-      "p": 1,
-      "view": "bagfra",
-      "unstablePixels": 0,
-      "sparklePixels": 24,
       "hotCells": []
     }
   ],
