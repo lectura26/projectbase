@@ -1,54 +1,7 @@
 {
   "frames": 2854,
-  "collisions": [
-    {
-      "step": 15,
-      "title": "Skuffesider på fronten",
-      "a": "8 Skuffeside venstre",
-      "b": "9 Skuffeside højre",
-      "firstFrame": 39,
-      "lastFrame": 41,
-      "firstT": 4.87,
-      "lastT": 5.12,
-      "frames": 3,
-      "maxDepth": 16.1
-    },
-    {
-      "step": 15,
-      "title": "Skuffesider på fronten",
-      "a": "8 Skuffeside venstre",
-      "b": "9 Skuffeside højre",
-      "firstFrame": 39,
-      "lastFrame": 41,
-      "firstT": 4.87,
-      "lastT": 5.12,
-      "frames": 3,
-      "maxDepth": 16.1
-    }
-  ],
-  "floor": [
-    {
-      "step": 19,
-      "name": "DL (DL87)",
-      "first": 0.40707964601769914,
-      "last": 0.40707964601769914,
-      "min": -1.3881287880621809
-    },
-    {
-      "step": 19,
-      "name": "DL (DL110)",
-      "first": 0.40707964601769914,
-      "last": 0.40707964601769914,
-      "min": -1.3881287880621809
-    },
-    {
-      "step": 19,
-      "name": "DL (DL133)",
-      "first": 0.40707964601769914,
-      "last": 0.40707964601769914,
-      "min": -1.3881287880621809
-    }
-  ],
+  "collisions": [],
+  "floor": [],
   "fps": 8,
   "errors": []
 }
