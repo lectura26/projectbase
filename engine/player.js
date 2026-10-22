@@ -37,6 +37,8 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
   const lineMat = new THREE.LineBasicMaterial({ color: '#4f5661', transparent: true, opacity: 0.85 });
   const cast = o => { o.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } }); return o; };
 
+  const holes = [];   // filled while the hardware is created (see addHole)
+
   // ---------- groups (only hold group-hosted hardware) ----------
   const G = {};
   for (const [id, g] of Object.entries(groups)) {
@@ -95,13 +97,21 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
     } else h.q0 = new THREE.Quaternion().setFromUnitVectors(UP, h.d.clone().normalize());
     h.spec = HW[h.type] || { travel: 0, head: 0, hole: 0 };
     // holes: entry hole on the host panel, and the matching hole in the mating panel
-    if (host && h.spec.hole && !h.placed) addHole(host, h.gp, h.gd.clone().negate(), h.spec.hole);
+    if (host && h.spec.hole && !h.placed) {
+      // the hole is where the screw's axis enters the panel (a screw may first pass through a fitting)
+      const ray = new THREE.Ray(h.gp.clone().addScaledVector(h.gd, -60), h.gd.clone());
+      const box = new THREE.Box3(host.center.clone().sub(host.size.clone().multiplyScalar(0.5)), host.center.clone().add(host.size.clone().multiplyScalar(0.5)));
+      const at = ray.intersectBox(box, new THREE.Vector3()) || h.gp.clone();
+      addHole(host, at, h.gd.clone().negate(), h.spec.hole, h, 'entry');
+    }
     if (h.mate && P[h.mate.part]) {
       const mp = P[h.mate.part], back = h.mate.back;
-      addHole(mp, h.gp.clone().addScaledVector(h.gd, -back), h.gd.clone().multiplyScalar(back >= 0 ? 1 : -1), h.spec.mateHole || h.spec.hole);
+      addHole(mp, h.gp.clone().addScaledVector(h.gd, -back), h.gd.clone().multiplyScalar(back >= 0 ? 1 : -1), h.spec.mateHole || h.spec.hole, h, 'mate');
     }
   }
-  function addHole(part, gp, normal, r) {
+  // every drilled hole as data: panel, position in the panel's own frame (mm from its centre), facing, radius, what goes in it
+  function addHole(part, gp, normal, r, h, kind) {
+    holes.push({ part: part.id, num: part.num, kind, type: h.type, item: h.id, local: gp.clone().sub(part.center).toArray().map(v => +v.toFixed(2)), normal: normal.clone().normalize().toArray().map(v => +v.toFixed(3)), r, size: part.size.toArray() });
     const d = new THREE.Mesh(new THREE.CircleGeometry(r, 18), holeMat);
     d.position.copy(gp).sub(part.center).addScaledVector(normal, 0.25);
     d.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal.clone().normalize());
@@ -519,5 +529,29 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
     }
     looks.hi.forEach(m => m.emissiveIntensity = 0.18 + 0.14 * Math.sin(time * 5));
   }
-  return { evaluate, cameraGoal, steps, P, H, G, partsBox, tools, applyLooks, focusKind: () => focus?.kind, inIntro: (si, p) => steps[si].intro && p * steps[si].dur < steps[si].intro };
+  // ---------- test hooks: oriented boxes of everything in the world, for collision / flicker checks ----------
+  const hwBox = {};
+  function localBox(h) {
+    if (!hwBox[h.type]) { const pr = proto(h.type); pr.updateMatrixWorld(true); hwBox[h.type] = new THREE.Box3().setFromObject(pr); }
+    return hwBox[h.type].clone().translate(h.model.position);
+  }
+  function obb(M, box) {
+    const c = box.getCenter(new THREE.Vector3()).applyMatrix4(M), half = box.getSize(new THREE.Vector3()).multiplyScalar(0.5);
+    const e = M.elements, ax = [0, 1, 2].map(i => new THREE.Vector3(e[i * 4], e[i * 4 + 1], e[i * 4 + 2]));
+    const sc = ax.map(a => a.length()); ax.forEach(a => a.normalize());
+    return { c: c.toArray(), a: ax.map(a => a.toArray()), h: half.toArray().map((v, i) => v * sc[i]) };
+  }
+  function obbs() {
+    const out = [];
+    for (const p of parts) {
+      const b = new THREE.Box3(p.size.clone().multiplyScalar(-0.5), p.size.clone().multiplyScalar(0.5));
+      out.push({ id: p.id, name: `${p.num} ${p.name}`, kind: 'part', group: p.group, attached: p.state.mode === 'group', look: p._look || 'normal', ...obb(p.obj.matrixWorld, b) });
+    }
+    for (const h of hardware) {
+      if (!h.obj.visible) continue;
+      out.push({ id: h.id, name: `${h.type} (${h.id})`, kind: 'hw', type: h.type, host: h.host, mate: h.mate?.part || null, hostIsGroup: !!h.hostGroup, group: h.hostPart ? h.hostPart.group : h.host, ...obb(h.obj.matrixWorld, localBox(h)) });
+    }
+    return out;
+  }
+  return { evaluate, cameraGoal, steps, P, H, G, partsBox, tools, applyLooks, focusKind: () => focus?.kind, inIntro: (si, p) => steps[si].intro && p * steps[si].dur < steps[si].intro, holes, obbs };
 }

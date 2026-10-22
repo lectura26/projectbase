@@ -171,7 +171,7 @@ export function buildKorup(manual) {
       for (const y of [80, 158]) {
         d.A.push(hw('A', '7' + s, V(sx * 269.5, y, 1), V(0, 0, 1), { mate: { part: side, back: 0 } }));
         d.B.push(hw('B', side, V(sx * 263.5, y, -23), V(sx, 0, 0), ROLL_TO(V(0, 0, 1))));
-        d.J.push(hw('J', side, V(sx * 275.5, y, -253), V(-sx, 0, 0), { mate: { part: '10' + s, back: 12 } }));
+        d.J.push(hw('J', side, V(sx * 275.5, y, -253), V(-sx, 0, 0), { mate: { part: '10' + s, back: -12 } }));
       }
       d.C.push(hw('C', side, V(sx * 269.5, 119, 1), V(0, 0, -1), { depth: 20, mate: { part: '7' + s, back: 0 } }));
       d.run.push(hw(sx < 0 ? 'DL' : 'DR', side, V(sx * 269.5, BOX_OFF, -129), V(0, 1, 0), { placed: true, q: new THREE.Matrix4(), approach: V(0, -60, 0) }));

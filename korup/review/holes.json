@@ -1,0 +1,224 @@
+{
+  "holes": 162,
+  "issues": [
+    {
+      "check": "hul på overfladen",
+      "part": "10a",
+      "type": "J",
+      "item": "J82",
+      "kind": "mate",
+      "local": [
+        -287.5,
+        -39,
+        0
+      ],
+      "msg": "hullet ligger uden for pladen"
+    },
+    {
+      "check": "hul på overfladen",
+      "part": "10a",
+      "type": "J",
+      "item": "J85",
+      "kind": "mate",
+      "local": [
+        -287.5,
+        39,
+        0
+      ],
+      "msg": "hullet ligger uden for pladen"
+    },
+    {
+      "check": "hul på overfladen",
+      "part": "10a",
+      "type": "J",
+      "item": "J92",
+      "kind": "mate",
+      "local": [
+        287.5,
+        -39,
+        0
+      ],
+      "msg": "hullet ligger uden for pladen"
+    },
+    {
+      "check": "hul på overfladen",
+      "part": "10a",
+      "type": "J",
+      "item": "J95",
+      "kind": "mate",
+      "local": [
+        287.5,
+        39,
+        0
+      ],
+      "msg": "hullet ligger uden for pladen"
+    },
+    {
+      "check": "hul på overfladen",
+      "part": "10b",
+      "type": "J",
+      "item": "J105",
+      "kind": "mate",
+      "local": [
+        -287.5,
+        -39,
+        0
+      ],
+      "msg": "hullet ligger uden for pladen"
+    },
+    {
+      "check": "hul på overfladen",
+      "part": "10b",
+      "type": "J",
+      "item": "J108",
+      "kind": "mate",
+      "local": [
+        -287.5,
+        39,
+        0
+      ],
+      "msg": "hullet ligger uden for pladen"
+    },
+    {
+      "check": "hul på overfladen",
+      "part": "10b",
+      "type": "J",
+      "item": "J115",
+      "kind": "mate",
+      "local": [
+        287.5,
+        -39,
+        0
+      ],
+      "msg": "hullet ligger uden for pladen"
+    },
+    {
+      "check": "hul på overfladen",
+      "part": "10b",
+      "type": "J",
+      "item": "J118",
+      "kind": "mate",
+      "local": [
+        287.5,
+        39,
+        0
+      ],
+      "msg": "hullet ligger uden for pladen"
+    },
+    {
+      "check": "hul på overfladen",
+      "part": "10c",
+      "type": "J",
+      "item": "J128",
+      "kind": "mate",
+      "local": [
+        -287.5,
+        -39,
+        0
+      ],
+      "msg": "hullet ligger uden for pladen"
+    },
+    {
+      "check": "hul på overfladen",
+      "part": "10c",
+      "type": "J",
+      "item": "J131",
+      "kind": "mate",
+      "local": [
+        -287.5,
+        39,
+        0
+      ],
+      "msg": "hullet ligger uden for pladen"
+    },
+    {
+      "check": "hul på overfladen",
+      "part": "10c",
+      "type": "J",
+      "item": "J138",
+      "kind": "mate",
+      "local": [
+        287.5,
+        -39,
+        0
+      ],
+      "msg": "hullet ligger uden for pladen"
+    },
+    {
+      "check": "hul på overfladen",
+      "part": "10c",
+      "type": "J",
+      "item": "J141",
+      "kind": "mate",
+      "local": [
+        287.5,
+        39,
+        0
+      ],
+      "msg": "hullet ligger uden for pladen"
+    }
+  ],
+  "passes": [
+    "trin 1 A i plade 2: 3 huller",
+    "trin 1 A i plade 3: 3 huller",
+    "trin 2 G i plade 2: 6 huller",
+    "trin 2 G i plade 3: 6 huller",
+    "trin 3 D i plade 2: 2 huller",
+    "trin 3 D i plade 2: D25 20.0 mm fra kanten",
+    "trin 3 D i plade 2: D26 20.0 mm fra kanten",
+    "trin 3 D i plade 3: 2 huller",
+    "trin 3 D i plade 3: D27 20.0 mm fra kanten",
+    "trin 3 D i plade 3: D28 20.0 mm fra kanten",
+    "trin 4 C i plade 2: 2 huller",
+    "trin 4 C i plade 3: 2 huller",
+    "trin 5 C i plade 4: 2 huller",
+    "trin 5 C i plade 5: 2 huller",
+    "trin 5 C i plade 12: 2 huller",
+    "trin 5 M i plade 5: 2 huller",
+    "trin 5 M i plade 12: 2 huller",
+    "trin 6 B i plade 4: 1 huller",
+    "trin 6 B i plade 5: 1 huller",
+    "trin 6 B i plade 12: 1 huller",
+    "trin 7 B i plade 4: 1 huller",
+    "trin 7 B i plade 5: 1 huller",
+    "trin 7 B i plade 12: 1 huller",
+    "trin 9 A i plade 1: 4 huller",
+    "trin 9 F i plade 1: 2 huller",
+    "trin 10 B i plade 2: 2 huller",
+    "trin 10 B i plade 3: 2 huller",
+    "trin 13 A i plade 7a: 4 huller",
+    "trin 13 A i plade 7b: 4 huller",
+    "trin 13 A i plade 7c: 4 huller",
+    "trin 14 C i plade 8a: 1 huller",
+    "trin 14 C i plade 8b: 1 huller",
+    "trin 14 C i plade 8c: 1 huller",
+    "trin 14 C i plade 9a: 1 huller",
+    "trin 14 C i plade 9b: 1 huller",
+    "trin 14 C i plade 9c: 1 huller",
+    "trin 15 B i plade 8a: 2 huller",
+    "trin 15 B i plade 8b: 2 huller",
+    "trin 15 B i plade 8c: 2 huller",
+    "trin 15 B i plade 9a: 2 huller",
+    "trin 15 B i plade 9b: 2 huller",
+    "trin 15 B i plade 9c: 2 huller",
+    "trin 17 J i plade 8a: 2 huller",
+    "trin 17 J i plade 8b: 2 huller",
+    "trin 17 J i plade 8c: 2 huller",
+    "trin 17 J i plade 9a: 2 huller",
+    "trin 17 J i plade 9b: 2 huller",
+    "trin 17 J i plade 9c: 2 huller",
+    "trin 18 M i plade 8a: 2 huller",
+    "trin 18 M i plade 8b: 2 huller",
+    "trin 18 M i plade 8c: 2 huller",
+    "trin 18 M i plade 9a: 2 huller",
+    "trin 18 M i plade 9b: 2 huller",
+    "trin 18 M i plade 9c: 2 huller",
+    "trin 19 L i plade 7a: 2 huller",
+    "trin 19 L i plade 7a: c/c 96.0 mm",
+    "trin 19 L i plade 7b: 2 huller",
+    "trin 19 L i plade 7b: c/c 96.0 mm",
+    "trin 19 L i plade 7c: 2 huller",
+    "trin 19 L i plade 7c: c/c 96.0 mm"
+  ],
+  "errors": []
+}

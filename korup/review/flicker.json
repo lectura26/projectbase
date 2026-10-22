@@ -1,0 +1,55 @@
+{
+  "coplanar": [],
+  "image": [
+    {
+      "step": 0,
+      "p": 0,
+      "unstablePixels": 0,
+      "sparklePixels": 1,
+      "hotCells": []
+    },
+    {
+      "step": 8,
+      "p": 0.5,
+      "unstablePixels": 0,
+      "sparklePixels": 2,
+      "hotCells": []
+    },
+    {
+      "step": 8,
+      "p": 1,
+      "unstablePixels": 0,
+      "sparklePixels": 2,
+      "hotCells": []
+    },
+    {
+      "step": 11,
+      "p": 0.5,
+      "unstablePixels": 0,
+      "sparklePixels": 5,
+      "hotCells": []
+    },
+    {
+      "step": 11,
+      "p": 1,
+      "unstablePixels": 0,
+      "sparklePixels": 5,
+      "hotCells": []
+    },
+    {
+      "step": 21,
+      "p": 0.5,
+      "unstablePixels": 0,
+      "sparklePixels": 7,
+      "hotCells": []
+    },
+    {
+      "step": 21,
+      "p": 1,
+      "unstablePixels": 0,
+      "sparklePixels": 10,
+      "hotCells": []
+    }
+  ],
+  "errors": []
+}

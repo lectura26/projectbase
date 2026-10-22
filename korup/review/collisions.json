@@ -1,0 +1,56 @@
+{
+  "frames": 125,
+  "collisions": [
+    {
+      "step": 6,
+      "title": "Lister på højre side",
+      "a": "5 Bundliste for",
+      "b": "N (N42)",
+      "firstFrame": 20,
+      "lastFrame": 20,
+      "firstT": 4.95,
+      "lastT": 4.95,
+      "frames": 1,
+      "maxDepth": 9.8
+    },
+    {
+      "step": 6,
+      "title": "Lister på højre side",
+      "a": "5 Bundliste for",
+      "b": "M (M43)",
+      "firstFrame": 20,
+      "lastFrame": 20,
+      "firstT": 4.95,
+      "lastT": 4.95,
+      "frames": 1,
+      "maxDepth": 11.8
+    },
+    {
+      "step": 6,
+      "title": "Lister på højre side",
+      "a": "5 Bundliste for",
+      "b": "M (M44)",
+      "firstFrame": 20,
+      "lastFrame": 20,
+      "firstT": 4.95,
+      "lastT": 4.95,
+      "frames": 1,
+      "maxDepth": 11.8
+    },
+    {
+      "step": 6,
+      "title": "Lister på højre side",
+      "a": "12 Bundliste bag",
+      "b": "5 Bundliste for",
+      "firstFrame": 20,
+      "lastFrame": 20,
+      "firstT": 4.95,
+      "lastT": 4.95,
+      "frames": 1,
+      "maxDepth": 2.2
+    }
+  ],
+  "floor": [],
+  "fps": 4,
+  "errors": []
+}
