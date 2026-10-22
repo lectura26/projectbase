@@ -233,10 +233,12 @@ export function buildKorup(manual) {
   S[10].actions.push({ type: 'insert', items: B_top, tool: null });
   S[10].actions.push({ type: 'cam', items: B_top, tool: 'flat' });
   S[10].focus = ['1', '2', '3'];
+  S[10].view = V(0.15, 0.25, 1);   // from the front, so the cams inside the sides show
+  S[10].itemDirY = -0.05;           // close-ups from just below the top's front edge
   const bk = manual.panels.find(p => p.id === '6').size;
   const diag = Math.round(Math.hypot(bk[0], bk[1]));
-  S[11].actions.push({ type: 'measure', host: 'carcass', a: V(-291.5, 19, -143), b: V(291.5, 689, -143), label: `XX = ${diag} mm` });
-  S[11].actions.push({ type: 'measure', host: 'carcass', a: V(291.5, 19, -143), b: V(-291.5, 689, -143), label: `YY = ${diag} mm` });
+  S[11].actions.push({ type: 'measure', host: 'carcass', a: V(-291.5, 19, -143), b: V(291.5, 689, -143), label: `XX = ${diag} mm`, at: 0.28 });
+  S[11].actions.push({ type: 'measure', host: 'carcass', a: V(291.5, 19, -143), b: V(-291.5, 689, -143), label: `YY = ${diag} mm`, at: 0.72 });
   S[11].actions.push({ type: 'place', items: H_ids });
   S[11].actions.push({ type: 'insert', items: M_H, tool: 'phillips', per: 0.75 });
   S[11].focus = ['6'];

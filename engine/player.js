@@ -333,7 +333,7 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
     }
     const { line, lab } = a._keep.userData;
     line.geometry.setFromPoints([A, B]); line.computeLineDistances();
-    lab.position.copy(A).lerp(B, 0.5).add(new THREE.Vector3(0, 30, 0));
+    lab.position.copy(A).lerp(B, a.at ?? 0.5).add(new THREE.Vector3(0, 30, 0));
     a._keep.visible = true;
   }
   function showMark(a) {
@@ -518,7 +518,7 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
       // look along the tool from slightly behind and above it
       // three-quarter view from the side the tool works from, never straight along the screw
       const dh = new THREE.Vector3(defDir.x, 0, defDir.z).normalize(), th = new THREE.Vector3(-d.x, 0, -d.z);
-      const dir = dh.add(th.multiplyScalar(0.8)); dir.y = 0; dir.normalize(); dir.y = 0.6; dir.normalize();
+      const dir = dh.add(th.multiplyScalar(0.8)); dir.y = 0; dir.normalize(); dir.y = st.itemDirY ?? 0.6; dir.normalize();
       const r = h.type === 'J' || h.type === 'WALLSCREW' ? 210 : 170;
       return { target: c.addScaledVector(d, -70), radius: r, dir };
     }
