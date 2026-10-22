@@ -18,7 +18,7 @@ export const MAT = {
   whitePlastic: new THREE.MeshStandardMaterial({ color: '#f1f1ee', roughness: 0.55 }),
   greyPlastic: new THREE.MeshStandardMaterial({ color: '#b9bcc0', roughness: 0.6 }),
   blackPlastic: new THREE.MeshStandardMaterial({ color: '#202226', roughness: 0.55 }),
-  runner: new THREE.MeshStandardMaterial({ color: '#eceae4', metalness: 0.25, roughness: 0.45 }),
+  runner: new THREE.MeshStandardMaterial({ color: '#9ea4ab', metalness: 0.55, roughness: 0.4 }),   // grey steel, stands out from white panels
   nylon: new THREE.MeshStandardMaterial({ color: '#f7f5ef', roughness: 0.35 }),
   handle: new THREE.MeshStandardMaterial({ color: '#f4f4f2', metalness: 0.35, roughness: 0.35 }),
   // tools
@@ -133,7 +133,7 @@ const BUILD = {
     plate.rotation.x = Math.PI / 2; plate.position.y = 0; g.add(plate);   // plate occupies y[-2,0], z[0,75]
     const t = new THREE.Shape([[-7.5, 0], [7.5, 0], [7.5, 18], [-7.5, 18]].map(([x, y]) => new THREE.Vector2(x, y)));
     t.absarc(0, 18, 7.5, 0, Math.PI, false);
-    const h = new THREE.Path(); h.absarc(0, 16, 2.6, 0, Math.PI * 2, true); t.holes.push(h);
+    const h = new THREE.Path(); h.absarc(0, 14, 2.6, 0, Math.PI * 2, true); t.holes.push(h);   // hole 16 mm below the plate
     const tab = mesh(new THREE.ExtrudeGeometry(t, { depth: 2, bevelEnabled: false, curveSegments: 16 }), MAT.zinc);
     tab.rotation.x = Math.PI; tab.position.set(0, -2, 0); g.add(tab);     // tab hangs down at z∈[-2,0]
     return shadow(g);

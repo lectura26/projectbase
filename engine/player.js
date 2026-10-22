@@ -56,10 +56,23 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
       const w = s.x / 2, h = s.y / 2, n = p.notch;
       const sh = new THREE.Shape([[-w, -h], [w, -h], [w, h], [n.w / 2, h], [n.w / 2, h - n.h], [-n.w / 2, h - n.h], [-n.w / 2, h], [-w, h]].map(([x, y]) => new THREE.Vector2(x, y)));
       geo = new THREE.ExtrudeGeometry(sh, { depth: s.z, bevelEnabled: false }); geo.translate(0, 0, -s.z / 2);
-      const m = new THREE.Mesh(geo, [melamine, hardboard]);   // ExtrudeGeometry: group 0 = caps, 1 = sides
-      // caps are both faces: colour the back (−z) face brown with a second mesh layer
-      o.add(m);
-      const backFace = new THREE.Mesh(new THREE.ShapeGeometry(sh), hardboard); backFace.rotation.y = Math.PI; backFace.position.z = -s.z / 2 - 0.05; o.add(backFace);
+      // ExtrudeGeometry has one group for both caps; split it so the back (−z) cap is raw hardboard (one face per plane, no overlay)
+      const nz = geo.attributes.normal, caps = geo.groups.find(g => g.materialIndex === 0), side = geo.groups.find(g => g.materialIndex === 1);
+      const nonIdx = !geo.index;
+      geo.clearGroups();
+      const fr = [], bk = [];
+      for (let t = caps.start; t < caps.start + caps.count; t += 3) (nz.getZ(nonIdx ? t : geo.index.getX(t)) > 0 ? fr : bk).push(t);
+      // ExtrudeGeometry is non-indexed: reorder the cap vertices so each face is contiguous
+      const pos = geo.attributes.position, uv = geo.attributes.uv, nrm = geo.attributes.normal;
+      const copy = (src) => src.array.slice();
+      const P0 = copy(pos), U0 = copy(uv), N0 = copy(nrm);
+      let wi = caps.start;
+      for (const list of [fr, bk]) for (const t of list) for (let k = 0; k < 3; k++, wi++) {
+        for (let c = 0; c < 3; c++) { pos.array[wi * 3 + c] = P0[(t + k) * 3 + c]; nrm.array[wi * 3 + c] = N0[(t + k) * 3 + c]; }
+        for (let c = 0; c < 2; c++) uv.array[wi * 2 + c] = U0[(t + k) * 2 + c];
+      }
+      geo.addGroup(caps.start, fr.length * 3, 0); geo.addGroup(caps.start + fr.length * 3, bk.length * 3, 2); geo.addGroup(side.start, side.count, 1);
+      o.add(new THREE.Mesh(geo, [melamine, edge, hardboard]));
     } else {
       geo = new THREE.BoxGeometry(s.x, s.y, s.z);
       const mats = [0, 1, 2, 3, 4, 5].map(f => Math.floor(f / 2) === thin ? melamine : edge);
@@ -194,7 +207,7 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
     G[gid].M.premultiply(new THREE.Matrix4().makeTranslation(0, floorY - min, 0));
   }
   // lowest panel point above the floor in each resting pose (glides / runners carry the rest)
-  const FLOOR = { lying: 0, upright: 3, wall: 3, away: 3, down: 0, flip: 0, up: 1.4 };
+  const FLOOR = { lying: 0, upright: 3, wall: 3, away: 3, down: 0, flip: 0, up: 6.5 };   // up: the drawer runners' rollers reach 6 mm below the sides
 
   function reset() {
     for (const g of Object.values(G)) { g.M = groups[g.id].poses[groups[g.id].start].clone(); g.pose = groups[g.id].start; }
@@ -224,7 +237,7 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
         g.M = M;
         const f0 = FLOOR[fromPose], f1 = FLOOR[a.to];
         if (f0 !== undefined && f1 !== undefined) snapToFloor(gid, f0 + (f1 - f0) * u);      // stays on the floor while it turns
-        else if (u < 1 && !a.straight) g.M.premultiply(new THREE.Matrix4().makeTranslation(0, Math.sin(u * Math.PI) * 120, 0));
+        else if (u < 1 && !a.straight) g.M.premultiply(new THREE.Matrix4().makeTranslation(0, Math.sin(u * Math.PI) * 380, 0));   // carried high enough to clear what stands on the floor
         if (u >= 1) g.pose = a.to;
       }
       if (isCurrent && t > a.t0 && t < a.t1) focus = { kind: 'groups', ids };
@@ -392,7 +405,8 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
 
   // ---------- tools ----------
   const _p = new THREE.Vector3(), _d = new THREE.Vector3(), _wq = new THREE.Quaternion();
-  function itemHead(h, out) { return out.set(0, h.spec.head, 0).applyMatrix4(h.obj.matrixWorld); }
+  // where the tool works: screw head / cam face; for a dowel the end that sticks out
+  function itemHead(h, out) { return out.set(0, h.type === 'C' ? -(30 - (h.depth ?? 15)) : h.spec.head, 0).applyMatrix4(h.obj.matrixWorld); }
   function itemAxis(h, out) { h.obj.getWorldQuaternion(_wq); return out.set(0, 1, 0).applyQuaternion(_wq); }
   function perpUp(d) { const x = new THREE.Vector3().crossVectors(d, UP); if (x.lengthSq() < 1e-4) x.set(1, 0, 0); return x.normalize(); }
 
@@ -544,12 +558,28 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
   function obbs() {
     const out = [];
     for (const p of parts) {
-      const b = new THREE.Box3(p.size.clone().multiplyScalar(-0.5), p.size.clone().multiplyScalar(0.5));
-      out.push({ id: p.id, name: `${p.num} ${p.name}`, kind: 'part', group: p.group, attached: p.state.mode === 'group', look: p._look || 'normal', ...obb(p.obj.matrixWorld, b) });
+      const hs = p.size.clone().multiplyScalar(0.5);
+      let boxes = [new THREE.Box3(hs.clone().negate(), hs.clone())];
+      if (p.notch) {   // the back panel's notch is real: three boxes around it
+        const n = p.notch;
+        boxes = [new THREE.Box3(new THREE.Vector3(-hs.x, -hs.y, -hs.z), new THREE.Vector3(hs.x, hs.y - n.h, hs.z)),
+          new THREE.Box3(new THREE.Vector3(-hs.x, hs.y - n.h, -hs.z), new THREE.Vector3(-n.w / 2, hs.y, hs.z)),
+          new THREE.Box3(new THREE.Vector3(n.w / 2, hs.y - n.h, -hs.z), new THREE.Vector3(hs.x, hs.y, hs.z))];
+      }
+      boxes.forEach((b, k) => out.push({ id: p.id, sub: k, name: `${p.num} ${p.name}`, kind: 'part', group: p.group, attached: p.state.mode === 'group', look: p._look || 'normal', ...obb(p.obj.matrixWorld, b) }));
     }
     for (const h of hardware) {
       if (!h.obj.visible) continue;
-      out.push({ id: h.id, name: `${h.type} (${h.id})`, kind: 'hw', type: h.type, host: h.host, mate: h.mate?.part || null, hostIsGroup: !!h.hostGroup, group: h.hostPart ? h.hostPart.group : h.host, ...obb(h.obj.matrixWorld, localBox(h)) });
+      // one box per mesh of the fitting (an L profile is two boxes, a screw is head + shank)
+      h.obj.updateMatrixWorld(true);
+      const inv = h.obj.matrixWorld.clone().invert();
+      let k = 0;
+      h.obj.traverse(o => {
+        if (!o.isMesh || !o.geometry) return;
+        if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
+        const M = o.matrixWorld;
+        out.push({ id: h.id, sub: k++, name: `${h.type} (${h.id})`, kind: 'hw', type: h.type, host: h.host, mate: h.mate?.part || null, hostIsGroup: !!h.hostGroup, group: h.hostPart ? h.hostPart.group : h.host, ...obb(M, o.geometry.boundingBox) });
+      });
     }
     return out;
   }

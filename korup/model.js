@@ -77,8 +77,8 @@ export function buildKorup(manual) {
   panel('3', 'carcass', [683, 287, 12], [INNER, GLIDE, BACK_Z], [300, TOP_Y, FRONT_Z], { frame: groups.carcass.poses.lying });
   const flatUp = (x, z) => ({ world: mul(T(x, 6, z), Rx(Math.PI)) });           // rail upside down (N side up)
   panel('5', 'carcass', [575, 64, 12], [-287.5, RAIL_LOW_Y, FRONT_Z - 64], [287.5, RAIL_LOW_Y + 12, FRONT_Z], flatUp(900, 0));
-  panel('12', 'carcass', [575, 64, 12], [-287.5, RAIL_LOW_Y, -139], [287.5, RAIL_LOW_Y + 12, -75], flatUp(900, 120));
-  panel('4', 'carcass', [575, 64, 12], [-287.5, RAIL4_Y, FRONT_Z - 64], [287.5, RAIL4_Y + 12, FRONT_Z], flatUp(900, 240));
+  panel('12', 'carcass', [575, 64, 12], [-287.5, RAIL_LOW_Y, -139], [287.5, RAIL_LOW_Y + 12, -75], flatUp(900, 200));
+  panel('4', 'carcass', [575, 64, 12], [-287.5, RAIL4_Y, FRONT_Z - 64], [287.5, RAIL4_Y + 12, FRONT_Z], flatUp(900, 400));
   // back: in the side grooves 8 mm from the back edge, 3 mm into the top's groove (estimeret)
   panel('6', 'carcass', [583, 670, 3], [-291.5, 19, -142], [291.5, 689, -139], { world: mul(T(-1200, 1.5, -300), Rx(-Math.PI / 2)) },
     { notch: { w: 30, h: 25 }, foldLine: true, grooved: ['1', '2', '3'] });
@@ -88,11 +88,11 @@ export function buildKorup(manual) {
   for (let i = 0; i < 3; i++) {
     const g = 'drawer' + i, s = 'abc'[i];
     panel('7' + s, g, [599, 226, 12], [-299.5, 0, 1], [299.5, FRONT_H, 13], { frame: groups[g].poses.down });
-    const sideLay = x => ({ world: mul(T(x, 6, 980), Rz(Math.PI / 2)) });
-    panel('8' + s, g, [260, 148, 12], [-275.5, BOX_OFF, -259], [-263.5, BOX_OFF + 148, 1], sideLay(-1200 + i * 400));
-    panel('9' + s, g, [260, 148, 12], [263.5, BOX_OFF, -259], [275.5, BOX_OFF + 148, 1], sideLay(-1000 + i * 400));
+    const sideLay = (x, inner) => ({ world: mul(T(x, 6, 980), Rz(inner * Math.PI / 2)) });   // inner face up
+    panel('8' + s, g, [260, 148, 12], [-275.5, BOX_OFF, -259], [-263.5, BOX_OFF + 148, 1], sideLay(-1200 + i * 400, 1));
+    panel('9' + s, g, [260, 148, 12], [263.5, BOX_OFF, -259], [275.5, BOX_OFF + 148, 1], sideLay(-1000 + i * 400, -1));
     panel('10' + s, g, [527, 148, 12], [-263.5, BOX_OFF, -259], [263.5, BOX_OFF + 148, -247], { world: mul(T(330, 6, 900 + i * 180), Rx(-Math.PI / 2)) });
-    panel('11' + s, g, [535, 256, 3], [-267.5, BOX_OFF + 10, -251], [267.5, BOX_OFF + 13, 5], { world: T(1050, 1.5 + 3 * i, 1000) },
+    panel('11' + s, g, [535, 256, 3], [-267.5, BOX_OFF + 10, -251], [267.5, BOX_OFF + 13, 5], { world: T(1050, 1.5, 900 + 300 * i) },
       { grooved: ['7' + s, '8' + s, '9' + s, '10' + s] });
   }
 
@@ -116,7 +116,7 @@ export function buildKorup(manual) {
   // --- trin 2: runners + G ---
   const runners = { '2': [], '3': [] }, G_ids = [];
   for (const s of [-1, 1]) for (let i = 0; i < 3; i++) {
-    const side = s > 0 ? '3' : '2', zc = FRONT_Z - 3 - 125;
+    const side = s > 0 ? '3' : '2', zc = FRONT_Z - 5 - 125;   // roller ends flush with the side's front edge
     runners[side].push(hw(s > 0 ? 'CR' : 'CL', side, V(s * INNER, BOX_BOTTOM[i], zc), V(s, 0, 0), { placed: true, q: new THREE.Matrix4(), approach: V(-s * 70, 0, 0) }));
     for (const dz of [100, -80]) G_ids.push(hw('G', side, V(s * (INNER - 1.4), BOX_BOTTOM[i], zc + dz), V(s, 0, 0)));
   }
@@ -136,7 +136,9 @@ export function buildKorup(manual) {
   // --- trin 6–7: cams in the rails' top faces, opening toward the bolt ---
   const B_rail = { '3': [], '2': [] };
   for (const r of RAILS) for (const s of [1, -1]) {
-    B_rail[s > 0 ? '3' : '2'].push(hw('B', r.id, V(s * 263.5, r.y + 6, r.z + 14), V(0, -1, 0), ROLL_TO(V(s, 0, 0))));
+    // bottom rails 5 and 12: the cams sit in the same face as block N (manual s. 11/14); rail 4 has no N, top face kept (usikkert)
+    const under = r.id !== '4';
+    B_rail[s > 0 ? '3' : '2'].push(hw('B', r.id, V(s * 263.5, under ? r.y - 6 : r.y + 6, r.z + 14), V(0, under ? 1 : -1, 0), ROLL_TO(V(s, 0, 0))));
   }
   // --- trin 9: A in the top's underside, E + F ---
   const TOPZ = [80, -110];
@@ -157,7 +159,7 @@ export function buildKorup(manual) {
   for (const x of [-150, 150]) clip(V(x, TOP_Y, -146), V(0, 1, 0), V(0, 0, 1));
   for (const x of [-100, 100]) clip(V(x, RAIL_LOW_Y + 6, -142), V(0, 0, 1), V(0, 1, 0));
   // --- trin 12: wall plug + wall screw (not in the box), in world coordinates ---
-  const tabFace = new THREE.Vector3(0, TOP_Y - 18, BACK_Z + 4).applyMatrix4(groups.carcass.poses.wall);   // through the hole in E's tab
+  const tabFace = new THREE.Vector3(0, TOP_Y - 16, BACK_Z + 4).applyMatrix4(groups.carcass.poses.wall);   // through the hole in E's tab
   const wallPt = tabFace.clone(); wallPt.x = 3000;                                                          // the room's right wall
   const PLUG = hw('PLUG', 'world', wallPt.clone(), V(1, 0, 0), { extra: true });
   const WS = hw('WALLSCREW', 'world', tabFace.clone(), V(1, 0, 0), { extra: true });
@@ -202,7 +204,7 @@ export function buildKorup(manual) {
   S[5].actions.push({ type: 'place', items: N_ids });
   S[5].actions.push({ type: 'insert', items: M_N, tool: 'phillips' });
   S[5].focus = ['5', '12', '4'];
-  S[6].actions.push({ type: 'move', parts: ['5', '12', '4'], offset: V(-220, 0, 0) });
+  for (const id of ['5', '12', '4']) S[6].actions.push({ type: 'move', parts: [id], offset: V(-220, 0, 0) });   // one rail at a time
   S[6].actions.push({ type: 'insert', items: B_rail['3'], tool: null });
   S[6].actions.push({ type: 'cam', items: B_rail['3'], tool: 'flat' });
   S[6].focus = ['3', '5', '12', '4'];
@@ -211,7 +213,7 @@ export function buildKorup(manual) {
   S[7].actions.push({ type: 'cam', items: B_rail['2'], tool: 'flat' });
   S[7].focus = ['2', '3', '5', '12', '4'];
   S[8].actions.push({ type: 'group', group: 'carcass', to: 'upright', dur: 2.6 });
-  S[8].actions.push({ type: 'move', parts: ['6'], offset: V(0, 760, 0), dur: 3.4 });
+  S[8].actions.push({ type: 'move', parts: ['6'], offset: V(0, 900, 0), dur: 3.4 });
   S[8].focus = ['2', '3', '6'];
   S[9].actions.push({ type: 'insert', items: A_top, tool: 'phillips' });
   S[9].actions.push({ type: 'place', items: [E_id] });
@@ -262,15 +264,15 @@ export function buildKorup(manual) {
   S[19].actions.push({ type: 'insert', lanes: lanes('L'), tool: 'phillips', cam: 'wide' });
   S[19].view = V(0.15, 0.95, -0.55);
   S[19].focus = parts3(7);
-  for (let i = 0; i < 3; i++) {
+  for (const i of [2, 1, 0]) {          // the drawer nearest the wall first, so none is carried through another
     S[20].actions.push({ type: 'group', group: 'drawer' + i, to: 'pre', dur: 2.2 });
     S[20].actions.push({ type: 'group', group: 'drawer' + i, to: 'in', dur: 1.6, straight: true });
   }
-  S[20].focus = ['1', '2', '3'];
+  S[20].focus = ['1', '2', '3', ...parts3(7, 8, 9, 10, 11)];
   S[20].view = V(-1, 0.5, 0.55);
   S[21].actions.push({ type: 'group', group: 'drawer2', to: 'open', dur: 1.4, straight: true });
-  S[21].labels = [{ text: 'Maks. 10 kg', group: 'carcass', at: V(0, TOP_Y + 170, -60) }, { text: 'Maks. 5 kg pr. skuffe', group: 'drawer2', at: V(0, FRONT_H / 2, 90) }];
-  S[21].focus = ['1', '2', '3'];
+  S[21].labels = [{ text: 'Maks. 10 kg', group: 'carcass', at: V(0, TOP_Y + 70, -60) }, { text: 'Maks. 5 kg pr. skuffe', group: 'drawer2', at: V(0, FRONT_H / 2, 90) }];
+  S[21].focus = ['1', '2', '3', ...parts3(7, 8, 9, 10, 11)];
   S[21].view = V(-1, 0.45, 0.6);
   S[21].noPartTags = true;
 

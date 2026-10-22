@@ -213,7 +213,7 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
 $('view').appendChild(renderer.domElement);
 const scene = new THREE.Scene(); scene.background = new THREE.Color('#e9e4da');
-const camera = new THREE.PerspectiveCamera(38, 1, 5, 30000);
+const camera = new THREE.PerspectiveCamera(38, 1, 20, 30000);   // near 20 mm: better depth precision on 3 mm panels
 camera.position.set(1600, 2300, 3400);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 200, 200); controls.maxPolarAngle = Math.PI / 2 - 0.02; controls.minDistance = 150; controls.maxDistance = 9000;
@@ -479,7 +479,7 @@ window.guide = {
   stepInfo: () => steps.map((s, i) => ({ index: i, manual: s.manual, title: s.title, pages: s.pages, dur: s.dur, intro: s.intro || 0, find: s.find, focus: s.focus,
     actions: s.actions.map(a => ({ type: a.type, t0: a.t0, t1: a.t1, tool: a.tool || null, items: a.items || (a.lanes ? a.lanes.flat() : null), parts: a.parts || null, group: a.group || a.groups || null, to: a.to || null })) })),
   // fixed camera: frame the step's parts from a preset direction, no auto-follow
-  fixedView(i, p, dir = [-0.55, 0.6, 0.75]) {
+  fixedView(i, p, dir = steps[i].view ? steps[i].view.toArray() : [-0.55, 0.6, 0.75]) {
     this.set(i, p, false); setAuto(false);
     const b = player.partsBox([...new Set([...steps[i].focus, ...steps[i].find])]);
     const c = b.getCenter(new THREE.Vector3()), r = b.getSize(new THREE.Vector3()).length() / 2;

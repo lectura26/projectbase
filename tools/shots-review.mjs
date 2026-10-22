@@ -11,7 +11,7 @@ const pdf = arg('pdf', process.env.MANUAL_PDF || 'korup/review/manual.pdf');
 mkdirSync('korup/review/shots', { recursive: true }); mkdirSync('korup/review/manual', { recursive: true });
 const { page, errors, close } = await openGuide({ width: 1280, height: 800 });
 const info = await page.evaluate(() => window.guide.stepInfo());
-const index = [];
+const index = [];  // each run writes its own index file, so parallel reviewers don't overwrite each other
 for (const st of info) {
   if (only && !only.includes(st.index)) continue;
   const pts = st.actions.length ? { start: (st.intro + 0.4) / st.dur, midt: (st.intro + (st.dur - st.intro) * 0.5) / st.dur, slut: 1 } : { start: 0 };
@@ -30,6 +30,6 @@ for (const st of info) {
   }
   index.push({ step: st.index, manualStep: st.manual, title: st.title, shots, manualPages: pages });
 }
-writeFileSync('korup/review/shots/index.json', JSON.stringify({ index, errors }, null, 2));
+writeFileSync(`korup/review/shots/index${range ? '_' + range : ''}.json`, JSON.stringify({ index, errors }, null, 2));
 console.log(`trin: ${index.length}, billeder: ${index.reduce((s, x) => s + Object.keys(x.shots).length, 0)}, sidefejl: ${errors.length}`);
 await close();

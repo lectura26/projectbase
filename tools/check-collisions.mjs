@@ -51,20 +51,22 @@ const result = await page.evaluate(({ fps, only, allowed, info }) => {
     let prev = null;
     for (let f = 0; f <= n; f++) {
       const p = f / n; window.guide.evalOnly(st.index, p); frames++;
-      const objs = window.guide.obbs(), byId = Object.fromEntries(objs.map(o => [o.id, o]));
+      const objs = window.guide.obbs(); objs.forEach(o => o.key = `${o.id}/${o.sub}`);
+      const byId = Object.fromEntries(objs.map(o => [o.key, o]));
       const moved = new Set();
-      if (prev) for (const o of objs) { const q = prev[o.id]; if (!q || Math.hypot(...sub(o.c, q.c)) > 0.05 || o.a.some((a, i) => Math.abs(dot(a, q.a[i]) - 1) > 1e-6)) moved.add(o.id); }
+      if (prev) for (const o of objs) { const q = prev[o.key]; if (!q || Math.hypot(...sub(o.c, q.c)) > 0.05 || o.a.some((a, i) => Math.abs(dot(a, q.a[i]) - 1) > 1e-6)) moved.add(o.key); }
       for (const o of objs) {
         const y = minY(o);
         if (y < -tol) { const k = `${st.index}|${o.id}`, e = floor.get(k); if (!e) floor.set(k, { step: st.index, name: o.name, first: p, last: p, min: y }); else { e.last = p; e.min = Math.min(e.min, y); } }
       }
-      if (prev) for (const id of moved) {
-        const A = byId[id];
+      // pose of B seen from A: unchanged between frames = the two move rigidly together (e.g. a whole group turning)
+      const rel = (A, B) => { const d = sub(B.c, A.c); return [...A.a.map(a => dot(d, a)), ...A.a.flatMap(a => B.a.map(b => dot(a, b)))]; };
+      if (prev) for (const key of moved) {
+        const A = byId[key];
         for (const B of objs) {
-          if (B.id === id || (moved.has(B.id) && B.id < id) || allowedPair(A, B)) continue;
-          // only relative motion counts
-          const qa = prev[A.id], qb = prev[B.id];
-          if (qa && qb && Math.hypot(...sub(sub(B.c, A.c), sub(qb.c, qa.c))) < 0.05 && A.a.every((a, i) => Math.abs(dot(a, qa.a[i]) - 1) < 1e-6) && B.a.every((a, i) => Math.abs(dot(a, qb.a[i]) - 1) < 1e-6)) continue;
+          if (B.id === A.id || (moved.has(B.key) && B.key < key) || allowedPair(A, B)) continue;
+          const qa = prev[A.key], qb = prev[B.key];
+          if (qa && qb) { const r1 = rel(A, B), r0 = rel(qa, qb); if (r1.every((v, k) => Math.abs(v - r0[k]) < (k < 3 ? 0.05 : 1e-5))) continue; }
           const d = pen(A, B);
           if (d > 0) {
             const k = `${st.index}|${[A.id, B.id].sort().join('|')}`, e = events.get(k), t = +(p * st.dur).toFixed(2);
