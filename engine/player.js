@@ -30,10 +30,12 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
   const H = Object.fromEntries(hardware.map(h => [h.id, h]));
 
   // ---------- materials ----------
-  const melamine = new THREE.MeshStandardMaterial({ color: '#f3f3f0', roughness: 0.55 });
-  const edge = new THREE.MeshStandardMaterial({ color: '#cfd0ca', roughness: 0.7 });
-  const hardboard = new THREE.MeshStandardMaterial({ color: '#b08a60', roughness: 0.9 });
-  const holeMat = new THREE.MeshBasicMaterial({ color: '#5d626b', polygonOffset: true, polygonOffsetFactor: -2 });
+  const PO = { polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 };   // faces sit a hair behind their edge lines
+  const melamine = new THREE.MeshStandardMaterial({ color: '#f3f3f0', roughness: 0.55, ...PO });
+  const edge = new THREE.MeshStandardMaterial({ color: '#cfd0ca', roughness: 0.7, ...PO });
+  const hardboard = new THREE.MeshStandardMaterial({ color: '#b08a60', roughness: 0.9, ...PO });
+  const holeMat = new THREE.MeshBasicMaterial({ color: '#5d626b', polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -2 });
+  const grooveMat = new THREE.MeshBasicMaterial({ color: '#8a8f97', polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -2 });
   const lineMat = new THREE.LineBasicMaterial({ color: '#4f5661', transparent: true, opacity: 0.85 });
   const cast = o => { o.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } }); return o; };
 
@@ -80,7 +82,18 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
       o.add(new THREE.Mesh(geo, mats));
     }
     o.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 30), lineMat));
-    if (p.foldLine) { const l = new THREE.Mesh(new THREE.BoxGeometry(s.x, 1.2, 0.4), new THREE.MeshBasicMaterial({ color: '#9aa0a8' })); l.position.z = s.z / 2 + 0.2; o.add(l); }
+    if (p.foldLine) { const l = new THREE.Mesh(new THREE.PlaneGeometry(s.x, 1.2), grooveMat); l.position.z = s.z / 2 + 0.05; o.add(l); }
+    // grooves (rille): a thin dark strip on the face, so the panel's orientation can be read like on the drawing
+    for (const g of p.grooves || []) {
+      const ax = 'xyz'.indexOf(g.face[1]), sign = g.face[0] === '+' ? 1 : -1, al = 'xyz'.indexOf(g.along), at = 'xyz'.indexOf(g.axis);
+      const n = new THREE.Vector3().setComponent(ax, sign);
+      const strip = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), grooveMat);
+      const u = new THREE.Vector3().setComponent(al, 1), v = new THREE.Vector3().crossVectors(n, u);
+      strip.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(u, v, n));
+      strip.scale.set(s.getComponent(al), 3.2, 1);
+      strip.position.setComponent(ax, sign * (s.getComponent(ax) / 2 + 0.05)).setComponent(at, g.at);
+      o.add(strip);
+    }
     cast(o);
     p.obj = o; p.grp = G[p.group];
     // attached from the start when the layout frame is the group's start pose
@@ -236,7 +249,7 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
         let M = lerpMatrix(from, to, u);
         g.M = M;
         const f0 = FLOOR[fromPose], f1 = FLOOR[a.to];
-        if (f0 !== undefined && f1 !== undefined) snapToFloor(gid, f0 + (f1 - f0) * u);      // stays on the floor while it turns
+        if (f0 !== undefined && f1 !== undefined) snapToFloor(gid, f0 + (f1 - f0) * u + (u > 0 && u < 1 ? 5 * Math.sin(u * Math.PI) : 0));   // stays on (just above) the floor while it turns
         else if (u < 1 && !a.straight) g.M.premultiply(new THREE.Matrix4().makeTranslation(0, Math.sin(u * Math.PI) * 380, 0));   // carried high enough to clear what stands on the floor
         if (u >= 1) g.pose = a.to;
       }
@@ -421,7 +434,10 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
       itemHead(h, _p); itemAxis(h, _d);
       const approach = s < 0.18 ? 1 - s / 0.18 : s > 0.92 ? (s - 0.92) / 0.08 : 0;
       if (a.tool === 'hammer') {
-        const x = perpUp(_d), z = new THREE.Vector3().crossVectors(x, _d);
+        // handle points up (away from the work) unless the blow itself is vertical
+        let x = UP.clone().addScaledVector(_d, -UP.dot(_d));
+        x = x.lengthSq() > 0.05 ? x.normalize() : perpUp(_d);
+        const z = new THREE.Vector3().crossVectors(x, _d);
         const M = new THREE.Matrix4().makeBasis(x, _d, z).setPosition(_p);
         // swing: rotate about the handle end (local x = 312, y = -40)
         const v = Math.max(0, (s - 0.22) / 0.78), f = (v * 3) % 1;
@@ -521,7 +537,11 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
     if (p._look === mode) return; p._look = mode;
     // only the panel itself (hardware fastened to it keeps its own look)
     for (const o of p.obj.children) {
-      if (o.userData.hw || (!o.isMesh && !o.isLineSegments)) continue;
+      if (o.userData.hw) {   // fittings on a toned-down panel are toned down with it
+        o.traverse(m => { if (!m.isMesh) return; if (!m.userData.base) m.userData.base = m.material; m.material = mode === 'ghost' ? lookOf(m.userData.base, 'ghost') : m.userData.base; });
+        continue;
+      }
+      if (!o.isMesh && !o.isLineSegments) continue;
       if (!o.userData.base) o.userData.base = o.material;
       const base = o.userData.base;
       if (o.isLineSegments) { o.visible = mode !== 'ghost'; continue; }
@@ -536,7 +556,8 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
     const intro = st.intro && t < st.intro;
     for (const p of parts) {
       let mode = 'normal';
-      if (si > 0 && !active.has(p.id) && !(p.state.mode === 'group' && groupsActive.has(p.group))) mode = 'ghost';
+      // only loose panels that are not used in this step are toned down; anything already assembled stays solid
+      if (si > 0 && !active.has(p.id) && p.state.mode !== 'group') mode = 'ghost';
       if (xray && p.group === 'carcass') mode = 'ghost';
       if (intro && st.find.includes(p.id)) mode = 'hi';
       setLook(p, mode);
@@ -566,7 +587,7 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
           new THREE.Box3(new THREE.Vector3(-hs.x, hs.y - n.h, -hs.z), new THREE.Vector3(-n.w / 2, hs.y, hs.z)),
           new THREE.Box3(new THREE.Vector3(n.w / 2, hs.y - n.h, -hs.z), new THREE.Vector3(hs.x, hs.y, hs.z))];
       }
-      boxes.forEach((b, k) => out.push({ id: p.id, sub: k, name: `${p.num} ${p.name}`, kind: 'part', group: p.group, attached: p.state.mode === 'group', look: p._look || 'normal', ...obb(p.obj.matrixWorld, b) }));
+      boxes.forEach((b, k) => out.push({ id: p.id, sub: k, name: `${p.id} ${p.name}`, kind: 'part', group: p.group, attached: p.state.mode === 'group', look: p._look || 'normal', ...obb(p.obj.matrixWorld, b) }));
     }
     for (const h of hardware) {
       if (!h.obj.visible) continue;

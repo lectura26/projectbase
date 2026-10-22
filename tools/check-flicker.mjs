@@ -8,6 +8,8 @@ import { openGuide, arg } from './lib.mjs';
 
 const only = arg('steps', '') ? arg('steps').split(',').map(Number) : null;
 const out = arg('out', 'korup/review/flicker.json');
+import { rmSync } from 'node:fs';
+rmSync('korup/review/flicker', { recursive: true, force: true });   // no stale images from an earlier run
 mkdirSync('korup/review/flicker', { recursive: true });
 const { page, errors, close } = await openGuide({ width: 1100, height: 700 });
 const info = await page.evaluate(() => window.guide.stepInfo());

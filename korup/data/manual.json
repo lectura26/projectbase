@@ -733,11 +733,11 @@
           "12": 1
         },
         "onFace": {
-          "4": "+y",
+          "4": "-y",
           "5": "-y",
           "12": "-y"
         },
-        "source": "s. 14, trin 6 (B×3) – B på samme flade som N (s. 11/14); for liste 4 er fladen usikker"
+        "source": "s. 14, trin 6 (B×3) – B i undersiden af alle tre lister, samme flade som N (s. 11, 14, 15)"
       },
       {
         "step": 7,
@@ -748,11 +748,11 @@
           "12": 1
         },
         "onFace": {
-          "4": "+y",
+          "4": "-y",
           "5": "-y",
           "12": "-y"
         },
-        "source": "s. 15, trin 7 (B×3) – B på samme flade som N (s. 11/14); for liste 4 er fladen usikker"
+        "source": "s. 15, trin 7 (B×3) – B i undersiden af alle tre lister, samme flade som N (s. 11, 14, 15)"
       },
       {
         "step": 9,
@@ -824,10 +824,10 @@
         },
         "perInstance": true,
         "onFace": {
-          "8": "+x",
-          "9": "-x"
+          "8": "-x",
+          "9": "+x"
         },
-        "source": "s. 20, trin 15 (B×12)"
+        "source": "s. 20, trin 15 (B×12) – B sættes i udefra (s. 20)"
       },
       {
         "step": 17,
