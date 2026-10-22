@@ -220,7 +220,7 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
     G[gid].M.premultiply(new THREE.Matrix4().makeTranslation(0, floorY - min, 0));
   }
   // lowest panel point above the floor in each resting pose (glides / runners carry the rest)
-  const FLOOR = { lying: 0, upright: 3, wall: 3, away: 3, down: 0, flip: 0, up: 6.5 };   // up: the drawer runners' rollers reach 6 mm below the sides
+  const FLOOR = { lying: 0, upright: 3, wall: 3, away: 3, down: 0, flip: 0, up: 6 };   // up: the drawer runners' rollers reach ~4.5 mm below the sides; 1.5 mm margin keeps them above the floor while turning
 
   function reset() {
     for (const g of Object.values(G)) { g.M = groups[g.id].poses[groups[g.id].start].clone(); g.pose = groups[g.id].start; }

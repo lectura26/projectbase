@@ -50,7 +50,7 @@ export function buildKorup(manual) {
     groups['drawer' + i] = {
       poses: {
         down: mul(T(x, 13, 520), Rx(Math.PI / 2)),         // front face down (manual trin 13–17)
-        flip: mul(T(x, 226, 640), Rz(Math.PI)),            // upside down for the runners (trin 18)
+        flip: mul(T(x, 226, 640), Rx(-0.127), Rz(Math.PI)), // upside down for the runners (trin 18), tipped back until the box rests on the floor
         up: mul(T(x, 0, 640), Rx(-0.168)),                 // upright, resting on front edge + runners
         pre: mul(inPose, T(0, 0, 330)),
         in: inPose,
