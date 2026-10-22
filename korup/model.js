@@ -76,8 +76,9 @@ export function buildKorup(manual) {
   panel('2', 'carcass', [683, 287, 12], [-300, GLIDE, BACK_Z], [-INNER, TOP_Y, FRONT_Z], { frame: side2Frame });
   panel('3', 'carcass', [683, 287, 12], [INNER, GLIDE, BACK_Z], [300, TOP_Y, FRONT_Z], { frame: groups.carcass.poses.lying });
   const flatUp = (x, z) => ({ world: mul(T(x, 6, z), Rx(Math.PI)) });           // rail upside down (N side up)
-  panel('5', 'carcass', [575, 64, 12], [-287.5, RAIL_LOW_Y, FRONT_Z - 64], [287.5, RAIL_LOW_Y + 12, FRONT_Z], flatUp(900, 0));
-  panel('12', 'carcass', [575, 64, 12], [-287.5, RAIL_LOW_Y, -139], [287.5, RAIL_LOW_Y + 12, -75], flatUp(900, 200));
+  // 12 at the front (runner roller end), 5 at the back – as drawn on manual s. 14 (trin 6)
+  panel('5', 'carcass', [575, 64, 12], [-287.5, RAIL_LOW_Y, -139], [287.5, RAIL_LOW_Y + 12, -75], flatUp(900, 0));
+  panel('12', 'carcass', [575, 64, 12], [-287.5, RAIL_LOW_Y, FRONT_Z - 64], [287.5, RAIL_LOW_Y + 12, FRONT_Z], flatUp(900, 200));
   panel('4', 'carcass', [575, 64, 12], [-287.5, RAIL4_Y, FRONT_Z - 64], [287.5, RAIL4_Y + 12, FRONT_Z], flatUp(900, 400));
   // back: in the side grooves 8 mm from the back edge, 3 mm into the top's groove (estimeret)
   panel('6', 'carcass', [583, 670, 3], [-291.5, 19, -142], [291.5, 689, -139], { world: mul(T(-1200, 1.5, -300), Rx(-Math.PI / 2)) },
@@ -116,7 +117,7 @@ export function buildKorup(manual) {
   const ROLL_TO = (v) => ({ roll: v });
 
   // --- trin 1: A in sides, one per rail end (thread into the side, head toward the rail) ---
-  const RAILS = [{ id: '5', y: RAIL_LOW_Y + 6, z: FRONT_Z - 32 }, { id: '12', y: RAIL_LOW_Y + 6, z: -107 }, { id: '4', y: RAIL4_Y + 6, z: FRONT_Z - 32 }];
+  const RAILS = [{ id: '5', y: RAIL_LOW_Y + 6, z: -107 }, { id: '12', y: RAIL_LOW_Y + 6, z: FRONT_Z - 32 }, { id: '4', y: RAIL4_Y + 6, z: FRONT_Z - 32 }];
   const A_side = { '2': [], '3': [] };
   for (const r of RAILS) for (const s of [-1, 1]) {
     const side = s > 0 ? '3' : '2';
@@ -165,7 +166,7 @@ export function buildKorup(manual) {
   };
   for (const y of [200, 500]) { clip(V(-INNER, y, -146), V(-1, 0, 0), V(0, 0, 1)); clip(V(INNER, y, -146), V(1, 0, 0), V(0, 0, 1)); }
   for (const x of [-150, 150]) clip(V(x, TOP_Y, -146), V(0, 1, 0), V(0, 0, 1));
-  // bottom clips: on the back panel just above its lower edge, screw through the panel into rail 12
+  // bottom clips: on the back panel just above its lower edge, screw through the panel into rail 5
   for (const x of [-100, 100]) clip(V(x, RAIL_LOW_Y + 10.5, -142), V(0, 0, 1), V(0, 1, 0));
   // --- trin 12: wall plug + wall screw (not in the box), in world coordinates ---
   const tabFace = new THREE.Vector3(0, TOP_Y - 16, BACK_Z + 4).applyMatrix4(groups.carcass.poses.wall);   // through the hole in E's tab
