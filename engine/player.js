@@ -394,7 +394,7 @@ export function createPlayer({ scene, camera, controls, model, manual }) {
       if (!stepLabels[i]) { stepLabels[i] = makeLabel(L.text); stepLabels[i].scale.set(240, 52, 1); scene.add(stepLabels[i]); }
       stepLabels[i].userData.set(L.text);
       stepLabels[i].position.copy(L.at).applyMatrix4(G[L.group].M);
-      stepLabels[i].visible = p > 0.3;
+      stepLabels[i].visible = p > (L.minP ?? 0.3);
     });
   }
 

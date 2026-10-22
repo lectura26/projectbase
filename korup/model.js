@@ -280,7 +280,7 @@ export function buildKorup(manual) {
   S[20].view = V(-1, 0.5, 0.55);
   S[20].noPartTags = true;
   S[21].actions.push({ type: 'group', group: 'drawer2', to: 'open', dur: 1.4, straight: true });
-  S[21].labels = [{ text: 'Maks. 10 kg', group: 'carcass', at: V(0, TOP_Y + 40, 0) }, { text: 'Maks. 5 kg pr. skuffe', group: 'drawer2', at: V(0, FRONT_H + 70, -130) }];
+  S[21].labels = [{ text: 'Maks. 10 kg', group: 'carcass', at: V(-150, TOP_Y + 60, 0), minP: 0.3 }, { text: 'Maks. 5 kg pr. skuffe', group: 'drawer2', at: V(430, FRONT_H / 2, 40), minP: 0.95 }];
   S[21].focus = ['1', '2', '3', ...parts3(7, 8, 9, 10, 11)];
   S[21].view = V(-1, 0.45, 0.6);
   S[21].noPartTags = true;

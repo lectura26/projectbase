@@ -827,7 +827,13 @@
           "8": "-x",
           "9": "+x"
         },
-        "source": "s. 20, trin 15 (B×12) – B sættes i udefra (s. 20)"
+        "source": "s. 20, trin 15 (B×12) – B sættes i udefra (s. 20)",
+        "edge": {
+          "axis": "z",
+          "mm": 24,
+          "tol": 1.5,
+          "status": "aflæst: B sidder i den ende af siden, der vender mod fronten (s. 20); 24 mm er standard for excenterlåse og ikke målsat"
+        }
       },
       {
         "step": 17,
